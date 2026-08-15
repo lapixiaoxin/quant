@@ -33,7 +33,7 @@ class EastmoneyProvider:
             f"{url}?{query}",
             headers={
                 "Accept": "application/json",
-                "User-Agent": "Mozilla/5.0 QuantMonitor/0.3",
+                "User-Agent": "Mozilla/5.0 QuantMonitor/0.4",
             },
         )
         last_error: Exception | None = None
@@ -187,7 +187,7 @@ class TencentProvider:
             f"{self.kline_url}?{query}",
             headers={
                 "Accept": "application/json",
-                "User-Agent": "Mozilla/5.0 QuantMonitor/0.3",
+                "User-Agent": "Mozilla/5.0 QuantMonitor/0.4",
             },
         )
         last_error: Exception | None = None

@@ -4,21 +4,25 @@ from __future__ import annotations
 
 import argparse
 import os
-import shutil
+import subprocess
 import sys
 from pathlib import Path
 
+from ..application.automation import AutomationService
 from ..application.monitoring import MonitoringService
 from ..application.notifications import NotificationService
 from ..config import Settings, load_settings
 from ..domain.strategies import StrategyRegistry
+from ..infrastructure.lark_events import LarkCliEventSource, LarkCliReplier
 from ..infrastructure.market_data import DataSourceError, FallbackMarketDataProvider
 from ..infrastructure.notifications import (
     NotificationError,
     build_notification_channels,
 )
+from ..infrastructure.research_agent import TraeCliResearchRunner
 from ..infrastructure.storage import FileResearchRepository
 from .dashboard import write_dashboard
+from .remote import RemoteCommandRouter, listen_remote_commands
 from .reporting import build_base_report
 
 
@@ -89,6 +93,36 @@ def _parser() -> argparse.ArgumentParser:
         help="将基础日报发送到飞书",
     )
 
+    automate_parser = subparsers.add_parser(
+        "automate",
+        help="按配置执行无人值守研究与推送",
+    )
+    _add_target_options(automate_parser)
+    automate_parser.add_argument(
+        "--mode",
+        choices=("base", "traecli"),
+        help="覆盖配置中的自动化模式",
+    )
+    automate_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="即使 automation.enabled=false 也执行",
+    )
+    send_group = automate_parser.add_mutually_exclusive_group()
+    send_group.add_argument(
+        "--send",
+        dest="send",
+        action="store_true",
+        default=None,
+        help="覆盖配置并发送报告",
+    )
+    send_group.add_argument(
+        "--no-send",
+        dest="send",
+        action="store_false",
+        help="覆盖配置但不发送报告",
+    )
+
     send_parser = subparsers.add_parser(
         "send-report",
         help="发送已有 Markdown 报告",
@@ -117,6 +151,16 @@ def _parser() -> argparse.ArgumentParser:
         help="输出路径；默认为 data/dashboard/index.html",
     )
 
+    listen_parser = subparsers.add_parser(
+        "listen",
+        help="监听飞书白名单远程命令",
+    )
+    listen_parser.add_argument(
+        "--check",
+        action="store_true",
+        help="只检查配置和 lark-cli，不建立连接",
+    )
+
     subparsers.add_parser("instruments", help="列出已配置标的和策略")
     subparsers.add_parser("doctor", help="检查配置、扩展点与本地环境")
     return parser
@@ -135,6 +179,28 @@ def _build_service(
     )
 
 
+def _build_notification_service(settings: Settings) -> NotificationService:
+    return NotificationService(
+        settings,
+        build_notification_channels(settings),
+    )
+
+
+def _build_automation_service(
+    settings: Settings,
+    monitoring: MonitoringService,
+    repository: FileResearchRepository,
+) -> AutomationService:
+    return AutomationService(
+        settings=settings,
+        monitoring=monitoring,
+        repository=repository,
+        notifications=_build_notification_service(settings),
+        agent_runner=TraeCliResearchRunner(settings.root, settings.automation),
+        report_renderer=build_base_report,
+    )
+
+
 def _send_report(
     settings: Settings,
     path: Path,
@@ -144,10 +210,7 @@ def _send_report(
     force: bool = False,
 ) -> tuple[str, ...]:
     markdown = path.read_text(encoding="utf-8")
-    service = NotificationService(
-        settings,
-        build_notification_channels(settings),
-    )
+    service = _build_notification_service(settings)
     return service.send(
         symbol,
         event,
@@ -197,7 +260,21 @@ def _doctor(
     )
     print(f"通知通道：{channel_states or '未配置'}")
     print("TRAE Skill：正常")
-    print(f"TraeCode CLI：{shutil.which('traecli') or '未安装'}")
+    traecli = TraeCliResearchRunner(root, settings.automation)
+    print(
+        f"自动化：{'启用' if settings.automation.enabled else '停用'}"
+        f"（{settings.automation.mode}，"
+        f"{'发送' if settings.automation.send else '不发送'}）"
+    )
+    print(
+        "TraeCode CLI："
+        f"{'可用' if traecli.is_available() else '未安装或路径无效'}"
+    )
+    event_source = LarkCliEventSource(settings.remote)
+    print(
+        f"飞书远程命令：{'启用' if settings.remote.enabled else '停用'}"
+        f"（lark-cli {'可用' if event_source.is_available() else '不可用'}）"
+    )
 
 
 def main() -> int:
@@ -231,6 +308,70 @@ def main() -> int:
             print(write_dashboard(output, repository.list_latest_packets()))
             return 0
 
+        monitoring = _build_service(settings, repository, strategies)
+        automation = _build_automation_service(
+            settings,
+            monitoring,
+            repository,
+        )
+
+        if args.command == "automate":
+            if not settings.automation.enabled and not args.force:
+                raise ValueError(
+                    "自动化未启用；请配置 automation.enabled=true"
+                    " 或使用 --force"
+                )
+            for symbol in _symbols(args, settings):
+                result = automation.run(
+                    symbol,
+                    mode=args.mode,
+                    send=args.send,
+                )
+                fallback = "（已降级）" if result.fallback_used else ""
+                channels = (
+                    f"；通道：{', '.join(result.sent_channels)}"
+                    if result.sent_channels
+                    else ""
+                )
+                print(
+                    f"{symbol}：{result.mode}{fallback}；"
+                    f"报告：{result.report_path}{channels}"
+                )
+            print(
+                write_dashboard(
+                    settings.data_dir / "dashboard" / "index.html",
+                    repository.list_latest_packets(),
+                )
+            )
+            return 0
+
+        if args.command == "listen":
+            source = LarkCliEventSource(settings.remote)
+            if not settings.remote.enabled:
+                raise ValueError("飞书远程命令未启用")
+            if not source.is_available():
+                raise ValueError("未找到 lark-cli")
+            if args.check:
+                source.check()
+                print("飞书远程命令配置正常，lark-cli 可用")
+                return 0
+            router = RemoteCommandRouter(
+                settings,
+                monitoring,
+                automation,
+                repository,
+            )
+            try:
+                listen_remote_commands(
+                    settings,
+                    router,
+                    source,
+                    LarkCliReplier(settings.remote),
+                )
+            except KeyboardInterrupt:
+                source.close()
+            return 0
+
         if args.command == "send-report":
             path = args.path if args.path.is_absolute() else root / args.path
             symbol = _symbols(args, settings)[0]
@@ -245,17 +386,16 @@ def main() -> int:
             print(f"已发送：{path} -> {', '.join(channels)}")
             return 0
 
-        service = _build_service(settings, repository, strategies)
         for symbol in _symbols(args, settings):
             if args.command == "prepare":
-                path, _ = service.prepare(symbol)
+                path, _ = monitoring.prepare(symbol)
                 print(path)
                 continue
 
             if args.command == "base-report":
                 packet = repository.load_latest_packet(symbol)
             elif args.command == "daily":
-                _, packet = service.prepare(symbol)
+                _, packet = monitoring.prepare(symbol)
             else:
                 return 2
 
@@ -279,8 +419,10 @@ def main() -> int:
         DataSourceError,
         NotificationError,
         FileNotFoundError,
+        RuntimeError,
         ValueError,
         OSError,
+        subprocess.SubprocessError,
     ) as error:
         print(f"错误：{error}", file=sys.stderr)
         return 1

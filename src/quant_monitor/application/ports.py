@@ -43,3 +43,13 @@ class NotificationChannel(Protocol):
 
     def send(self, title: str, markdown: str) -> None:
         """发送一份 Markdown 报告。"""
+
+
+class ResearchAgentRunner(Protocol):
+    """可无头运行的外部研究代理。"""
+
+    def is_available(self) -> bool:
+        """目标设备是否已具备运行条件。"""
+
+    def run(self, symbol: str, *, send: bool) -> Path:
+        """运行一个标的的完整研究命令并返回报告路径。"""

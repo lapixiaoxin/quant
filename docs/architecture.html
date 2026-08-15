@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>架构设计 · Quant Monitor</title>
+  <link rel="stylesheet" href="assets/docs.css?v=0.4.0">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="index.html">Quant Monitor</a>
+      <nav class="site-nav" aria-label="主导航">
+        <a href="index.html">总览</a>
+        <a href="install.html">安装</a>
+        <a href="capabilities.html">能力</a>
+        <a href="operations.html">运维</a>
+        <a href="architecture.html" aria-current="page">架构</a>
+        <a href="refactor-report.html">升级报告</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Modular Monolith</p>
+        <h1>依赖向内，行为按画像组合</h1>
+        <p class="hero-copy">
+          领域模型和确定性策略不认识文件、HTTP、飞书或 Agent。
+          外部入口只调用应用用例，配置负责表达产品共性与标的差异。
+        </p>
+      </div>
+      <aside class="hero-meta">
+        <dl>
+          <div><dt>领域内核</dt><dd>纯计算</dd></div>
+          <div><dt>应用层</dt><dd>用例编排</dd></div>
+          <div><dt>外层</dt><dd>适配器与入口</dd></div>
+        </dl>
+      </aside>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="section-label">依赖方向</p>
+        <div>
+          <h2>运行链路</h2>
+          <p class="section-intro">定时任务、飞书命令和本地 CLI 复用同一应用服务。</p>
+        </div>
+      </div>
+      <div class="diagram" aria-label="模块化单体架构图">
+        <article class="diagram-node gold">
+          <small>触发</small>
+          <strong>CLI / launchd / 飞书</strong>
+          <p>认证、参数和展示。</p>
+        </article>
+        <div class="diagram-arrow" aria-hidden="true">→</div>
+        <article class="diagram-node">
+          <small>交互层</small>
+          <strong>interfaces</strong>
+          <p>组合用例与适配器。</p>
+        </article>
+        <div class="diagram-arrow" aria-hidden="true">→</div>
+        <article class="diagram-node">
+          <small>应用层</small>
+          <strong>application</strong>
+          <p>监控、自动化、通知。</p>
+        </article>
+        <div class="diagram-arrow" aria-hidden="true">→</div>
+        <article class="diagram-node green">
+          <small>领域层</small>
+          <strong>domain</strong>
+          <p>标的、指标、策略。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="section-label">行为配置</p>
+        <div><h2>产品共性与标的个性</h2></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>配置层</th><th>回答的问题</th><th>复用方式</th></tr></thead>
+          <tbody>
+            <tr><td><code>product_types</code></td><td>这类产品默认怎么分析和通知？</td><td>ETF、股票、指数类别共享。</td></tr>
+            <tr><td><code>strategy_profiles</code></td><td>使用哪个算法和哪些业务阈值？</td><td>同一算法可有多套参数。</td></tr>
+            <tr><td><code>research_profiles</code></td><td>Agent 应了解什么、按什么来源查？</td><td>多个标的共享研究模板。</td></tr>
+            <tr><td><code>notification_policies</code></td><td>什么事件发到哪些通道？</td><td>事件路由与发送机制分离。</td></tr>
+            <tr><td><code>instruments</code></td><td>这个具体标的有哪些差异？</td><td>只覆盖差异并追加关注点。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="section-label">无人值守</p>
+        <div><h2>两级自动分析</h2></div>
+      </div>
+      <div class="capability-grid">
+        <article class="capability">
+          <div class="capability-head"><h3>Base 模式</h3><span class="status ok">确定性</span></div>
+          <p>本地采集、指标、策略、基础报告、通知和看板，不依赖 LLM。</p>
+        </article>
+        <article class="capability">
+          <div class="capability-head"><h3>TraeCode CLI 模式</h3><span class="status conditional">外部依赖</span></div>
+          <p>非交互调用项目命令，执行联网研究与个性化报告。</p>
+        </article>
+        <article class="capability">
+          <div class="capability-head"><h3>降级边界</h3><span class="status ok">防重复</span></div>
+          <p>仅在找不到 Agent 时降级；Agent 已启动后失败不会再次推送基础报告。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="section-label">飞书远程</p>
+        <div><h2>长连接与命令白名单</h2></div>
+      </div>
+      <div class="diagram" aria-label="飞书远程命令流">
+        <article class="diagram-node gold">
+          <small>飞书</small>
+          <strong>文本消息</strong>
+          <p>发送人和群聊身份。</p>
+        </article>
+        <div class="diagram-arrow" aria-hidden="true">→</div>
+        <article class="diagram-node">
+          <small>基础设施</small>
+          <strong>lark-cli WebSocket</strong>
+          <p>只读事件订阅。</p>
+        </article>
+        <div class="diagram-arrow" aria-hidden="true">→</div>
+        <article class="diagram-node">
+          <small>交互层</small>
+          <strong>固定命令路由</strong>
+          <p>白名单和参数校验。</p>
+        </article>
+        <div class="diagram-arrow" aria-hidden="true">→</div>
+        <article class="diagram-node green">
+          <small>应用层</small>
+          <strong>AutomationService</strong>
+          <p>分析、报告和通知。</p>
+        </article>
+      </div>
+      <div class="notice">
+        完整架构决策、schema v3 和扩展触发条件见
+        <a href="architecture.md">architecture.md</a>。
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>模块化单体优先</span>
+      <span>领域层不依赖外部系统</span>
+    </div>
+  </footer>
+</body>
+</html>

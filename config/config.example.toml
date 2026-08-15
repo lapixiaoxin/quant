@@ -53,7 +53,7 @@ instructions = [
 [notification_policies.daily_research]
 enabled = true
 channels = ["feishu_primary"]
-events = ["manual", "base_report", "agent_report"]
+events = ["manual", "base_report", "agent_report", "scheduled_report"]
 title_template = "{symbol} {name} 研究简报"
 
 [notification_policies.silent]
@@ -72,8 +72,27 @@ app_secret_env = "FEISHU_APP_SECRET"
 receive_id_env = "FEISHU_RECEIVE_ID"
 receive_id = ""
 receive_id_type = "chat_id"
-keychain_service = "etf-monitor.feishu-app-secret"
+keychain_service = "quant-monitor.feishu-app-secret"
 webhook_env = "FEISHU_WEBHOOK_URL"
+
+# 定时任务默认关闭。traecli 模式执行完整联网研究；不可用时可降级基础分析。
+[automation]
+enabled = false
+mode = "traecli"
+send = true
+fallback_to_base = true
+traecli_path = "traecli"
+query_timeout_seconds = 900
+allowed_tools = ["Bash", "Read", "Write", "WebSearch"]
+
+# 飞书长连接命令默认关闭。启用时至少配置一个发送人或群聊白名单。
+[remote]
+enabled = false
+prefix = "/quant"
+allowed_sender_ids = []
+allowed_chat_ids = []
+allowed_channel_targets = []
+lark_cli_path = "lark-cli"
 
 [[instruments]]
 symbol = "515100"

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
@@ -114,6 +115,37 @@ class NotificationPolicyConfig:
 
 
 @dataclass(frozen=True)
+class AutomationConfig:
+    """无人值守研究任务配置。"""
+
+    enabled: bool
+    mode: str
+    send: bool
+    fallback_to_base: bool
+    traecli_path: str
+    query_timeout_seconds: int
+    allowed_tools: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class RemoteConfig:
+    """飞书长连接命令入口配置。"""
+
+    enabled: bool
+    prefix: str
+    allowed_sender_ids: tuple[str, ...]
+    allowed_chat_ids: tuple[str, ...]
+    allowed_channel_targets: tuple[str, ...]
+    lark_cli_path: str
+
+    def is_allowed(self, sender_id: str, chat_id: str) -> bool:
+        return (
+            sender_id in self.allowed_sender_ids
+            or chat_id in self.allowed_chat_ids
+        )
+
+
+@dataclass(frozen=True)
 class Settings:
     """经过继承解析和交叉引用校验的运行配置。"""
 
@@ -125,6 +157,8 @@ class Settings:
     research_profiles: dict[str, ResearchProfileConfig]
     notification_policies: dict[str, NotificationPolicyConfig]
     notification_channels: dict[str, NotificationChannelConfig]
+    automation: AutomationConfig
+    remote: RemoteConfig
     instruments: tuple[Instrument, ...]
 
     @property
@@ -361,6 +395,104 @@ def _load_notification_policies(
     return result
 
 
+def _load_automation(raw: dict[str, Any]) -> AutomationConfig:
+    values = raw.get("automation", {})
+    mode = str(values.get("mode", "base")).strip().lower()
+    if mode not in {"base", "traecli"}:
+        raise ValueError("automation.mode 仅支持 base 或 traecli")
+    timeout = int(values.get("query_timeout_seconds", 900))
+    if timeout <= 0:
+        raise ValueError("automation.query_timeout_seconds 必须大于 0")
+    return AutomationConfig(
+        enabled=bool(values.get("enabled", False)),
+        mode=mode,
+        send=bool(values.get("send", False)),
+        fallback_to_base=bool(values.get("fallback_to_base", True)),
+        traecli_path=str(values.get("traecli_path", "traecli")).strip()
+        or "traecli",
+        query_timeout_seconds=timeout,
+        allowed_tools=_strings(
+            values.get(
+                "allowed_tools",
+                ["Bash", "Read", "Write", "WebSearch"],
+            ),
+            "automation.allowed_tools",
+        ),
+    )
+
+
+def _load_remote(
+    raw: dict[str, Any],
+    channels: dict[str, NotificationChannelConfig],
+) -> RemoteConfig:
+    values = raw.get("remote", {})
+    prefix = str(values.get("prefix", "/quant")).strip()
+    if not prefix or any(character.isspace() for character in prefix):
+        raise ValueError("remote.prefix 必须是无空格的非空字符串")
+    channel_targets = _strings(
+        values.get("allowed_channel_targets", []),
+        "remote.allowed_channel_targets",
+        allow_empty=True,
+    )
+    resolved_chat_ids: list[str] = list(
+        _strings(
+            values.get("allowed_chat_ids", []),
+            "remote.allowed_chat_ids",
+            allow_empty=True,
+        )
+    )
+    for channel_id in channel_targets:
+        try:
+            channel = channels[channel_id]
+        except KeyError as error:
+            raise ValueError(
+                f"remote 引用了不存在的通知通道 {channel_id}"
+            ) from error
+        if channel.channel_type != "feishu":
+            raise ValueError(
+                f"remote 只能从飞书通道继承 chat_id：{channel_id}"
+            )
+        receive_id_type = str(
+            channel.options.get("receive_id_type", "chat_id")
+        )
+        if receive_id_type != "chat_id":
+            raise ValueError(
+                f"通道 {channel_id} 的 receive_id_type 不是 chat_id"
+            )
+        receive_id = str(channel.options.get("receive_id", "")).strip()
+        if not receive_id:
+            env_name = str(
+                channel.options.get("receive_id_env", "FEISHU_RECEIVE_ID")
+            )
+            receive_id = os.environ.get(env_name, "").strip()
+        if not receive_id:
+            raise ValueError(f"通道 {channel_id} 未配置可继承的 chat_id")
+        resolved_chat_ids.append(receive_id)
+
+    config = RemoteConfig(
+        enabled=bool(values.get("enabled", False)),
+        prefix=prefix,
+        allowed_sender_ids=_strings(
+            values.get("allowed_sender_ids", []),
+            "remote.allowed_sender_ids",
+            allow_empty=True,
+        ),
+        allowed_chat_ids=_unique(tuple(resolved_chat_ids)),
+        allowed_channel_targets=channel_targets,
+        lark_cli_path=str(values.get("lark_cli_path", "lark-cli")).strip()
+        or "lark-cli",
+    )
+    if (
+        config.enabled
+        and not config.allowed_sender_ids
+        and not config.allowed_chat_ids
+    ):
+        raise ValueError(
+            "启用 remote 时必须配置 allowed_sender_ids 或 allowed_chat_ids"
+        )
+    return config
+
+
 def _load_instruments(
     raw: dict[str, Any],
     product_types: dict[InstrumentType, ProductTypeConfig],
@@ -487,6 +619,8 @@ def load_settings(root: Path, config_path: Path | None = None) -> Settings:
     research_profiles = _load_research_profiles(raw)
     notification_channels = _load_notification_channels(raw)
     notification_policies = _load_notification_policies(raw)
+    automation = _load_automation(raw)
+    remote = _load_remote(raw, notification_channels)
     instruments = _load_instruments(raw, product_types)
     settings = Settings(
         root=root.resolve(),
@@ -497,6 +631,8 @@ def load_settings(root: Path, config_path: Path | None = None) -> Settings:
         research_profiles=research_profiles,
         notification_policies=notification_policies,
         notification_channels=notification_channels,
+        automation=automation,
+        remote=remote,
         instruments=instruments,
     )
     _validate_references(settings)

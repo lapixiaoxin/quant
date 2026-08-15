@@ -34,6 +34,23 @@
       color: #fff;
       border-bottom: 5px solid #d4a437;
     }
+    .report-nav {
+      width: min(1160px, calc(100% - 36px));
+      margin: 0 auto;
+      display: flex;
+      gap: 20px;
+      overflow-x: auto;
+      border-bottom: 1px solid #455049;
+    }
+    .report-nav a {
+      padding: 17px 0 14px;
+      color: #cfd7d1;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .report-nav a:last-child { color: #fff; border-bottom: 3px solid #d4a437; }
     .masthead-inner,
     main,
     .footer-inner {
@@ -376,6 +393,14 @@
 </head>
 <body>
   <header class="masthead">
+    <nav class="report-nav" aria-label="文档中心导航">
+      <a href="index.html">总览</a>
+      <a href="install.html">安装</a>
+      <a href="capabilities.html">能力</a>
+      <a href="operations.html">运维</a>
+      <a href="architecture.html">架构</a>
+      <a href="refactor-report.html">升级报告</a>
+    </nav>
     <div class="masthead-inner">
       <div>
         <p class="kicker">Engineering Evolution Report</p>
@@ -387,7 +412,7 @@
         </p>
       </div>
       <div class="release">
-        <div><span>版本</span><strong>0.3.0</strong></div>
+        <div><span>版本</span><strong>0.4.0</strong></div>
         <div><span>完成日期</span><strong>2026-08-15</strong></div>
       </div>
     </div>
@@ -415,17 +440,17 @@
         </div>
       </div>
       <div class="stats">
-        <div class="stat"><strong>20 / 20</strong><span>自动化测试通过</span></div>
+        <div class="stat"><strong>35 / 35</strong><span>自动化测试通过</span></div>
         <div class="stat"><strong>4 层</strong><span>可复用行为配置</span></div>
-        <div class="stat"><strong>7</strong><span>可直接使用的 CLI 命令</span></div>
+        <div class="stat"><strong>9</strong><span>可直接使用的 CLI 命令</span></div>
         <div class="stat"><strong>v3</strong><span>结构化研究数据契约</span></div>
       </div>
       <div class="callout">
         <strong>真实验收结果：</strong>
         515100 在非交易日正确使用最近交易日 2026-08-14；
         东方财富异常后自动降级到腾讯行情，取得 500 根日线，完成多策略评估、
-        个性研究计划、通知计划、Markdown 报告和静态看板，
-        全程未发送交易指令或飞书消息。
+        个性研究计划、通知计划、Markdown 报告和静态看板；定时服务完成
+        基础降级并向飞书发送测试简报，远程长连接服务保持运行。
       </div>
     </section>
 
@@ -606,8 +631,8 @@
           <dl class="facts">
             <div><dt>命令</dt><dd><code>./scripts/check.sh</code></dd></div>
             <div><dt>语法编译</dt><dd>通过</dd></div>
-            <div><dt>自动化测试</dt><dd>20 项全部通过</dd></div>
-            <div><dt>覆盖范围</dt><dd>继承、覆盖、策略、路由、schema、UI</dd></div>
+            <div><dt>自动化测试</dt><dd>35 项全部通过</dd></div>
+            <div><dt>覆盖范围</dt><dd>配置、策略、自动化、飞书事件、schema、UI</dd></div>
             <div><dt>Ruff 静态检查</dt><dd>全部通过</dd></div>
           </dl>
         </div>
@@ -624,7 +649,8 @@
       </div>
       <div class="note">
         运行日期为周六，数据包中的最近行情交易日为前一交易日，属于预期行为。
-        本次仅验证研究链路，没有使用 <code>--send-base</code>，因此不会向飞书发送消息。
+        当前设备尚未安装 TraeCode CLI，因此定时任务按配置降级为基础分析；
+        测试简报已通过 <code>feishu_primary</code> 成功发送。
       </div>
     </section>
 
@@ -681,7 +707,7 @@
 
   <footer class="page-footer">
     <div class="footer-inner">
-      <span>Quant Monitor 0.3.0</span>
+      <span>Quant Monitor 0.4.0</span>
       <span>研究与监控工具，不构成投资建议或自动交易指令。</span>
     </div>
   </footer>

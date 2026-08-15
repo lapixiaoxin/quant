@@ -6,13 +6,13 @@
 
 ```mermaid
 flowchart LR
-    T[launchd / CLI / 远程命令] --> I[interfaces 交互入口]
+    T[launchd / CLI / 飞书命令] --> I[interfaces 交互入口]
     I --> A[application 用例编排]
     A --> D[domain 领域模型与策略]
     M[行情源] --> X[infrastructure 适配器]
     X --> A
     A --> F[文件仓储]
-    A --> N[通知路由]
+    A --> N[自动化与通知路由]
     F --> P[data/latest schema v3]
     P --> R[TRAE / TraeCode CLI]
     R --> O[个性化研究报告]
@@ -104,6 +104,38 @@ sequenceDiagram
     end
 ```
 
+## 无人值守自动化
+
+`AutomationService` 提供两个运行模式：
+
+- `base`：直接调用 `MonitoringService`、基础报告渲染和通知服务。
+- `traecli`：使用 TraeCode CLI 官方非交互 `-p` 模式执行项目命令
+  `/instrument-daily <symbol> [push]`。
+
+当 `traecli` 二进制不存在且 `fallback_to_base = true` 时，任务降级为
+`base`。如果 Agent 已经启动但返回失败，不再自动发送基础报告，避免一次任务产生重复消息。
+
+工作日 LaunchAgent 调用 `./quant automate --all`。执行时间读取
+`app.report_time`，是否发送由 `[automation]` 决定。
+
+macOS 服务不直接运行 Documents 等受隐私保护目录内的开发仓库。安装脚本会将
+最小运行副本和 `0600` 本机配置同步到 `~/.local/share/quant-monitor`，
+LaunchAgent 只访问该目录；重新安装负责同步新版本，运行数据继续保留。
+
+## 飞书远程命令
+
+远程入口使用 `lark-cli event +subscribe` 建立 Bot WebSocket 长连接，只订阅
+`im.message.receive_v1`。交互层依次执行：
+
+1. 消息去重。
+2. 发送人或群聊白名单校验。
+3. 命令前缀与固定参数校验。
+4. 调用监控或自动化应用服务。
+5. 通过 lark-cli 回复原消息。
+
+支持的命令固定为 `status`、`analyze`、`base`、`prepare`、
+`dashboard` 和 `help`。远程文本不会进入 Shell。
+
 ## schema v3 数据契约
 
 ```text
@@ -139,7 +171,8 @@ data_quality       来源、样本量、时间戳和限制
 | 研究 | schema 驱动的通用 Skill | 新增研究画像或专用 Skill |
 | 通知 | 事件策略 + 飞书通道 | 实现 `NotificationChannel` |
 | 存储 | 原子文件仓储 | 实现仓储协议 |
-| 入口 | CLI、launchd、TRAE | 调用应用用例，禁止复制业务 |
+| Agent | TraeCode CLI 非交互模式 | 实现 `ResearchAgentRunner` |
+| 入口 | CLI、launchd、TRAE、飞书 | 调用应用用例，禁止复制业务 |
 
 ## 技术决策
 

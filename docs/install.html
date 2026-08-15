@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>安装部署 · Quant Monitor</title>
+  <link rel="stylesheet" href="assets/docs.css?v=0.4.0">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="index.html">Quant Monitor</a>
+      <nav class="site-nav" aria-label="主导航">
+        <a href="index.html">总览</a>
+        <a href="install.html" aria-current="page">安装</a>
+        <a href="capabilities.html">能力</a>
+        <a href="operations.html">运维</a>
+        <a href="architecture.html">架构</a>
+        <a href="refactor-report.html">升级报告</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Deployment</p>
+        <h1>新设备自动化部署</h1>
+        <p class="hero-copy">
+          以 macOS 为目标，完成项目安装、飞书出站、定时 Agent 研究和白名单远程命令。
+          后台运行副本位于 <code>~/.local/share/quant-monitor</code>；
+          需要人工参与的环节只有账号登录、飞书后台授权和白名单确认。
+        </p>
+      </div>
+      <aside class="hero-meta">
+        <dl>
+          <div><dt>基础运行</dt><dd><span class="status ok">自动完成</span></dd></div>
+          <div><dt>Agent 登录</dt><dd><span class="status conditional">一次人工授权</span></dd></div>
+          <div><dt>飞书后台</dt><dd><span class="status conditional">一次人工配置</span></dd></div>
+        </dl>
+      </aside>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="section-label">部署步骤</p>
+        <div>
+          <h2>从空设备到常驻服务</h2>
+          <p class="section-intro">详细命令和故障处理以根目录 <a href="../install.md">install.md</a> 为准。</p>
+        </div>
+      </div>
+      <ol class="steps">
+        <li>
+          <h3>克隆并运行引导脚本</h3>
+          <pre><code>git clone git@github.com:lapixiaoxin/quant.git "$HOME/Quant"
+cd "$HOME/Quant"
+./scripts/bootstrap_macos.sh --with-traecli --with-lark-cli</code></pre>
+        </li>
+        <li>
+          <h3>配置飞书出站与本机钥匙串</h3>
+          <p>在本机配置中设置 App ID 和接收目标；App Secret 存入 Keychain，不进入仓库。</p>
+        </li>
+        <li>
+          <h3>登录 TraeCode CLI</h3>
+          <pre><code>cd "$HOME/Quant"
+traecli</code></pre>
+          <p>首次交互会打开账号授权。后续定时任务使用非交互 <code>-p</code> 模式。</p>
+        </li>
+        <li>
+          <h3>配置飞书长连接</h3>
+          <pre><code>lark-cli config init --new</code></pre>
+          <p>飞书后台选择长连接，订阅 <code>im.message.receive_v1</code>，并开通机器人收信与发送权限。</p>
+        </li>
+        <li>
+          <h3>确认发送人或群聊白名单</h3>
+          <p>先监听一条测试消息，获取 <code>sender_id</code> 或 <code>chat_id</code>，再启用 <code>[remote]</code>。</p>
+        </li>
+        <li>
+          <h3>重装服务并验收</h3>
+          <pre><code>./scripts/install_macos.sh
+./scripts/check.sh
+./quant doctor
+./quant automate --all --no-send
+./scripts/service.sh status</code></pre>
+        </li>
+      </ol>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="section-label">服务</p>
+        <div>
+          <h2>安装脚本按配置决定启动内容</h2>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>LaunchAgent</th><th>触发方式</th><th>安装条件</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>com.local.quant-monitor.daily</code></td>
+              <td>工作日按 <code>app.report_time</code></td>
+              <td><code>automation.enabled=true</code></td>
+            </tr>
+            <tr>
+              <td><code>com.local.quant-monitor.remote</code></td>
+              <td>登录后常驻并自动重连</td>
+              <td>远程启用、白名单完整、lark-cli dry-run 通过</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="section-label">安全</p>
+        <div>
+          <h2>不会被自动化绕过的边界</h2>
+        </div>
+      </div>
+      <div class="capability-grid">
+        <article class="capability">
+          <div class="capability-head"><h3>本机配置</h3><span class="status ok">隔离</span></div>
+          <p><code>config/config.toml</code> 被 Git 忽略，安装更新不会覆盖。</p>
+        </article>
+        <article class="capability">
+          <div class="capability-head"><h3>应用密钥</h3><span class="status ok">钥匙串</span></div>
+          <p>LaunchAgent 不依赖临时 shell 环境，推荐从 macOS Keychain 读取。</p>
+        </article>
+        <article class="capability">
+          <div class="capability-head"><h3>远程执行</h3><span class="status ok">白名单</span></div>
+          <p>只识别固定命令和已配置标的，不提供任意 Shell。</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span><a href="../install.md">打开 Agent 安装原文</a></span>
+      <span>部署前先使用 <code>--no-send</code> 验证。</span>
+    </div>
+  </footer>
+</body>
+</html>

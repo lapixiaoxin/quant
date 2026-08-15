@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>当前能力 · Quant Monitor</title>
+  <link rel="stylesheet" href="assets/docs.css?v=0.4.0">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="index.html">Quant Monitor</a>
+      <nav class="site-nav" aria-label="主导航">
+        <a href="index.html">总览</a>
+        <a href="install.html">安装</a>
+        <a href="capabilities.html" aria-current="page">能力</a>
+        <a href="operations.html">运维</a>
+        <a href="architecture.html">架构</a>
+        <a href="refactor-report.html">升级报告</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Capability Matrix</p>
+        <h1>当前交付能力与真实边界</h1>
+        <p class="hero-copy">
+          “已支持”代表代码可直接使用；“条件支持”代表仍需外部工具、账号权限或本机配置；
+          “未支持”不以未来规划冒充现有能力。
+        </p>
+      </div>
+      <aside class="hero-meta">
+        <dl>
+          <div><dt>基础研究链路</dt><dd><span class="status ok">已支持</span></dd></div>
+          <div><dt>完整 Agent 自动化</dt><dd><span class="status conditional">条件支持</span></dd></div>
+          <div><dt>自动交易</dt><dd><span class="status no">不支持</span></dd></div>
+        </dl>
+      </aside>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="section-label">研究</p>
+        <div><h2>行情、策略与报告</h2></div>
+      </div>
+      <div class="capability-grid">
+        <article class="capability">
+          <div class="capability-head"><h3>ETF 行情与指标</h3><span class="status ok">已支持</span></div>
+          <p>双公开源降级，计算收益、均线、回撤、波动率和流动性。</p>
+        </article>
+        <article class="capability">
+          <div class="capability-head"><h3>产品与标的画像</h3><span class="status ok">已支持</span></div>
+          <p>产品默认、策略参数、研究重点和通知规则均可按标的覆盖。</p>
+        </article>
+        <article class="capability">
+          <div class="capability-head"><h3>确定性基础报告</h3><span class="status ok">已支持</span></div>
+          <p>不依赖大模型，适合作为每日可靠基线和 Agent 降级结果。</p>
+        </article>
+        <article class="capability">
+          <div class="capability-head"><h3>联网个性研究</h3><span class="status conditional">条件支持</span></div>
+          <p>需要 TraeCode CLI 已安装并登录，按 schema v3 研究计划执行。</p>
+        </article>
+        <article class="capability">
+          <div class="capability-head"><h3>股票和指数专属策略</h3><span class="status no">未支持</span></div>
+          <p>领域模型已预留，尚未交付经过验证的专属策略。</p>
+        </article>
+        <article class="capability">
+          <div class="capability-head"><h3>策略回测</h3><span class="status no">未支持</span></div>
+          <p>当前没有参数优化、样本外评估和发布冻结框架。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="section-label">自动化</p>
+        <div><h2>定时任务与飞书</h2></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>能力</th><th>状态</th><th>条件与说明</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>工作日定时基础分析并推送</td>
+              <td><span class="status conditional">条件支持</span></td>
+              <td>启用 automation 和通知通道；无需 Agent。</td>
+            </tr>
+            <tr>
+              <td>工作日定时完整 Agent 研究</td>
+              <td><span class="status conditional">条件支持</span></td>
+              <td>还需 TraeCode CLI 已安装、登录并可非交互运行。</td>
+            </tr>
+            <tr>
+              <td>飞书出站报告</td>
+              <td><span class="status conditional">条件支持</span></td>
+              <td>需要飞书应用权限、密钥和接收目标。</td>
+            </tr>
+            <tr>
+              <td>飞书入站固定命令</td>
+              <td><span class="status conditional">条件支持</span></td>
+              <td>需要 lark-cli、长连接事件权限和白名单。</td>
+            </tr>
+            <tr>
+              <td>飞书任意自然语言 Agent</td>
+              <td><span class="status no">未支持</span></td>
+              <td>当前只接受固定命令，避免扩大远程执行面。</td>
+            </tr>
+            <tr>
+              <td>自动交易</td>
+              <td><span class="status no">未支持</span></td>
+              <td>项目明确不提供券商下单或收益承诺。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="section-label">数据与界面</p>
+        <div><h2>可追溯产物</h2></div>
+      </div>
+      <div class="capability-grid">
+        <article class="capability">
+          <div class="capability-head"><h3>schema v3</h3><span class="status ok">已支持</span></div>
+          <p>包含策略评估、研究计划、通知计划、持仓上下文和质量信息。</p>
+        </article>
+        <article class="capability">
+          <div class="capability-head"><h3>时间快照</h3><span class="status ok">已支持</span></div>
+          <p>每次采集保留日期与时刻，最新结果另行覆盖。</p>
+        </article>
+        <article class="capability">
+          <div class="capability-head"><h3>静态看板</h3><span class="status ok">已支持</span></div>
+          <p>无需 Web 服务，展示最新策略判断和个性关注项。</p>
+        </article>
+        <article class="capability">
+          <div class="capability-head"><h3>历史交互图表</h3><span class="status no">未支持</span></div>
+          <p>尚未引入数据库、历史聚合和图表交互层。</p>
+        </article>
+        <article class="capability">
+          <div class="capability-head"><h3>外网 Web 服务</h3><span class="status no">未支持</span></div>
+          <p>当前页面均为本机静态文件，没有认证后的远程访问。</p>
+        </article>
+        <article class="capability">
+          <div class="capability-head"><h3>一站式文档</h3><span class="status ok">已支持</span></div>
+          <p>部署、能力、运维、架构和升级记录分页面维护。</p>
+        </article>
+      </div>
+      <div class="notice">
+        完整能力原文与后续建设清单见 <a href="../capabilities.md">capabilities.md</a>。
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>能力说明以当前代码和测试为准</span>
+      <span><a href="operations.html">查看运行命令</a></span>
+    </div>
+  </footer>
+</body>
+</html>

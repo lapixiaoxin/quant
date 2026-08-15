@@ -10,9 +10,16 @@
 - 东方财富行情采集，失败后自动降级腾讯。
 - JSON 快照、Markdown 基础报告、飞书路由和静态本地看板。
 - schema v3 将最终研究与通知计划交给 TRAE，避免代理入口硬编码 ETF。
+- TraeCode CLI 非交互定时研究，并在 CLI 不可用时按配置降级。
+- 基于 lark-cli WebSocket 的飞书白名单远程命令。
 
 详细约束见 [AGENTS.md](AGENTS.md)，技术设计见
 [docs/architecture.md](docs/architecture.md)。
+
+一站式文档入口：[docs/index.html](docs/index.html)。
+
+- 新设备部署：[install.md](install.md)
+- 当前能力与边界：[capabilities.md](capabilities.md)
 
 ## 配置模型
 
@@ -56,7 +63,7 @@ max_sources = 6
 [notification_policies.daily_research]
 enabled = true
 channels = ["feishu_primary"]
-events = ["manual", "base_report", "agent_report"]
+events = ["manual", "base_report", "agent_report", "scheduled_report"]
 title_template = "{symbol} {name} 研究简报"
 
 [notification_channels.feishu_primary]
@@ -65,6 +72,19 @@ enabled = false
 mode = "app"
 app_secret_env = "FEISHU_APP_SECRET"
 receive_id_env = "FEISHU_RECEIVE_ID"
+
+[automation]
+enabled = false
+mode = "traecli"
+send = true
+fallback_to_base = true
+
+[remote]
+enabled = false
+prefix = "/quant"
+allowed_sender_ids = []
+allowed_chat_ids = []
+allowed_channel_targets = []
 
 [[instruments]]
 symbol = "515100"
@@ -88,8 +108,10 @@ chmod +x quant scripts/*.sh
 ./scripts/install_macos.sh
 ```
 
-安装脚本创建 `.venv`、开发检查工具、本机配置和工作日 14:00 的
-`launchd` 任务。敏感值仅通过环境变量或 macOS 钥匙串提供：
+安装脚本把最小运行副本部署到 `~/.local/share/quant-monitor`，在该目录
+创建 `.venv`、同步本机配置，并注册工作日 `launchd` 任务。独立运行目录可
+避开 macOS 对 Documents 等目录的后台访问限制。敏感值仅通过本机配置、
+环境变量或 macOS 钥匙串提供：
 
 ```bash
 export FEISHU_APP_SECRET="<app-secret>"
@@ -104,8 +126,10 @@ export FEISHU_RECEIVE_ID="<群聊 chat_id>"
 ./quant prepare --symbol 515100
 ./quant daily --symbol 515100
 ./quant daily --all
+./quant automate --all --no-send
 ./quant base-report --symbol 515100
 ./quant dashboard
+./quant listen --check
 ./quant send-report data/reports/YYYY-MM-DD/515100-research.md \
   --symbol 515100 \
   --event agent_report
@@ -113,13 +137,19 @@ export FEISHU_RECEIVE_ID="<群聊 chat_id>"
 
 发送命令不会直接选择飞书，而是按该标的的通知策略校验事件并路由通道。
 
+`automate` 有两种模式：
+
+- `base`：无需大模型的确定性基础分析。
+- `traecli`：非交互执行 `/instrument-daily` 完成联网研究；CLI 不可用时可降级为 `base`。
+
 定时任务管理：
 
 ```bash
 ./scripts/service.sh status
-./scripts/service.sh run-now
-./scripts/service.sh stop
-./scripts/service.sh start
+./scripts/service.sh run-now daily
+./scripts/service.sh restart remote
+./scripts/service.sh stop all
+./scripts/service.sh start all
 ```
 
 质量检查：
@@ -146,6 +176,22 @@ export FEISHU_RECEIVE_ID="<群聊 chat_id>"
 TraeCode CLI 的同语义命令位于
 `.traecli/commands/instrument-daily.md`。两种入口都读取 schema v3
 `research_plan`，因此新增产品类型或标的画像时不需要复制 ETF 专用命令。
+
+## 飞书远程命令
+
+启用 `[remote]` 并完成 lark-cli 长连接配置后，支持：
+
+```text
+/quant status
+/quant analyze 515100
+/quant base 515100
+/quant prepare 515100
+/quant dashboard
+/quant help
+```
+
+只处理白名单发送人或群聊，未知命令不会转为 Shell。详细配置见
+[install.md](install.md)。
 
 ## 数据目录
 

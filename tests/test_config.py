@@ -45,6 +45,8 @@ instructions = ["自定义指令"]
 type = "feishu"
 enabled = false
 mode = "app"
+receive_id = "oc_target"
+receive_id_type = "chat_id"
 
 [notification_policies.daily]
 enabled = true
@@ -179,6 +181,54 @@ type = "etf"
             )
             with self.assertRaisesRegex(ValueError, "未知字段"):
                 load_settings(root, path)
+
+    def test_automation_and_remote_default_to_disabled(self) -> None:
+        settings = self._load(
+            """
+[[instruments]]
+symbol = "515100"
+name = "测试 ETF"
+type = "etf"
+"""
+        )
+
+        self.assertFalse(settings.automation.enabled)
+        self.assertEqual(settings.automation.mode, "base")
+        self.assertFalse(settings.remote.enabled)
+
+    def test_remote_requires_allowlist_when_enabled(self) -> None:
+        with self.assertRaisesRegex(ValueError, "allowed_sender_ids"):
+            self._load(
+                """
+[remote]
+enabled = true
+
+[[instruments]]
+symbol = "515100"
+name = "测试 ETF"
+type = "etf"
+"""
+            )
+
+    def test_remote_can_inherit_notification_chat_target(self) -> None:
+        settings = self._load(
+            """
+[remote]
+enabled = true
+allowed_channel_targets = ["primary"]
+
+[[instruments]]
+symbol = "515100"
+name = "测试 ETF"
+type = "etf"
+"""
+        )
+
+        self.assertTrue(settings.remote.is_allowed("other", "oc_target"))
+        self.assertEqual(
+            settings.remote.allowed_channel_targets,
+            ("primary",),
+        )
 
 
 if __name__ == "__main__":

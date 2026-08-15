@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quant Monitor 文档中心</title>
+  <link rel="stylesheet" href="assets/docs.css?v=0.4.0">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="index.html">Quant Monitor</a>
+      <nav class="site-nav" aria-label="主导航">
+        <a href="index.html" aria-current="page">总览</a>
+        <a href="install.html">安装</a>
+        <a href="capabilities.html">能力</a>
+        <a href="operations.html">运维</a>
+        <a href="architecture.html">架构</a>
+        <a href="refactor-report.html">升级报告</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Personal Investment Research Core</p>
+        <h1>本地、可审计、可持续演进的投资研究系统</h1>
+        <p class="hero-copy">
+          从行情采集和确定性策略开始，按产品与标的画像组织 Agent 研究，
+          通过定时任务或飞书白名单命令触发，并将报告路由到配置的通知通道。
+        </p>
+      </div>
+      <aside class="hero-meta" aria-label="系统状态摘要">
+        <dl>
+          <div><dt>当前版本</dt><dd>0.4.x</dd></div>
+          <div><dt>数据契约</dt><dd>schema v3</dd></div>
+          <div><dt>默认标的</dt><dd>515100</dd></div>
+        </dl>
+      </aside>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="section-label">运行状态</p>
+        <div>
+          <h2>哪些能力可以直接运行</h2>
+          <p class="section-intro">
+            基础分析无需 Agent；完整联网研究与飞书入站需要目标设备完成一次外部工具配置。
+          </p>
+        </div>
+      </div>
+      <div class="metric-row">
+        <div class="metric"><strong>已支持</strong><span>行情、指标、基础报告、看板</span></div>
+        <div class="metric"><strong>条件支持</strong><span>TraeCode CLI 完整研究</span></div>
+        <div class="metric"><strong>条件支持</strong><span>飞书长连接远程命令</span></div>
+        <div class="metric"><strong>明确禁止</strong><span>自动交易与任意远程 Shell</span></div>
+      </div>
+      <div class="notice">
+        当前设备如果没有 TraeCode CLI，定时任务会按配置降级为确定性基础分析；
+        这与包含联网基本面的完整 Agent 研究不是同一能力等级。
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="section-label">入口</p>
+        <div>
+          <h2>按任务进入对应页面</h2>
+          <p class="section-intro">Markdown 是 Agent 权威文档，HTML 页面用于浏览和快速定位。</p>
+        </div>
+      </div>
+      <div class="link-grid">
+        <article class="link-item">
+          <a href="install.html">新设备安装</a>
+          <p>克隆、凭证、TraeCode CLI、lark-cli、飞书后台和服务验收。</p>
+        </article>
+        <article class="link-item">
+          <a href="capabilities.html">当前能力</a>
+          <p>已支持、条件支持、未支持，以及每项能力的真实边界。</p>
+        </article>
+        <article class="link-item">
+          <a href="operations.html">日常运维</a>
+          <p>CLI、定时服务、飞书命令、日志和故障定位。</p>
+        </article>
+        <article class="link-item">
+          <a href="architecture.html">架构设计</a>
+          <p>配置继承、策略画像、研究计划、通知路由和依赖方向。</p>
+        </article>
+        <article class="link-item">
+          <a href="refactor-report.html">升级报告</a>
+          <p>从单一 ETF 脚本到模块化投资研究内核的工程记录。</p>
+        </article>
+        <article class="link-item">
+          <a href="../data/dashboard/index.html">本地投资看板</a>
+          <p>打开当前设备最新生成的数据视图；运行产物不提交 Git。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="section-label">最快路径</p>
+        <div>
+          <h2>部署到另一台 Mac</h2>
+          <p class="section-intro">SSH 已具备仓库权限时，三条命令进入配置阶段。</p>
+        </div>
+      </div>
+      <pre><code>git clone git@github.com:lapixiaoxin/quant.git "$HOME/Quant"
+cd "$HOME/Quant"
+./scripts/bootstrap_macos.sh --with-traecli --with-lark-cli</code></pre>
+      <div class="notice ok">
+        安装脚本不会覆盖已有的 <code>config/config.toml</code>，也不会在远程命令未完成白名单配置时启动监听服务。
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>Quant Monitor 文档中心</span>
+      <span>研究与监控，不构成投资建议或自动交易指令。</span>
+    </div>
+  </footer>
+</body>
+</html>
