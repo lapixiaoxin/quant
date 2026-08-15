@@ -61,6 +61,14 @@ pre {
   line-height: 1.65;
 }
 
+pre code {
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  border-radius: 0;
+  font-size: inherit;
+}
+
 .site-header {
   background: var(--forest);
   color: #fff;
