@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Quant Monitor 工程升级报告</title>
+  <link rel="stylesheet" href="assets/docs.css?v=0.5.1">
   <style>
     :root {
       color-scheme: light;
@@ -34,23 +35,6 @@
       color: #fff;
       border-bottom: 5px solid #d4a437;
     }
-    .report-nav {
-      width: min(1160px, calc(100% - 36px));
-      margin: 0 auto;
-      display: flex;
-      gap: 20px;
-      overflow-x: auto;
-      border-bottom: 1px solid #455049;
-    }
-    .report-nav a {
-      padding: 17px 0 14px;
-      color: #cfd7d1;
-      font-size: 12px;
-      font-weight: 700;
-      text-decoration: none;
-      white-space: nowrap;
-    }
-    .report-nav a:last-child { color: #fff; border-bottom: 3px solid #d4a437; }
     .masthead-inner,
     main,
     .footer-inner {
@@ -392,16 +376,41 @@
   </style>
 </head>
 <body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="index.html">Quant Monitor</a>
+      <nav class="site-nav" aria-label="全局导航">
+        <a href="index.html">总览</a>
+        <details class="nav-dropdown">
+          <summary>使用指南</summary>
+          <div class="nav-menu">
+            <a href="install.html"><strong>安装部署</strong><small>新设备、凭证与常驻服务</small></a>
+            <a href="operations.html"><strong>运行运维</strong><small>命令、日志与故障处理</small></a>
+          </div>
+        </details>
+        <details class="nav-dropdown is-current">
+          <summary aria-current="true">系统设计</summary>
+          <div class="nav-menu">
+            <a href="capabilities.html"><strong>能力边界</strong><small>已支持、条件支持与明确限制</small></a>
+            <a href="architecture.html"><strong>架构设计</strong><small>模块、数据流与扩展契约</small></a>
+            <a href="refactor-report.html" aria-current="page"><strong>升级报告</strong><small>工程演进过程与验证证据</small></a>
+          </div>
+        </details>
+        <details class="nav-dropdown align-right">
+          <summary>研究工作台</summary>
+          <div class="nav-menu">
+            <a href="../research/index.html"><strong>研究总览</strong><small>研究资产与隐私分层入口</small></a>
+            <a href="../research/instruments/index.html"><strong>标的档案</strong><small>按代码沉淀讨论与判断</small></a>
+            <a href="../research/library/index.html"><strong>通用经验</strong><small>复核并脱敏的跨标的方法</small></a>
+            <a href="../research/methods/storage-backtesting.html"><strong>数据与回测</strong><small>历史存储与验证纪律</small></a>
+            <a href="../research/templates/discussion-report.html"><strong>讨论模板</strong><small>统一事实、结论与失效条件</small></a>
+          </div>
+        </details>
+        <a href="../data/dashboard/index.html">投资看板</a>
+      </nav>
+    </div>
+  </header>
   <header class="masthead">
-    <nav class="report-nav" aria-label="文档中心导航">
-      <a href="index.html">总览</a>
-      <a href="install.html">安装</a>
-      <a href="capabilities.html">能力</a>
-      <a href="operations.html">运维</a>
-      <a href="architecture.html">架构</a>
-      <a href="../research/index.html">研究库</a>
-      <a href="refactor-report.html">升级报告</a>
-    </nav>
     <div class="masthead-inner">
       <div>
         <p class="kicker">Engineering Evolution Report</p>
@@ -712,5 +721,6 @@
       <span>研究与监控工具，不构成投资建议或自动交易指令。</span>
     </div>
   </footer>
+  <script src="assets/navigation.js?v=0.5.1"></script>
 </body>
 </html>

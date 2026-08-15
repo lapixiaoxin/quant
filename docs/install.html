@@ -4,20 +4,40 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>安装部署 · Quant Monitor</title>
-  <link rel="stylesheet" href="assets/docs.css?v=0.4.1">
+  <link rel="stylesheet" href="assets/docs.css?v=0.5.1">
 </head>
 <body>
   <header class="site-header">
     <div class="header-inner">
       <a class="brand" href="index.html">Quant Monitor</a>
-      <nav class="site-nav" aria-label="主导航">
+      <nav class="site-nav" aria-label="全局导航">
         <a href="index.html">总览</a>
-        <a href="install.html" aria-current="page">安装</a>
-        <a href="capabilities.html">能力</a>
-        <a href="operations.html">运维</a>
-        <a href="architecture.html">架构</a>
-        <a href="../research/index.html">研究库</a>
-        <a href="refactor-report.html">升级报告</a>
+        <details class="nav-dropdown is-current">
+          <summary aria-current="true">使用指南</summary>
+          <div class="nav-menu">
+            <a href="install.html" aria-current="page"><strong>安装部署</strong><small>新设备、凭证与常驻服务</small></a>
+            <a href="operations.html"><strong>运行运维</strong><small>命令、日志与故障处理</small></a>
+          </div>
+        </details>
+        <details class="nav-dropdown">
+          <summary>系统设计</summary>
+          <div class="nav-menu">
+            <a href="capabilities.html"><strong>能力边界</strong><small>已支持、条件支持与明确限制</small></a>
+            <a href="architecture.html"><strong>架构设计</strong><small>模块、数据流与扩展契约</small></a>
+            <a href="refactor-report.html"><strong>升级报告</strong><small>工程演进过程与验证证据</small></a>
+          </div>
+        </details>
+        <details class="nav-dropdown align-right">
+          <summary>研究工作台</summary>
+          <div class="nav-menu">
+            <a href="../research/index.html"><strong>研究总览</strong><small>研究资产与隐私分层入口</small></a>
+            <a href="../research/instruments/index.html"><strong>标的档案</strong><small>按代码沉淀讨论与判断</small></a>
+            <a href="../research/library/index.html"><strong>通用经验</strong><small>复核并脱敏的跨标的方法</small></a>
+            <a href="../research/methods/storage-backtesting.html"><strong>数据与回测</strong><small>历史存储与验证纪律</small></a>
+            <a href="../research/templates/discussion-report.html"><strong>讨论模板</strong><small>统一事实、结论与失效条件</small></a>
+          </div>
+        </details>
+        <a href="../data/dashboard/index.html">投资看板</a>
       </nav>
     </div>
   </header>
@@ -146,5 +166,6 @@ cd "$HOME/Quant"
       <span>部署前先使用 <code>--no-send</code> 验证。</span>
     </div>
   </footer>
+  <script src="assets/navigation.js?v=0.5.1"></script>
 </body>
 </html>

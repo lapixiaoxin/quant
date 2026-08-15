@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "quant-monitor"
-version = "0.5.0"
+version = "0.5.1"
 description = "面向个人长期投资研究的可扩展行情监控与分析内核"
 requires-python = ">=3.9"
 dependencies = [

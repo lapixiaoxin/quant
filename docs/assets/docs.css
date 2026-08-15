@@ -70,6 +70,8 @@ pre code {
 }
 
 .site-header {
+  position: relative;
+  z-index: 100;
   background: var(--forest);
   color: #fff;
   border-bottom: 4px solid #d4a437;
@@ -102,23 +104,125 @@ pre code {
   display: flex;
   align-items: center;
   gap: 22px;
-  overflow-x: auto;
+  overflow: visible;
 }
 
-.site-nav a {
+.site-nav > a,
+.nav-dropdown > summary {
   padding: 23px 0 20px;
   color: #cdd5cf;
   border-bottom: 3px solid transparent;
   font-size: 13px;
   font-weight: 650;
+  line-height: 1.6;
   text-decoration: none;
   white-space: nowrap;
 }
 
-.site-nav a:hover,
-.site-nav a[aria-current="page"] {
+.nav-dropdown {
+  position: relative;
+}
+
+.nav-dropdown > summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.nav-dropdown > summary::-webkit-details-marker {
+  display: none;
+}
+
+.nav-dropdown > summary::after {
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  content: "";
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 140ms ease;
+}
+
+.site-nav > a:hover,
+.site-nav > a[aria-current="page"],
+.nav-dropdown:hover > summary,
+.nav-dropdown:focus-within > summary,
+.nav-dropdown[open] > summary,
+.nav-dropdown.is-current > summary {
   color: #fff;
   border-bottom-color: #d4a437;
+}
+
+.nav-dropdown:hover > summary::after,
+.nav-dropdown:focus-within > summary::after,
+.nav-dropdown[open] > summary::after {
+  transform: translateY(2px) rotate(225deg);
+}
+
+.nav-menu {
+  position: absolute;
+  top: calc(100% - 3px);
+  left: -16px;
+  width: min(300px, calc(100vw - 36px));
+  padding: 8px;
+  display: none;
+  gap: 2px;
+  background: var(--surface);
+  border: 1px solid #cbd2ca;
+  border-radius: 5px;
+  box-shadow: 0 14px 34px rgb(15 27 19 / 18%);
+  z-index: 110;
+}
+
+.nav-dropdown.align-right > .nav-menu {
+  right: 0;
+  left: auto;
+}
+
+.nav-dropdown[open] > .nav-menu,
+.nav-dropdown:hover > .nav-menu,
+.nav-dropdown:focus-within > .nav-menu {
+  display: grid;
+}
+
+.nav-menu a {
+  min-width: 0;
+  padding: 9px 11px;
+  display: grid;
+  gap: 1px;
+  color: var(--ink);
+  border-left: 3px solid transparent;
+  border-radius: 3px;
+  text-decoration: none;
+}
+
+.nav-menu a:hover,
+.nav-menu a:focus-visible {
+  background: #f0f3ef;
+  border-left-color: #88a694;
+  outline: 0;
+}
+
+.nav-menu a[aria-current="page"] {
+  background: var(--green-soft);
+  border-left-color: var(--green);
+}
+
+.nav-menu strong {
+  font-size: 13px;
+  font-weight: 720;
+  letter-spacing: 0;
+}
+
+.nav-menu small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: 0;
+  white-space: normal;
 }
 
 .page {
@@ -521,6 +625,7 @@ tr:last-child td {
 
   .site-nav {
     width: 100%;
+    justify-content: flex-start;
   }
 
   .hero {
@@ -569,6 +674,29 @@ tr:last-child td {
 }
 
 @media (max-width: 620px) {
+  .header-inner {
+    width: min(100% - 28px, 1160px);
+  }
+
+  .site-nav {
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .site-nav > a,
+  .nav-dropdown > summary {
+    padding: 14px 0 13px;
+    font-size: 12px;
+  }
+
+  .nav-dropdown > summary {
+    gap: 5px;
+  }
+
+  .nav-menu {
+    top: calc(100% - 2px);
+  }
+
   .page {
     padding-top: 20px;
   }
