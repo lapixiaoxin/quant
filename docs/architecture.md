@@ -18,6 +18,9 @@ flowchart LR
     P --> R[TRAE / TraeCode CLI]
     R --> O[个性化研究报告]
     O --> K[research 研究知识库]
+    P --> W[index.html 研究工作台]
+    O --> W
+    K --> W
 ```
 
 依赖只能从外向内。领域层不知道 HTTP、TOML、文件路径、飞书或 TRAE 的存在。
@@ -210,6 +213,18 @@ data_quality       来源、样本量、时间戳和限制
 - `research/selections/`：候选筛选入口与深度选择报告。
 
 研究记录必须区分事实和推断，并包含数据时间、来源、反例、风险和失效条件。
+
+## 统一可视化入口
+
+HTTP 根路径 `index.html` 是稳定的一级工作台，`docs/`、`research/` 和
+`data/dashboard/` 是按职责划分的二级页面。`interfaces.portal` 扫描经过允许的
+HTML、研究 Markdown 和候选池 TOML，生成最近产物和分组目录；原始 JSON 快照、
+SQLite、日志、配置和凭证不进入目录。
+
+`./quant site` 同时刷新根工作台和投资看板。`dashboard`、`select`、自动化研究
+和飞书看板命令也会刷新入口；Agent 直接生成新报告时，项目 Skill 必须在完成前
+运行 `./quant site`。因此页面数量增长不会要求用户记忆文件路径，也不会把底层
+数据目录直接暴露为产品导航。
 
 ## TRAE 与 TraeCode CLI
 

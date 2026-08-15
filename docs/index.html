@@ -4,17 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Quant Monitor 文档中心</title>
-  <link rel="stylesheet" href="assets/docs.css?v=0.6.0">
+  <link rel="stylesheet" href="assets/docs.css?v=0.7.0">
 </head>
 <body>
   <header class="site-header">
     <div class="header-inner">
-      <a class="brand" href="index.html">Quant Monitor</a>
+      <a class="brand" href="../index.html">Quant Monitor</a>
       <nav class="site-nav" aria-label="全局导航">
-        <a href="index.html" aria-current="page">总览</a>
-        <details class="nav-dropdown">
-          <summary>使用指南</summary>
+        <a href="../index.html">工作台</a>
+        <details class="nav-dropdown is-current">
+          <summary aria-current="true">使用指南</summary>
           <div class="nav-menu">
+            <a href="index.html" aria-current="page"><strong>文档总览</strong><small>能力、入口与阅读路径</small></a>
             <a href="install.html"><strong>安装部署</strong><small>新设备、凭证与常驻服务</small></a>
             <a href="operations.html"><strong>运行运维</strong><small>命令、日志与故障处理</small></a>
           </div>
@@ -28,7 +29,7 @@
           </div>
         </details>
         <details class="nav-dropdown align-right">
-          <summary>研究工作台</summary>
+          <summary>研究中心</summary>
           <div class="nav-menu">
             <a href="../research/index.html"><strong>研究总览</strong><small>研究资产与隐私分层入口</small></a>
             <a href="../research/selections/index.html"><strong>候选筛选</strong><small>发现同类标的并形成短名单</small></a>
@@ -55,7 +56,7 @@
       </div>
       <aside class="hero-meta" aria-label="系统状态摘要">
         <dl>
-          <div><dt>当前版本</dt><dd>0.6.x</dd></div>
+          <div><dt>当前版本</dt><dd>0.7.x</dd></div>
           <div><dt>数据契约</dt><dd>schema v3</dd></div>
           <div><dt>默认标的</dt><dd>515100</dd></div>
         </dl>
@@ -93,6 +94,10 @@
         </div>
       </div>
       <div class="link-grid">
+        <article class="link-item">
+          <a href="../index.html">统一研究工作台</a>
+          <p>回到根路径，查看投资看板、候选筛选、最近报告和全部内容目录。</p>
+        </article>
         <article class="link-item">
           <a href="install.html">新设备安装</a>
           <p>克隆、凭证、TraeCode CLI、lark-cli、飞书后台和服务验收。</p>
@@ -151,6 +156,6 @@ cd "$HOME/Quant"
       <span>研究与监控，不构成投资建议或自动交易指令。</span>
     </div>
   </footer>
-  <script src="assets/navigation.js?v=0.6.0"></script>
+  <script src="assets/navigation.js?v=0.7.0"></script>
 </body>
 </html>

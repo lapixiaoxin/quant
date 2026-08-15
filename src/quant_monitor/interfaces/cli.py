@@ -25,6 +25,7 @@ from ..infrastructure.research_agent import TraeCliResearchRunner
 from ..infrastructure.selection_config import load_selection_universe
 from ..infrastructure.storage import FileResearchRepository
 from .dashboard import write_dashboard
+from .portal import write_portal
 from .remote import RemoteCommandRouter, listen_remote_commands
 from .reporting import build_base_report
 from .selection_reporting import write_selection_report
@@ -154,6 +155,10 @@ def _parser() -> argparse.ArgumentParser:
         type=Path,
         help="输出路径；默认为 data/dashboard/index.html",
     )
+    subparsers.add_parser(
+        "site",
+        help="刷新根路径研究工作台和静态投资看板",
+    )
 
     listen_parser = subparsers.add_parser(
         "listen",
@@ -244,6 +249,24 @@ def _send_report(
         title=title,
         force=force,
     )
+
+
+def _write_site(
+    root: Path,
+    settings: Settings,
+    repository: FileResearchRepository,
+    *,
+    dashboard_output: Path | None = None,
+) -> tuple[Path, Path]:
+    dashboard_path = dashboard_output or (
+        settings.data_dir / "dashboard" / "index.html"
+    )
+    dashboard = write_dashboard(
+        dashboard_path,
+        repository.list_latest_packets(),
+    )
+    portal = write_portal(root / "index.html", root)
+    return dashboard, portal
 
 
 def _doctor(
@@ -389,15 +412,29 @@ def main() -> int:
             if not output.is_absolute():
                 output = root / output
             report_path = write_selection_report(output, packet)
+            portal_path = write_portal(root / "index.html", root)
             print(f"数据包：{packet_path}")
             print(f"初筛报告：{report_path}")
+            print(f"研究工作台：{portal_path}")
             return 0
 
-        if args.command == "dashboard":
-            output = args.output or settings.data_dir / "dashboard" / "index.html"
+        if args.command in {"dashboard", "site"}:
+            output = (
+                args.output
+                if args.command == "dashboard"
+                else settings.data_dir / "dashboard" / "index.html"
+            )
+            output = output or settings.data_dir / "dashboard" / "index.html"
             if not output.is_absolute():
                 output = root / output
-            print(write_dashboard(output, repository.list_latest_packets()))
+            dashboard_path, portal_path = _write_site(
+                root,
+                settings,
+                repository,
+                dashboard_output=output,
+            )
+            print(f"投资看板：{dashboard_path}")
+            print(f"研究工作台：{portal_path}")
             return 0
 
         monitoring = _build_service(
@@ -434,12 +471,13 @@ def main() -> int:
                     f"{symbol}：{result.mode}{fallback}；"
                     f"报告：{result.report_path}{channels}"
                 )
-            print(
-                write_dashboard(
-                    settings.data_dir / "dashboard" / "index.html",
-                    repository.list_latest_packets(),
-                )
+            dashboard_path, portal_path = _write_site(
+                root,
+                settings,
+                repository,
             )
+            print(f"投资看板：{dashboard_path}")
+            print(f"研究工作台：{portal_path}")
             return 0
 
         if args.command == "listen":
@@ -511,6 +549,14 @@ def main() -> int:
                     "base_report",
                     None,
                 )
+        if args.command in {"base-report", "daily"}:
+            dashboard_path, portal_path = _write_site(
+                root,
+                settings,
+                repository,
+            )
+            print(f"投资看板：{dashboard_path}")
+            print(f"研究工作台：{portal_path}")
         return 0
     except (
         DataSourceError,

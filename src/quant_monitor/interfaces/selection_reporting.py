@@ -88,15 +88,66 @@ def build_selection_report(packet: dict[str, Any]) -> str:
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{_text(universe["name"])}候选初筛</title>
-  <link rel="stylesheet" href="../../../docs/assets/docs.css?v=0.6.0">
+  <link rel="stylesheet" href="../../../docs/assets/docs.css?v=0.7.0">
 </head>
 <body>
   <header class="site-header">
     <div class="header-inner">
-      <a class="brand" href="../../../docs/index.html">Quant Monitor</a>
-      <nav class="site-nav" aria-label="报告导航">
-        <a href="../../../docs/index.html">文档总览</a>
-        <a href="../../../research/index.html">研究工作台</a>
+      <a class="brand" href="../../../index.html">Quant Monitor</a>
+      <nav class="site-nav" aria-label="全局导航">
+        <a href="../../../index.html">工作台</a>
+        <details class="nav-dropdown">
+          <summary>使用指南</summary>
+          <div class="nav-menu">
+            <a href="../../../docs/index.html">
+              <strong>文档总览</strong><small>能力、入口与阅读路径</small>
+            </a>
+            <a href="../../../docs/install.html">
+              <strong>安装部署</strong><small>新设备、凭证与常驻服务</small>
+            </a>
+            <a href="../../../docs/operations.html">
+              <strong>运行运维</strong><small>命令、日志与故障处理</small>
+            </a>
+          </div>
+        </details>
+        <details class="nav-dropdown">
+          <summary>系统设计</summary>
+          <div class="nav-menu">
+            <a href="../../../docs/capabilities.html">
+              <strong>能力边界</strong><small>已支持、条件支持与明确限制</small>
+            </a>
+            <a href="../../../docs/architecture.html">
+              <strong>架构设计</strong><small>模块、数据流与扩展契约</small>
+            </a>
+            <a href="../../../docs/refactor-report.html">
+              <strong>升级报告</strong><small>工程演进过程与验证证据</small>
+            </a>
+          </div>
+        </details>
+        <details class="nav-dropdown align-right is-current">
+          <summary aria-current="true">研究中心</summary>
+          <div class="nav-menu">
+            <a href="../../../research/index.html">
+              <strong>研究总览</strong><small>研究资产与隐私分层入口</small>
+            </a>
+            <a href="../../../research/selections/index.html"
+              aria-current="location">
+              <strong>候选筛选</strong><small>发现同类标的并形成短名单</small>
+            </a>
+            <a href="../../../research/instruments/index.html">
+              <strong>标的档案</strong><small>按代码沉淀讨论与判断</small>
+            </a>
+            <a href="../../../research/library/index.html">
+              <strong>通用经验</strong><small>复核并脱敏的跨标的方法</small>
+            </a>
+            <a href="../../../research/methods/storage-backtesting.html">
+              <strong>数据与回测</strong><small>历史存储与验证纪律</small>
+            </a>
+            <a href="../../../research/templates/discussion-report.html">
+              <strong>讨论模板</strong><small>统一事实、结论与失效条件</small>
+            </a>
+          </div>
+        </details>
         <a href="../../../data/dashboard/index.html">投资看板</a>
       </nav>
     </div>
@@ -157,6 +208,7 @@ def build_selection_report(packet: dict[str, Any]) -> str:
       <span>{_text(universe["id"])}</span>
     </div>
   </footer>
+  <script src="../../../docs/assets/navigation.js?v=0.7.0"></script>
 </body>
 </html>
 """

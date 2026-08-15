@@ -52,5 +52,8 @@ research/private/<标的代码>/<YYYY-MM-DD>-<主题>.html
 启动本地文档服务后访问：
 
 ```text
-http://127.0.0.1:8765/research/index.html
+http://127.0.0.1:8765/
 ```
+
+根路径工作台会链接最近报告、候选筛选和研究中心。新增报告后运行
+`./quant site`，不得要求用户通过文件目录或 JSON 快照寻找内容。

@@ -4,17 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>运行运维 · Quant Monitor</title>
-  <link rel="stylesheet" href="assets/docs.css?v=0.6.0">
+  <link rel="stylesheet" href="assets/docs.css?v=0.7.0">
 </head>
 <body>
   <header class="site-header">
     <div class="header-inner">
-      <a class="brand" href="index.html">Quant Monitor</a>
+      <a class="brand" href="../index.html">Quant Monitor</a>
       <nav class="site-nav" aria-label="全局导航">
-        <a href="index.html">总览</a>
+        <a href="../index.html">工作台</a>
         <details class="nav-dropdown is-current">
           <summary aria-current="true">使用指南</summary>
           <div class="nav-menu">
+            <a href="index.html"><strong>文档总览</strong><small>能力、入口与阅读路径</small></a>
             <a href="install.html"><strong>安装部署</strong><small>新设备、凭证与常驻服务</small></a>
             <a href="operations.html" aria-current="page"><strong>运行运维</strong><small>命令、日志与故障处理</small></a>
           </div>
@@ -28,7 +29,7 @@
           </div>
         </details>
         <details class="nav-dropdown align-right">
-          <summary>研究工作台</summary>
+          <summary>研究中心</summary>
           <div class="nav-menu">
             <a href="../research/index.html"><strong>研究总览</strong><small>研究资产与隐私分层入口</small></a>
             <a href="../research/selections/index.html"><strong>候选筛选</strong><small>发现同类标的并形成短名单</small></a>
@@ -77,7 +78,8 @@
         <article class="command"><code>./quant daily --symbol 515100</code><p>生成确定性基础报告，不默认发送。</p></article>
         <article class="command"><code>./quant automate --all</code><p>按 automation 配置运行 Agent 或基础降级。</p></article>
         <article class="command"><code>./quant automate --all --no-send</code><p>不发送消息的完整链路验收。</p></article>
-        <article class="command"><code>./quant dashboard</code><p>刷新本地静态投资看板。</p></article>
+        <article class="command"><code>./quant dashboard</code><p>刷新投资看板和根路径工作台。</p></article>
+        <article class="command"><code>./quant site</code><p>重新扫描可阅读资产并刷新统一入口。</p></article>
         <article class="command"><code>./quant listen --check</code><p>检查远程白名单配置和 lark-cli。</p></article>
         <article class="command"><code>./scripts/sync_runtime_data.sh</code><p>暂停服务并把主写运行副本导出到私有仓库。</p></article>
       </div>
@@ -110,7 +112,7 @@
         <article class="command"><code>/quant analyze 515100</code><p>执行配置模式，要求发送报告。</p></article>
         <article class="command"><code>/quant base 515100</code><p>强制基础分析并发送。</p></article>
         <article class="command"><code>/quant prepare 515100</code><p>只刷新数据包。</p></article>
-        <article class="command"><code>/quant dashboard</code><p>重新生成静态看板。</p></article>
+        <article class="command"><code>/quant dashboard</code><p>重新生成看板和根路径工作台。</p></article>
         <article class="command"><code>/quant help</code><p>返回可用命令列表。</p></article>
       </div>
       <div class="notice ok">
@@ -157,6 +159,6 @@
       <span><a href="install.html">返回部署说明</a></span>
     </div>
   </footer>
-  <script src="assets/navigation.js?v=0.6.0"></script>
+  <script src="assets/navigation.js?v=0.7.0"></script>
 </body>
 </html>

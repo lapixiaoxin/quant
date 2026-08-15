@@ -9,6 +9,7 @@ tools: Read,Write,Bash,WebSearch
 
 根据数据包中的 `research_plan.skill` 使用研究 Skill；严格执行其中的章节、关注点、来源顺序和个性指令。报告保存为
 `data/reports/YYYY-MM-DD/${1:-515100}-research.md`。
+保存后运行 `./quant site`，让报告进入根路径研究工作台的内容目录。
 
 当 `$2` 为 `push` 时运行：
 

@@ -10,6 +10,7 @@ from ..config import Settings
 from ..infrastructure.lark_events import LarkCliEventSource, LarkCliReplier
 from ..infrastructure.storage import FileResearchRepository
 from .dashboard import write_dashboard
+from .portal import write_portal
 
 
 class RemoteCommandRouter:
@@ -93,6 +94,10 @@ class RemoteCommandRouter:
                 send=True,
                 event="agent_report",
             )
+            write_portal(
+                self._settings.root / "index.html",
+                self._settings.root,
+            )
             fallback = "（已降级为基础分析）" if result.fallback_used else ""
             return (
                 f"{symbol} 分析完成{fallback}\n"
@@ -106,6 +111,10 @@ class RemoteCommandRouter:
                 send=True,
                 event="base_report",
             )
+            write_portal(
+                self._settings.root / "index.html",
+                self._settings.root,
+            )
             return f"{symbol} 基础分析完成\n报告：{result.report_path}"
         if command == "prepare":
             symbol = self._symbol(arguments)
@@ -118,7 +127,11 @@ class RemoteCommandRouter:
                 self._settings.data_dir / "dashboard" / "index.html",
                 self._repository.list_latest_packets(),
             )
-            return f"看板已更新\n路径：{path}"
+            portal = write_portal(
+                self._settings.root / "index.html",
+                self._settings.root,
+            )
+            return f"看板已更新\n路径：{path}\n工作台：{portal}"
         raise ValueError(f"未知命令 {command!r}\n{self.help_text()}")
 
 

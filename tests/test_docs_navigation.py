@@ -3,11 +3,12 @@ from __future__ import annotations
 import unittest
 from html.parser import HTMLParser
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 PAGES = sorted(
     [
+        ROOT / "index.html",
         *ROOT.joinpath("docs").glob("*.html"),
         ROOT / "research" / "index.html",
         ROOT / "research" / "instruments" / "index.html",
@@ -15,10 +16,22 @@ PAGES = sorted(
         ROOT / "research" / "library" / "instrument-selection-open-source-review.html",
         ROOT / "research" / "methods" / "storage-backtesting.html",
         ROOT / "research" / "selections" / "index.html",
+        ROOT
+        / "research"
+        / "selections"
+        / "dividend-low-vol-100-etf"
+        / "2026-08-15-selection.html",
         ROOT / "research" / "templates" / "discussion-report.html",
+        ROOT / "data" / "dashboard" / "index.html",
+        ROOT
+        / "data"
+        / "selections"
+        / "latest"
+        / "dividend-low-vol-100-etf.html",
     ]
 )
 EXPECTED_DESTINATIONS = {
+    ROOT / "index.html",
     ROOT / "docs" / "index.html",
     ROOT / "docs" / "install.html",
     ROOT / "docs" / "operations.html",
@@ -42,6 +55,7 @@ class NavigationParser(HTMLParser):
         self.navigation_depth = 0
         self.navigation_count = 0
         self.hrefs: list[str] = []
+        self.all_hrefs: list[str] = []
         self.current_links = 0
         self.current_groups = 0
         self.summaries: list[str] = []
@@ -64,6 +78,8 @@ class NavigationParser(HTMLParser):
             self.stylesheets.append(values.get("href", ""))
         if tag == "script" and values.get("src"):
             self.scripts.append(values["src"])
+        if tag == "a" and values.get("href"):
+            self.all_hrefs.append(values["href"])
         if tag == "nav" and "site-nav" in classes:
             self.in_navigation = True
             self.navigation_depth = 1
@@ -98,7 +114,7 @@ class NavigationParser(HTMLParser):
 
 class DocumentationNavigationTest(unittest.TestCase):
     def test_all_pages_share_one_predictable_global_navigation(self) -> None:
-        self.assertEqual(len(PAGES), 13)
+        self.assertEqual(len(PAGES), 17)
         for page in PAGES:
             with self.subTest(page=page.relative_to(ROOT)):
                 parser = NavigationParser()
@@ -112,16 +128,50 @@ class DocumentationNavigationTest(unittest.TestCase):
                 self.assertEqual(parser.navigation_count, 1)
                 self.assertEqual(
                     parser.summaries,
-                    ["使用指南", "系统设计", "研究工作台"],
+                    ["使用指南", "系统设计", "研究中心"],
                 )
                 self.assertEqual(destinations, EXPECTED_DESTINATIONS)
-                self.assertEqual(parser.current_links, 1)
-                expected_groups = 0 if page == ROOT / "docs" / "index.html" else 1
+                report_pages = {
+                    ROOT
+                    / "research"
+                    / "selections"
+                    / "dividend-low-vol-100-etf"
+                    / "2026-08-15-selection.html",
+                    ROOT
+                    / "data"
+                    / "selections"
+                    / "latest"
+                    / "dividend-low-vol-100-etf.html",
+                }
+                expected_links = 0 if page in report_pages else 1
+                self.assertEqual(parser.current_links, expected_links)
+                ungrouped_pages = {
+                    ROOT / "index.html",
+                    ROOT / "data" / "dashboard" / "index.html",
+                }
+                expected_groups = 0 if page in ungrouped_pages else 1
                 self.assertEqual(parser.current_groups, expected_groups)
                 self.assertEqual(len(parser.stylesheets), 1)
-                self.assertIn("docs.css?v=0.6.0", parser.stylesheets[0])
+                self.assertIn("docs.css?v=0.7.0", parser.stylesheets[0])
                 self.assertEqual(len(parser.scripts), 1)
-                self.assertIn("navigation.js?v=0.6.0", parser.scripts[0])
+                self.assertIn("navigation.js?v=0.7.0", parser.scripts[0])
+
+    def test_all_local_page_links_resolve(self) -> None:
+        for page in PAGES:
+            with self.subTest(page=page.relative_to(ROOT)):
+                parser = NavigationParser()
+                parser.feed(page.read_text(encoding="utf-8"))
+                missing: list[str] = []
+                for href in parser.all_hrefs:
+                    parsed = urlsplit(href)
+                    if parsed.scheme or not parsed.path:
+                        continue
+                    target = (
+                        page.parent / unquote(parsed.path)
+                    ).resolve()
+                    if not target.exists():
+                        missing.append(href)
+                self.assertEqual(missing, [])
 
     def test_escape_can_visually_close_a_focused_dropdown(self) -> None:
         stylesheet = (ROOT / "docs" / "assets" / "docs.css").read_text(

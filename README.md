@@ -18,9 +18,11 @@
 详细约束见 [AGENTS.md](AGENTS.md)，技术设计见
 [docs/architecture.md](docs/architecture.md)。
 
-一站式文档入口：[docs/index.html](docs/index.html)。
-研究知识库入口：[research/index.html](research/index.html)。
+统一研究工作台：[index.html](index.html)。它自动汇总投资看板、候选筛选、
+最近报告、研究入口和系统文档；原始 JSON 快照与 SQLite 不进入可视化目录。
 
+- 文档中心：[docs/index.html](docs/index.html)
+- 研究中心：[research/index.html](research/index.html)
 - 新设备部署：[install.md](install.md)
 - 当前能力与边界：[capabilities.md](capabilities.md)
 
@@ -135,6 +137,7 @@ export FEISHU_RECEIVE_ID="<群聊 chat_id>"
 ./quant automate --all --no-send
 ./quant base-report --symbol 515100
 ./quant dashboard
+./quant site
 ./quant listen --check
 ./quant send-report data/reports/YYYY-MM-DD/515100-research.md \
   --symbol 515100 \
@@ -142,6 +145,18 @@ export FEISHU_RECEIVE_ID="<群聊 chat_id>"
 ```
 
 发送命令不会直接选择飞书，而是按该标的的通知策略校验事件并路由通道。
+
+`site` 会刷新 `index.html` 根路径工作台和静态投资看板。`dashboard`、
+`select`、自动化研究和飞书看板命令也会同步刷新工作台；Agent 新建 HTML
+报告后仍应执行一次 `./quant site`。
+
+本地浏览：
+
+```bash
+python3 -m http.server 8765 --bind 127.0.0.1
+```
+
+访问 <http://127.0.0.1:8765/>，不要再从文件目录或 JSON 快照进入。
 
 `automate` 有两种模式：
 
@@ -230,6 +245,8 @@ data/dashboard/              静态本地看板
 data/history/market.sqlite3  标准化日线历史库
 data/selections/             候选初筛数据包、快照与基础 HTML 报告
 ```
+
+项目根目录的 `index.html` 是自动生成的统一研究工作台与内容目录。
 
 `data/latest` 是配置解析后的运行产物，不应手工修改。每次成功采集会把日线
 幂等写入 SQLite；JSON 快照继续保留单次任务的审计上下文。盘中快照不是最终

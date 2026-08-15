@@ -13,6 +13,7 @@ data/latest/${1:-515100}.prompt.txt
 数据包中的 `research_plan.skill` 决定使用哪个研究 Skill；
 `sections`、`focus`、`source_priorities` 和 `instructions` 是本次报告的硬约束。
 完整报告保存到 `data/reports/YYYY-MM-DD/${1:-515100}-research.md`。
+保存后运行 `./quant site`，让报告进入根路径研究工作台的内容目录。
 
 仅当第二个参数为 `push` 时，按数据包中的 `notification_plan` 执行：
 

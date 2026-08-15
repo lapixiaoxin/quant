@@ -252,6 +252,7 @@ Agent 必须逐项执行：
 ./quant history --symbol 515100
 ./quant base-report --symbol 515100
 ./quant dashboard
+./quant site
 ./quant automate --symbol 515100 --no-send
 ./scripts/service.sh status
 ```
@@ -262,11 +263,21 @@ Agent 必须逐项执行：
 ./quant listen --check
 ```
 
+本地查看统一入口：
+
+```bash
+python3 -m http.server 8765 --bind 127.0.0.1
+```
+
+浏览器访问 `http://127.0.0.1:8765/`。根路径必须显示研究工作台，不能显示
+仓库文件目录。
+
 确认以下事实：
 
 - 测试与 Ruff 全部通过。
 - 最新数据包是 schema v3。
 - SQLite 历史库包含当前标的日线，日期范围与行情源一致。
+- `index.html` 已生成，访问 HTTP 根路径可以进入看板、候选筛选、报告和文档。
 - 本机配置和凭证未进入 Git。
 - `daily` 服务已运行或已安装。
 - `remote` 仅在白名单和长连接就绪时运行。

@@ -132,6 +132,7 @@ def build_dashboard(packets: list[dict[str, Any]]) -> str:
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>投资观察台</title>
+  <link rel="stylesheet" href="../../docs/assets/docs.css?v=0.7.0">
   <style>
     :root {{
       color-scheme: light;
@@ -152,14 +153,16 @@ def build_dashboard(packets: list[dict[str, Any]]) -> str:
       font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }}
     .topbar {{ background: #1f2923; color: white; border-bottom: 4px solid #d5a334; }}
-    .topbar-inner, main {{ width: min(1120px, calc(100% - 32px)); margin: 0 auto; }}
+    .topbar-inner, .dashboard-page {{
+      width: min(1120px, calc(100% - 32px)); margin: 0 auto;
+    }}
     .topbar-inner {{
       min-height: 72px; display: flex; align-items: center;
       justify-content: space-between; gap: 24px;
     }}
     h1 {{ margin: 0; font-size: 22px; letter-spacing: 0; }}
     .topbar p {{ margin: 0; color: #cdd4cf; font-size: 13px; }}
-    main {{ padding: 28px 0 56px; }}
+    .dashboard-page {{ padding: 28px 0 56px; }}
     .overview {{
       display: flex; align-items: baseline; justify-content: space-between;
       gap: 24px; margin-bottom: 14px;
@@ -230,19 +233,74 @@ def build_dashboard(packets: list[dict[str, Any]]) -> str:
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="topbar-inner">
-      <h1>投资观察台</h1>
-      <p>研究与监控，不执行交易</p>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="../../index.html">Quant Monitor</a>
+      <nav class="site-nav" aria-label="全局导航">
+        <a href="../../index.html">工作台</a>
+        <details class="nav-dropdown">
+          <summary>使用指南</summary>
+          <div class="nav-menu">
+            <a href="../../docs/index.html">
+              <strong>文档总览</strong><small>能力、入口与阅读路径</small>
+            </a>
+            <a href="../../docs/install.html">
+              <strong>安装部署</strong><small>新设备、凭证与常驻服务</small>
+            </a>
+            <a href="../../docs/operations.html">
+              <strong>运行运维</strong><small>命令、日志与故障处理</small>
+            </a>
+          </div>
+        </details>
+        <details class="nav-dropdown">
+          <summary>系统设计</summary>
+          <div class="nav-menu">
+            <a href="../../docs/capabilities.html">
+              <strong>能力边界</strong><small>已支持、条件支持与明确限制</small>
+            </a>
+            <a href="../../docs/architecture.html">
+              <strong>架构设计</strong><small>模块、数据流与扩展契约</small>
+            </a>
+            <a href="../../docs/refactor-report.html">
+              <strong>升级报告</strong><small>工程演进过程与验证证据</small>
+            </a>
+          </div>
+        </details>
+        <details class="nav-dropdown align-right">
+          <summary>研究中心</summary>
+          <div class="nav-menu">
+            <a href="../../research/index.html">
+              <strong>研究总览</strong><small>研究资产与隐私分层入口</small>
+            </a>
+            <a href="../../research/selections/index.html">
+              <strong>候选筛选</strong><small>发现同类标的并形成短名单</small>
+            </a>
+            <a href="../../research/instruments/index.html">
+              <strong>标的档案</strong><small>按代码沉淀讨论与判断</small>
+            </a>
+            <a href="../../research/library/index.html">
+              <strong>通用经验</strong><small>复核并脱敏的跨标的方法</small>
+            </a>
+            <a href="../../research/methods/storage-backtesting.html">
+              <strong>数据与回测</strong><small>历史存储与验证纪律</small>
+            </a>
+            <a href="../../research/templates/discussion-report.html">
+              <strong>讨论模板</strong><small>统一事实、结论与失效条件</small>
+            </a>
+          </div>
+        </details>
+        <a href="index.html" aria-current="page">投资看板</a>
+      </nav>
     </div>
   </header>
-  <main>
+  <main class="dashboard-page">
     <div class="overview">
-      <h2>最新标的</h2>
+      <div><p class="eyebrow">Market Dashboard</p><h1>投资观察台</h1></div>
       <span>生成于 {_text(generated_at)}</span>
     </div>{error_html}
     <div class="instruments">{body}</div>
   </main>
+  <script src="../../docs/assets/navigation.js?v=0.7.0"></script>
 </body>
 </html>
 """

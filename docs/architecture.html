@@ -4,17 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>架构设计 · Quant Monitor</title>
-  <link rel="stylesheet" href="assets/docs.css?v=0.6.0">
+  <link rel="stylesheet" href="assets/docs.css?v=0.7.0">
 </head>
 <body>
   <header class="site-header">
     <div class="header-inner">
-      <a class="brand" href="index.html">Quant Monitor</a>
+      <a class="brand" href="../index.html">Quant Monitor</a>
       <nav class="site-nav" aria-label="全局导航">
-        <a href="index.html">总览</a>
+        <a href="../index.html">工作台</a>
         <details class="nav-dropdown">
           <summary>使用指南</summary>
           <div class="nav-menu">
+            <a href="index.html"><strong>文档总览</strong><small>能力、入口与阅读路径</small></a>
             <a href="install.html"><strong>安装部署</strong><small>新设备、凭证与常驻服务</small></a>
             <a href="operations.html"><strong>运行运维</strong><small>命令、日志与故障处理</small></a>
           </div>
@@ -28,7 +29,7 @@
           </div>
         </details>
         <details class="nav-dropdown align-right">
-          <summary>研究工作台</summary>
+          <summary>研究中心</summary>
           <div class="nav-menu">
             <a href="../research/index.html"><strong>研究总览</strong><small>研究资产与隐私分层入口</small></a>
             <a href="../research/selections/index.html"><strong>候选筛选</strong><small>发现同类标的并形成短名单</small></a>
@@ -60,6 +61,41 @@
           <div><dt>外层</dt><dd>适配器与入口</dd></div>
         </dl>
       </aside>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="section-label">信息架构</p>
+        <div><h2>根工作台串联所有可阅读资产</h2></div>
+      </div>
+      <div class="diagram" aria-label="可视化入口生成流程">
+        <article class="diagram-node gold">
+          <small>产物</small>
+          <strong>HTML / Markdown / TOML</strong>
+          <p>报告、方法和候选池。</p>
+        </article>
+        <div class="diagram-arrow" aria-hidden="true">→</div>
+        <article class="diagram-node">
+          <small>扫描</small>
+          <strong>quant site</strong>
+          <p>过滤原始快照和数据库。</p>
+        </article>
+        <div class="diagram-arrow" aria-hidden="true">→</div>
+        <article class="diagram-node green">
+          <small>一级入口</small>
+          <strong>根路径工作台</strong>
+          <p>最近产物和分组目录。</p>
+        </article>
+        <div class="diagram-arrow" aria-hidden="true">→</div>
+        <article class="diagram-node">
+          <small>二级入口</small>
+          <strong>看板 / 研究 / 文档</strong>
+          <p>稳定的任务路径。</p>
+        </article>
+      </div>
+      <div class="notice">
+        新页面生成后必须刷新工作台；禁止只产生文件而不提供可点击入口。
+      </div>
     </section>
 
     <section class="section">
@@ -247,6 +283,6 @@
       <span>领域层不依赖外部系统</span>
     </div>
   </footer>
-  <script src="assets/navigation.js?v=0.6.0"></script>
+  <script src="assets/navigation.js?v=0.7.0"></script>
 </body>
 </html>

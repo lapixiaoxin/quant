@@ -32,4 +32,6 @@ argument-hint: "[候选池 ID 或投资目标]"
 research/selections/<候选池 ID>/YYYY-MM-DD-selection.html
 ```
 
+报告保存并复核后运行 `./quant site`，确认根路径研究工作台已经出现入口。
+
 本命令只形成研究短名单，不执行交易，不输出具体买入金额。

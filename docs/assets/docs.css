@@ -426,6 +426,169 @@ h3 {
   font-size: 13px;
 }
 
+.workspace-page {
+  padding-top: 0;
+}
+
+.workspace-intro {
+  min-height: 220px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.62fr);
+  gap: 56px;
+  align-items: center;
+  padding: 38px 0 42px;
+  border-bottom: 1px solid var(--line);
+}
+
+.workspace-intro h1 {
+  font-size: 46px;
+}
+
+.workspace-intro p:not(.eyebrow) {
+  max-width: 720px;
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.workspace-summary {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.workspace-summary div {
+  min-width: 0;
+  padding: 16px;
+  border-right: 1px solid var(--line);
+}
+
+.workspace-summary div:last-child {
+  border-right: 0;
+}
+
+.workspace-summary dt,
+.resource-main small,
+.resource-date {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.workspace-summary dd {
+  margin: 5px 0 0;
+  font-weight: 720;
+  overflow-wrap: anywhere;
+}
+
+.workspace-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.workspace-actions a {
+  min-width: 0;
+  padding: 18px;
+  color: var(--ink);
+  border-right: 1px solid var(--line);
+  text-decoration: none;
+}
+
+.workspace-actions a:last-child {
+  border-right: 0;
+}
+
+.workspace-actions a:hover,
+.workspace-actions a:focus-visible,
+.resource-row:hover,
+.resource-row:focus-visible {
+  background: #edf2ed;
+  outline: 0;
+}
+
+.workspace-actions strong,
+.workspace-actions span {
+  display: block;
+}
+
+.workspace-actions span {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.resource-list {
+  border-top: 1px solid var(--line);
+}
+
+.resource-row {
+  min-width: 0;
+  padding: 14px 4px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+  align-items: center;
+  color: var(--ink);
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+}
+
+.resource-main {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 3px 14px;
+  align-items: baseline;
+}
+
+.resource-main strong {
+  overflow-wrap: anywhere;
+}
+
+.resource-main code {
+  grid-column: 2;
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resource-groups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 34px 44px;
+}
+
+.resource-group {
+  min-width: 0;
+}
+
+.resource-group > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: baseline;
+}
+
+.resource-group > header span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.resource-list.compact {
+  margin-top: 10px;
+}
+
+.resource-list.compact .resource-row {
+  padding: 11px 3px;
+}
+
 .capability-head {
   display: flex;
   align-items: center;
@@ -655,6 +818,27 @@ tr:last-child td {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .workspace-intro,
+  .resource-groups {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-summary {
+    max-width: 680px;
+  }
+
+  .workspace-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .workspace-actions a:nth-child(2) {
+    border-right: 0;
+  }
+
+  .workspace-actions a:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--line);
+  }
+
   .metric:nth-child(2) {
     border-right: 0;
   }
@@ -728,6 +912,51 @@ tr:last-child td {
   .capability-grid,
   .command-list {
     grid-template-columns: 1fr;
+  }
+
+  .workspace-intro {
+    min-height: 0;
+    gap: 24px;
+    padding: 28px 0 32px;
+  }
+
+  .workspace-intro h1 {
+    font-size: 36px;
+  }
+
+  .workspace-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-actions a {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .workspace-actions a:last-child {
+    border-bottom: 0;
+  }
+
+  .workspace-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .workspace-summary div {
+    padding: 12px 10px;
+  }
+
+  .resource-row,
+  .resource-main {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+
+  .resource-main code {
+    grid-column: 1;
+  }
+
+  .resource-date {
+    justify-self: start;
   }
 
   .metric {

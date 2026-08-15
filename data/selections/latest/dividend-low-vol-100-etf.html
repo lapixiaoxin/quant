@@ -4,15 +4,66 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>中证红利低波动100指数 ETF候选初筛</title>
-  <link rel="stylesheet" href="../../../docs/assets/docs.css?v=0.6.0">
+  <link rel="stylesheet" href="../../../docs/assets/docs.css?v=0.7.0">
 </head>
 <body>
   <header class="site-header">
     <div class="header-inner">
-      <a class="brand" href="../../../docs/index.html">Quant Monitor</a>
-      <nav class="site-nav" aria-label="报告导航">
-        <a href="../../../docs/index.html">文档总览</a>
-        <a href="../../../research/index.html">研究工作台</a>
+      <a class="brand" href="../../../index.html">Quant Monitor</a>
+      <nav class="site-nav" aria-label="全局导航">
+        <a href="../../../index.html">工作台</a>
+        <details class="nav-dropdown">
+          <summary>使用指南</summary>
+          <div class="nav-menu">
+            <a href="../../../docs/index.html">
+              <strong>文档总览</strong><small>能力、入口与阅读路径</small>
+            </a>
+            <a href="../../../docs/install.html">
+              <strong>安装部署</strong><small>新设备、凭证与常驻服务</small>
+            </a>
+            <a href="../../../docs/operations.html">
+              <strong>运行运维</strong><small>命令、日志与故障处理</small>
+            </a>
+          </div>
+        </details>
+        <details class="nav-dropdown">
+          <summary>系统设计</summary>
+          <div class="nav-menu">
+            <a href="../../../docs/capabilities.html">
+              <strong>能力边界</strong><small>已支持、条件支持与明确限制</small>
+            </a>
+            <a href="../../../docs/architecture.html">
+              <strong>架构设计</strong><small>模块、数据流与扩展契约</small>
+            </a>
+            <a href="../../../docs/refactor-report.html">
+              <strong>升级报告</strong><small>工程演进过程与验证证据</small>
+            </a>
+          </div>
+        </details>
+        <details class="nav-dropdown align-right is-current">
+          <summary aria-current="true">研究中心</summary>
+          <div class="nav-menu">
+            <a href="../../../research/index.html">
+              <strong>研究总览</strong><small>研究资产与隐私分层入口</small>
+            </a>
+            <a href="../../../research/selections/index.html"
+              aria-current="location">
+              <strong>候选筛选</strong><small>发现同类标的并形成短名单</small>
+            </a>
+            <a href="../../../research/instruments/index.html">
+              <strong>标的档案</strong><small>按代码沉淀讨论与判断</small>
+            </a>
+            <a href="../../../research/library/index.html">
+              <strong>通用经验</strong><small>复核并脱敏的跨标的方法</small>
+            </a>
+            <a href="../../../research/methods/storage-backtesting.html">
+              <strong>数据与回测</strong><small>历史存储与验证纪律</small>
+            </a>
+            <a href="../../../research/templates/discussion-report.html">
+              <strong>讨论模板</strong><small>统一事实、结论与失效条件</small>
+            </a>
+          </div>
+        </details>
         <a href="../../../data/dashboard/index.html">投资看板</a>
       </nav>
     </div>
@@ -51,8 +102,7 @@
               <th>理由与缺口</th>
             </tr>
           </thead>
-          <tbody>
-      <tr>
+          <tbody><tr>
         <td><strong>515100</strong><br>
           <small>红利低波100ETF景顺</small></td>
         <td>通过初筛</td>
@@ -68,8 +118,7 @@
         <td>2 / 58.15</td>
         <td>硬门槛和必需证据均完整</td>
       </tr>
-
-      <tr>
+<tr>
         <td><strong>159307</strong><br>
           <small>红利低波100ETF博时</small></td>
         <td>通过初筛</td>
@@ -85,8 +134,7 @@
         <td>1 / 76.37</td>
         <td>硬门槛和必需证据均完整</td>
       </tr>
-
-      <tr>
+<tr>
         <td><strong>159549</strong><br>
           <small>红利低波ETF天弘</small></td>
         <td>通过初筛</td>
@@ -102,8 +150,7 @@
         <td>3 / 7.36</td>
         <td>硬门槛和必需证据均完整</td>
       </tr>
-
-      <tr>
+<tr>
         <td><strong>560720</strong><br>
           <small>红利低波100ETF工银</small></td>
         <td>未过硬门槛</td>
@@ -119,8 +166,7 @@
         <td>4 / 37.98</td>
         <td>历史数据不足：50 &lt; 120；基金规模低于门槛：180000000 &lt; 500000000；缺少 tracking_error_pct</td>
       </tr>
-
-      <tr>
+<tr>
         <td><strong>159228</strong><br>
           <small>长城中证红利低波100ETF</small></td>
         <td>未过硬门槛</td>
@@ -136,8 +182,7 @@
         <td>6 / 9.02</td>
         <td>近20日日均成交额低于门槛：480000 &lt; 10000000；基金规模低于门槛：110000000 &lt; 500000000；缺少 tracking_error_pct</td>
       </tr>
-
-      <tr>
+<tr>
         <td><strong>560520</strong><br>
           <small>红利低波100ETF大成</small></td>
         <td>未过硬门槛</td>
@@ -153,7 +198,7 @@
         <td>5 / 17.78</td>
         <td>近20日日均成交额低于门槛：1000000 &lt; 10000000；基金规模低于门槛：29000000 &lt; 500000000；缺少 tracking_error_pct</td>
       </tr>
-    </tbody>
+</tbody>
         </table>
       </div>
     </section>
@@ -175,5 +220,6 @@
       <span>dividend-low-vol-100-etf</span>
     </div>
   </footer>
+  <script src="../../../docs/assets/navigation.js?v=0.7.0"></script>
 </body>
 </html>
