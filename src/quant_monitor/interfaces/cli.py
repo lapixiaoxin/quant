@@ -11,6 +11,7 @@ from pathlib import Path
 from ..application.automation import AutomationService
 from ..application.monitoring import MonitoringService
 from ..application.notifications import NotificationService
+from ..application.selection import SelectionService
 from ..config import Settings, load_settings
 from ..domain.strategies import StrategyRegistry
 from ..infrastructure.history import SQLiteMarketHistoryRepository
@@ -21,10 +22,12 @@ from ..infrastructure.notifications import (
     build_notification_channels,
 )
 from ..infrastructure.research_agent import TraeCliResearchRunner
+from ..infrastructure.selection_config import load_selection_universe
 from ..infrastructure.storage import FileResearchRepository
 from .dashboard import write_dashboard
 from .remote import RemoteCommandRouter, listen_remote_commands
 from .reporting import build_base_report
+from .selection_reporting import write_selection_report
 
 
 class ChineseArgumentParser(argparse.ArgumentParser):
@@ -168,6 +171,21 @@ def _parser() -> argparse.ArgumentParser:
         help="查看本地 SQLite 历史行情覆盖情况",
     )
     _add_target_options(history_parser)
+    select_parser = subparsers.add_parser(
+        "select",
+        help="按候选池执行确定性标的初筛",
+    )
+    select_parser.add_argument(
+        "--universe",
+        type=Path,
+        required=True,
+        help="候选池 TOML 文件",
+    )
+    select_parser.add_argument(
+        "--output",
+        type=Path,
+        help="HTML 输出路径；默认写入 data/selections/latest",
+    )
     subparsers.add_parser("doctor", help="检查配置、扩展点与本地环境")
     return parser
 
@@ -246,6 +264,15 @@ def _doctor(
             raise ValueError(
                 f"标的 {instrument.symbol} 配置的 Skill 不存在：{skill}"
             )
+    selection_skill = (
+        root / ".trae" / "skills" / "instrument-selector" / "SKILL.md"
+    )
+    if not selection_skill.exists():
+        raise ValueError("候选筛选 Skill 不存在：instrument-selector")
+    selection_universes = [
+        load_selection_universe(path)
+        for path in sorted((root / "research" / "universes").glob("*.toml"))
+    ]
     build_notification_channels(settings)
     print(f"项目目录：{root}")
     print(f"Python：{sys.version.split()[0]}")
@@ -269,6 +296,11 @@ def _doctor(
     )
     print(f"通知通道：{channel_states or '未配置'}")
     print("TRAE Skill：正常")
+    print(
+        "候选筛选：正常（"
+        f"{len(selection_universes)} 个候选池，"
+        f"{sum(len(item.candidates) for item in selection_universes)} 个候选）"
+    )
     traecli = TraeCliResearchRunner(root, settings.automation)
     print(
         f"自动化：{'启用' if settings.automation.enabled else '停用'}"
@@ -332,6 +364,33 @@ def main() -> int:
                     f"{symbol}\t{summary.bar_count} 根\t{coverage}\t"
                     f"最近来源：{source}"
                 )
+            return 0
+
+        if args.command == "select":
+            universe_path = (
+                args.universe
+                if args.universe.is_absolute()
+                else root / args.universe
+            )
+            universe = load_selection_universe(universe_path.resolve())
+            service = SelectionService(
+                settings=settings,
+                market_data=FallbackMarketDataProvider(),
+                history_repository=history_repository,
+                repository=repository,
+            )
+            packet_path, packet = service.prepare(universe)
+            output = args.output or (
+                settings.data_dir
+                / "selections"
+                / "latest"
+                / f"{universe.universe_id}.html"
+            )
+            if not output.is_absolute():
+                output = root / output
+            report_path = write_selection_report(output, packet)
+            print(f"数据包：{packet_path}")
+            print(f"初筛报告：{report_path}")
             return 0
 
         if args.command == "dashboard":

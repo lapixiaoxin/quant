@@ -11,6 +11,11 @@ fi
 
 export PYTHONPATH="$ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
 
+printf '%s\n' "检查 Shell 语法..."
+for script in "$ROOT"/scripts/*.sh; do
+  sh -n "$script"
+done
+
 printf '%s\n' "检查 Python 语法..."
 "$PYTHON" -m compileall -q "$ROOT/src" "$ROOT/tests"
 

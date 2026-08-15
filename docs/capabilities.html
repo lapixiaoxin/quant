@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>当前能力 · Quant Monitor</title>
-  <link rel="stylesheet" href="assets/docs.css?v=0.5.1">
+  <link rel="stylesheet" href="assets/docs.css?v=0.6.0">
 </head>
 <body>
   <header class="site-header">
@@ -31,6 +31,7 @@
           <summary>研究工作台</summary>
           <div class="nav-menu">
             <a href="../research/index.html"><strong>研究总览</strong><small>研究资产与隐私分层入口</small></a>
+            <a href="../research/selections/index.html"><strong>候选筛选</strong><small>发现同类标的并形成短名单</small></a>
             <a href="../research/instruments/index.html"><strong>标的档案</strong><small>按代码沉淀讨论与判断</small></a>
             <a href="../research/library/index.html"><strong>通用经验</strong><small>复核并脱敏的跨标的方法</small></a>
             <a href="../research/methods/storage-backtesting.html"><strong>数据与回测</strong><small>历史存储与验证纪律</small></a>
@@ -59,6 +60,38 @@
           <div><dt>自动交易</dt><dd><span class="status no">不支持</span></dd></div>
         </dl>
       </aside>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="section-label">候选选择</p>
+        <div><h2>从投资目标到研究短名单</h2></div>
+      </div>
+      <div class="capability-grid">
+        <article class="capability">
+          <div class="capability-head"><h3>版本化候选池</h3><span class="status ok">已支持</span></div>
+          <p>保存候选身份、硬门槛、低频事实、来源和数据日期。</p>
+        </article>
+        <article class="capability">
+          <div class="capability-head"><h3>未配置标的初筛</h3><span class="status ok">已支持</span></div>
+          <p>候选无需先进入正式监控配置，即可计算历史风险和流动性。</p>
+        </article>
+        <article class="capability">
+          <div class="capability-head"><h3>证据完整性</h3><span class="status ok">已支持</span></div>
+          <p>硬门槛、数据失败和证据缺口分别展示，不用缺失值参与最终选择。</p>
+        </article>
+        <article class="capability">
+          <div class="capability-head"><h3>联网候选研究</h3><span class="status conditional">条件支持</span></div>
+          <p>instrument-selector Skill 补齐费用、跟踪质量、指数规则和成分暴露。</p>
+        </article>
+        <article class="capability">
+          <div class="capability-head"><h3>自动买入</h3><span class="status no">不支持</span></div>
+          <p>系统只形成短名单和淘汰理由，不生成自动交易或仓位指令。</p>
+        </article>
+      </div>
+      <div class="notice">
+        <a href="../research/selections/index.html">打开候选筛选工作台</a>。
+      </div>
     </section>
 
     <section class="section">
@@ -124,6 +157,11 @@
               <td>需要 lark-cli、长连接事件权限和白名单。</td>
             </tr>
             <tr>
+              <td>私有研究数据跨设备同步</td>
+              <td><span class="status ok">已支持</span></td>
+              <td>主写设备导出运行副本；SQLite 必须按单写者流程交接。</td>
+            </tr>
+            <tr>
               <td>飞书任意自然语言 Agent</td>
               <td><span class="status no">未支持</span></td>
               <td>当前只接受固定命令，避免扩大远程执行面。</td>
@@ -185,6 +223,6 @@
       <span><a href="operations.html">查看运行命令</a></span>
     </div>
   </footer>
-  <script src="assets/navigation.js?v=0.5.1"></script>
+  <script src="assets/navigation.js?v=0.6.0"></script>
 </body>
 </html>

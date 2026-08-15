@@ -10,6 +10,7 @@
 - 东方财富行情采集，失败后自动降级腾讯。
 - SQLite 日线历史库、JSON 审计快照、Markdown 报告和静态本地看板。
 - 可版本化的策略目录、回测领域契约和 HTML 研究知识库。
+- 候选池发现、硬门槛初筛、证据缺口和同类标的短名单工作流。
 - schema v3 将最终研究与通知计划交给 TRAE，避免代理入口硬编码 ETF。
 - TraeCode CLI 非交互定时研究，并在 CLI 不可用时按配置降级。
 - 基于 lark-cli WebSocket 的飞书白名单远程命令。
@@ -126,6 +127,8 @@ export FEISHU_RECEIVE_ID="<群聊 chat_id>"
 ./quant doctor
 ./quant instruments
 ./quant history --all
+./quant select \
+  --universe research/universes/dividend-low-vol-100-etf.toml
 ./quant prepare --symbol 515100
 ./quant daily --symbol 515100
 ./quant daily --all
@@ -174,6 +177,7 @@ export FEISHU_RECEIVE_ID="<群聊 chat_id>"
 ```text
 /instrument-daily 515100
 /instrument-daily 515100 push
+/instrument-select dividend-low-vol-100-etf
 ```
 
 TraeCode CLI 的同语义命令位于
@@ -189,9 +193,11 @@ TraeCode CLI 的同语义命令位于
 
 ```text
 research/library/   可提交、经过脱敏的通用经验
-research/private/   具体标的、持仓语境和个人计划，默认不提交 Git
+research/private/   私有仓库内同步的具体标的、持仓语境和个人计划
 research/methods/   数据、策略与回测方法说明
 research/templates/ HTML 讨论报告模板
+research/universes/ 候选池、硬门槛、低频事实与来源日期
+research/selections/候选筛选工作台和深度选择报告
 ```
 
 具体标的讨论默认保存为
@@ -222,6 +228,7 @@ data/snapshots/YYYY-MM-DD/   带采集时刻的不可变快照
 data/reports/YYYY-MM-DD/     基础报告和研究代理报告
 data/dashboard/              静态本地看板
 data/history/market.sqlite3  标准化日线历史库
+data/selections/             候选初筛数据包、快照与基础 HTML 报告
 ```
 
 `data/latest` 是配置解析后的运行产物，不应手工修改。每次成功采集会把日线
@@ -232,6 +239,14 @@ data/history/market.sqlite3  标准化日线历史库
 已经建立，但撮合、参数优化和样本外评估引擎尚未交付，不能把当前关注度策略
 当作已验证的买卖信号。
 
+当前远端仓库是私有仓库，`data/` 和 `research/private/` 会进入 Git，方便
+跨设备复用。`config/config.toml`、日志、凭证和 SQLite 事务边车文件仍被忽略。
+若未来改为公开仓库，必须先清理 Git 历史中的个人数据。
+
+常驻服务写入 `~/.local/share/quant-monitor`。主写设备使用
+`./scripts/sync_runtime_data.sh` 将运行数据安全导出到仓库；SQLite 不做 Git
+自动合并，多设备之间必须按 [install.md](install.md) 的单写者交接流程切换。
+
 ## GitHub 协作
 
 远端仓库：
@@ -240,7 +255,9 @@ data/history/market.sqlite3  标准化日线历史库
 git@github.com:lapixiaoxin/quant.git
 ```
 
-当前采用直接维护 `main` 的方式。每次改动完成后执行质量检查和敏感信息审计，再提交并推送 `origin/main`。本机配置、运行数据、日志、虚拟环境和凭证均由 `.gitignore` 排除。
+当前采用直接维护 `main` 的方式。每次改动完成后执行质量检查和敏感信息审计，
+再提交并推送 `origin/main`。行情数据库、快照、报告、看板和私有研究允许进入
+当前私有仓库；本机配置、日志、虚拟环境、SQLite 事务边车文件和凭证继续忽略。
 
 ## 安全边界
 

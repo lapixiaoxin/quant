@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>候选筛选 · Quant Monitor</title>
+  <link rel="stylesheet" href="../../docs/assets/docs.css?v=0.6.0">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="../../docs/index.html">Quant Monitor</a>
+      <nav class="site-nav" aria-label="全局导航">
+        <a href="../../docs/index.html">总览</a>
+        <details class="nav-dropdown">
+          <summary>使用指南</summary>
+          <div class="nav-menu">
+            <a href="../../docs/install.html"><strong>安装部署</strong><small>新设备、凭证与常驻服务</small></a>
+            <a href="../../docs/operations.html"><strong>运行运维</strong><small>命令、日志与故障处理</small></a>
+          </div>
+        </details>
+        <details class="nav-dropdown">
+          <summary>系统设计</summary>
+          <div class="nav-menu">
+            <a href="../../docs/capabilities.html"><strong>能力边界</strong><small>已支持、条件支持与明确限制</small></a>
+            <a href="../../docs/architecture.html"><strong>架构设计</strong><small>模块、数据流与扩展契约</small></a>
+            <a href="../../docs/refactor-report.html"><strong>升级报告</strong><small>工程演进过程与验证证据</small></a>
+          </div>
+        </details>
+        <details class="nav-dropdown align-right is-current">
+          <summary aria-current="true">研究工作台</summary>
+          <div class="nav-menu">
+            <a href="../index.html"><strong>研究总览</strong><small>研究资产与隐私分层入口</small></a>
+            <a href="index.html" aria-current="page"><strong>候选筛选</strong><small>发现同类标的并形成短名单</small></a>
+            <a href="../instruments/index.html"><strong>标的档案</strong><small>按代码沉淀讨论与判断</small></a>
+            <a href="../library/index.html"><strong>通用经验</strong><small>复核并脱敏的跨标的方法</small></a>
+            <a href="../methods/storage-backtesting.html"><strong>数据与回测</strong><small>历史存储与验证纪律</small></a>
+            <a href="../templates/discussion-report.html"><strong>讨论模板</strong><small>统一事实、结论与失效条件</small></a>
+          </div>
+        </details>
+        <a href="../../data/dashboard/index.html">投资看板</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Candidate Selection</p>
+        <h1>先形成候选池，再决定研究谁</h1>
+        <p class="hero-copy">
+          从投资目标和底层暴露出发发现同类标的，依次验证可投资性、费用、
+          跟踪质量、成分风险和当前适配性。未通过硬门槛或证据不完整的候选
+          不进入最终短名单。
+        </p>
+      </div>
+      <aside class="hero-meta">
+        <dl>
+          <div><dt>候选发现</dt><dd>官方来源优先</dd></div>
+          <div><dt>确定性初筛</dt><dd>本地程序</dd></div>
+          <div><dt>最终短名单</dt><dd>证据完整后</dd></div>
+        </dl>
+      </aside>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="section-label">流程</p>
+        <div><h2>选择能力的六个阶段</h2></div>
+      </div>
+      <ol class="steps">
+        <li><h3>定义暴露</h3><p>先明确指数方法、市场、期限和不可接受风险。</p></li>
+        <li><h3>发现候选</h3><p>从交易所、指数机构和基金管理人建立同类候选池。</p></li>
+        <li><h3>硬门槛初筛</h3><p>检查上市状态、历史样本、规模和流动性。</p></li>
+        <li><h3>补齐低频事实</h3><p>核验费率、跟踪误差、指数规则和成分暴露。</p></li>
+        <li><h3>形成短名单</h3><p>保留适用条件和每个候选的明确淘汰理由。</p></li>
+        <li><h3>进入单标的研究</h3><p>只有入选候选才进入个性化深度研究和持续监控。</p></li>
+      </ol>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="section-label">当前示例</p>
+        <div>
+          <h2>中证红利低波动100指数 ETF</h2>
+          <p class="section-intro">同一指数、六只场内产品，先比较产品载体质量。</p>
+        </div>
+      </div>
+      <div class="link-grid">
+        <article class="link-item">
+          <a href="../universes/dividend-low-vol-100-etf.toml">候选池定义</a>
+          <p>查看候选、硬门槛、已核验低频事实及来源日期。</p>
+        </article>
+        <article class="link-item">
+          <a href="../../data/selections/latest/dividend-low-vol-100-etf.html">最新确定性初筛</a>
+          <p>查看市场指标、淘汰理由和仍需补齐的证据。</p>
+        </article>
+        <article class="link-item">
+          <a href="dividend-low-vol-100-etf/2026-08-15-selection.html">最新深度选择报告</a>
+          <p>查看费用、跟踪质量与历史验证之间的条件化取舍。</p>
+        </article>
+      </div>
+      <pre><code>./quant select \
+  --universe research/universes/dividend-low-vol-100-etf.toml
+
+/instrument-select dividend-low-vol-100-etf</code></pre>
+      <div class="notice">
+        市场排名只比较流动性、近期波动和一年最大回撤，不代表最终适配性、
+        收益预测或买入顺序。
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>候选筛选是研究入口，不是自动荐股或交易指令。</span>
+      <span><a href="../../docs/capabilities.html">查看能力边界</a></span>
+    </div>
+  </footer>
+  <script src="../../docs/assets/navigation.js?v=0.6.0"></script>
+</body>
+</html>

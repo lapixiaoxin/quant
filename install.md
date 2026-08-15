@@ -281,6 +281,35 @@ git pull --ff-only origin main
 ```
 
 不要覆盖 `config/config.toml`。安装脚本只会在文件不存在时从模板创建。
-每次重装都会把源码和本机配置同步到运行目录，但不会复制 Git、缓存和开发目录的
-运行数据，也不会删除运行目录已有的 `data/history`、快照和报告。
-`research/private` 同样保留，不会被源码同步覆盖。
+每次重装都会同步源码和本机配置。私有仓库中的 `data/` 与
+`research/private/` 只用于补齐运行目录缺失文件，不覆盖目标设备已经产生的新
+数据库、快照、报告或私有研究。
+
+常驻服务产生的数据位于运行副本。由当前主写设备导出到私有仓库：
+
+```bash
+cd "$HOME/Quant"
+./scripts/sync_runtime_data.sh
+./scripts/check.sh
+./quant doctor
+git status --short
+git add data research
+git commit -m "data: 同步研究数据"
+git push origin main
+```
+
+SQLite 不通过 Git 自动合并，同一时刻只能有一台主写设备。其他设备可以
+`git pull` 后直接浏览仓库中的报告和看板，但不得同时导出并提交各自的
+`market.sqlite3`。主写设备交接顺序为：旧设备停止写入、导出、检查、提交并
+推送；新设备再拉取并显式用仓库数据接管运行副本：
+
+```bash
+git pull --ff-only origin main
+QUANT_RUNTIME_DATA_MODE=replace ./scripts/install_macos.sh
+```
+
+`replace` 会用仓库版本覆盖运行副本中的同名数据，只能在确认目标设备没有
+未同步研究产物后使用；默认 `preserve` 模式仍只补齐缺失文件。
+
+SQLite 的 `-wal`、`-shm`、`-journal`、本机配置、日志和凭证不会进入 Git。
+若未来将仓库公开，必须先清理 Git 历史中的个人数据。

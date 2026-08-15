@@ -61,6 +61,13 @@ class ResearchRepository(Protocol):
     def list_latest_packets(self) -> list[dict[str, Any]]:
         """读取所有可解析的最新数据包。"""
 
+    def save_selection_packet(
+        self,
+        universe_id: str,
+        packet: dict[str, Any],
+    ) -> Path:
+        """保存候选池最新结果和带时间戳的不可变快照。"""
+
 
 class NotificationChannel(Protocol):
     """报告发送通道。"""

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>运行运维 · Quant Monitor</title>
-  <link rel="stylesheet" href="assets/docs.css?v=0.5.1">
+  <link rel="stylesheet" href="assets/docs.css?v=0.6.0">
 </head>
 <body>
   <header class="site-header">
@@ -31,6 +31,7 @@
           <summary>研究工作台</summary>
           <div class="nav-menu">
             <a href="../research/index.html"><strong>研究总览</strong><small>研究资产与隐私分层入口</small></a>
+            <a href="../research/selections/index.html"><strong>候选筛选</strong><small>发现同类标的并形成短名单</small></a>
             <a href="../research/instruments/index.html"><strong>标的档案</strong><small>按代码沉淀讨论与判断</small></a>
             <a href="../research/library/index.html"><strong>通用经验</strong><small>复核并脱敏的跨标的方法</small></a>
             <a href="../research/methods/storage-backtesting.html"><strong>数据与回测</strong><small>历史存储与验证纪律</small></a>
@@ -71,12 +72,14 @@
         <article class="command"><code>./quant doctor</code><p>检查配置引用、策略、Skill 和外部 CLI。</p></article>
         <article class="command"><code>./quant instruments</code><p>列出标的、策略画像、研究画像和通知策略。</p></article>
         <article class="command"><code>./quant history --all</code><p>查看 SQLite 日线条数、日期范围和最近来源。</p></article>
+        <article class="command"><code>./quant select --universe ...</code><p>对版本化候选池执行硬门槛和市场指标初筛。</p></article>
         <article class="command"><code>./quant prepare --symbol 515100</code><p>采集并生成 schema v3 数据包。</p></article>
         <article class="command"><code>./quant daily --symbol 515100</code><p>生成确定性基础报告，不默认发送。</p></article>
         <article class="command"><code>./quant automate --all</code><p>按 automation 配置运行 Agent 或基础降级。</p></article>
         <article class="command"><code>./quant automate --all --no-send</code><p>不发送消息的完整链路验收。</p></article>
         <article class="command"><code>./quant dashboard</code><p>刷新本地静态投资看板。</p></article>
         <article class="command"><code>./quant listen --check</code><p>检查远程白名单配置和 lark-cli。</p></article>
+        <article class="command"><code>./scripts/sync_runtime_data.sh</code><p>暂停服务并把主写运行副本导出到私有仓库。</p></article>
       </div>
     </section>
 
@@ -150,10 +153,10 @@
 
   <footer class="site-footer">
     <div class="footer-inner">
-      <span>运行数据和日志不提交 Git</span>
+      <span>私有仓库同步研究数据；配置、日志和凭证不提交 Git</span>
       <span><a href="install.html">返回部署说明</a></span>
     </div>
   </footer>
-  <script src="assets/navigation.js?v=0.5.1"></script>
+  <script src="assets/navigation.js?v=0.6.0"></script>
 </body>
 </html>

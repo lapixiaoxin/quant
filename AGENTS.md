@@ -45,14 +45,17 @@ tests/             与 src 分层对应的自动化测试
 scripts/           安装、服务管理和质量检查
 docs/              架构、决策和面向人的可视化报告
 research/library/  可提交、已脱敏、可复用的研究经验
-research/private/  本机标的讨论和个人语境，默认不入库
+research/private/  私有仓库内同步的标的讨论和个人语境
+research/universes/可版本化的候选池、硬门槛和低频事实来源
+research/selections/候选筛选工作台和深度选择报告
 install.md         新设备自动化部署的 Agent 权威指南
 capabilities.md    当前已交付能力与边界
 data/latest/       schema v3 最新解析结果与代理提示，可覆盖
 data/snapshots/    带时间戳的原始研究快照，只追加
 data/reports/      人或代理生成的研究报告
 data/dashboard/    本地静态看板产物
-data/history/      SQLite 标准化日线历史库，不入库
+data/history/      SQLite 标准化日线历史库
+data/selections/   候选池初筛数据包、快照与基础 HTML 报告
 ```
 
 ## 4. 稳定扩展流程
@@ -100,6 +103,20 @@ data/history/      SQLite 标准化日线历史库，不入库
 2. 可由产品大类复用，也可为单个标的创建专属画像。
 3. Skill 必须消费数据包 `research_plan`，不得把 ETF、股票或指数流程硬编码到通用入口。
 
+### 新增候选池或选择流程
+
+1. 先定义投资目标、底层暴露、市场、期限和不可接受风险，再发现产品。
+2. 候选池保存到 `research/universes/<id>.toml`，来源优先使用交易所、指数机构、
+   基金管理人和监管披露。
+3. 同指数产品与相似目标但不同指数方法的产品必须分层比较，不得仅按名称聚类。
+4. 运行 `./quant select --universe <路径>`，由程序计算历史收益、波动、回撤和
+   流动性，并保留单只候选失败。
+5. 硬门槛淘汰与证据缺口分开：数据源缺字段不能等同于产品不合格。
+6. 费率、规模、成立日期、跟踪误差、指数规则和成分暴露必须带来源与日期。
+7. 只有硬门槛通过且必需证据完整的候选才能进入短名单；市场分数不得直接转换为
+   买入顺序、金额或仓位。
+8. 最终 HTML 报告保留完整候选池、每项原始指标、淘汰理由、来源冲突和失效条件。
+
 ### 沉淀讨论结果
 
 1. 具体标的讨论默认整理为 `research/private/<代码>/<日期>-<主题>.html`。
@@ -141,8 +158,15 @@ data/history/      SQLite 标准化日线历史库，不入库
 - Python 最低版本为 3.9；公共函数有类型标注，领域数据优先使用不可变 `dataclass`。
 - 网络调用必须有超时、有限重试和上下文明确的异常，不记录密钥或完整凭证。
 - 数据包契约变更必须递增 `schema_version`；首个稳定基线发布后，读取端至少兼容前一版本。
+- 候选筛选数据契约变更必须递增 `selection_schema_version`。
 - SQLite schema 变更必须新增迁移版本，不得原地修改已有版本的含义。
-- 不修改 `config/config.toml` 中的本机秘密，不把运行数据或构建产物提交到版本库。
+- 不修改 `config/config.toml` 中的本机秘密。当前私有仓库允许提交行情数据库、
+  快照、报告、看板和私有研究；仍禁止提交配置、日志、凭证、SQLite 事务边车文件
+  和构建产物。
+- 常驻服务的数据由主写设备通过 `scripts/sync_runtime_data.sh` 导出；SQLite
+  不通过 Git 合并，同一时刻只能有一台设备写入并提交主库。
+- 若计划公开仓库，必须先审计并清理 Git 历史中的 `data/` 和
+  `research/private/`，仅修改 `.gitignore` 不足以消除历史数据。
 - 注释解释约束和原因，不复述代码。修改行为时同步更新相关注释和文档。
 
 ## 6. 测试与交付流程
@@ -169,6 +193,8 @@ data/history/      SQLite 标准化日线历史库，不入库
 - 适配器：覆盖字段缺失、异常响应、重试和降级。
 - SQLite：覆盖迁移、幂等写入、范围读取、质量字段保护和未来版本拒绝。
 - 回测契约：覆盖日期、成本、仓位边界、版本冻结和未来数据隔离。
+- 候选筛选：覆盖候选池 schema、硬门槛、证据缺口、单候选失败隔离、排名解释和
+  HTML 报告。
 - CLI：覆盖返回码、参数校验和错误信息。
 - 看板：至少验证空数据、多标的和当前 schema 数据包渲染。
 - 配置继承：验证类别默认值、标的覆盖和无效引用。
@@ -182,7 +208,8 @@ data/history/      SQLite 标准化日线历史库，不入库
 - 远端仓库固定为 `git@github.com:lapixiaoxin/quant.git`，主分支为 `main`。
 - 完成定义满足后，直接提交当前任务的相关文件并推送 `origin/main`。
 - 推送前必须执行 `./scripts/check.sh`、`./quant doctor` 和敏感信息检查。
-- 禁止提交 `config/config.toml`、`data/` 运行产物、日志、虚拟环境和凭证。
+- 禁止提交 `config/config.toml`、日志、虚拟环境、SQLite WAL/SHM/JOURNAL 和凭证。
+- 提交 `data/` 或 `research/private/` 前必须做敏感信息与文件体积检查。
 - 若远端主分支出现他人提交，先获取并审查差异，使用非破坏方式整合，不强推覆盖。
 
 ## 8. 文档同步矩阵
@@ -192,6 +219,7 @@ data/history/      SQLite 标准化日线历史库，不入库
 | 目录或依赖方向 | `AGENTS.md`、`docs/architecture.md` |
 | CLI、安装或配置 | `README.md`、配置模板、相关脚本 |
 | 历史数据库或回测契约 | `data/README.md`、`capabilities.md`、方法报告、测试 |
+| 候选池或选择流程 | Skill、`.traecli` 命令、候选池、能力说明、架构文档、测试 |
 | 研究归档规则 | `research/README.md`、研究库 HTML、隐私检查 |
 | 数据包字段 | `schema_version`、报告渲染、Skill、测试 |
 | 配置继承或策略规则 | 配置模板、策略测试、Skill 的解释边界 |

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>安装部署 · Quant Monitor</title>
-  <link rel="stylesheet" href="assets/docs.css?v=0.5.1">
+  <link rel="stylesheet" href="assets/docs.css?v=0.6.0">
 </head>
 <body>
   <header class="site-header">
@@ -31,6 +31,7 @@
           <summary>研究工作台</summary>
           <div class="nav-menu">
             <a href="../research/index.html"><strong>研究总览</strong><small>研究资产与隐私分层入口</small></a>
+            <a href="../research/selections/index.html"><strong>候选筛选</strong><small>发现同类标的并形成短名单</small></a>
             <a href="../research/instruments/index.html"><strong>标的档案</strong><small>按代码沉淀讨论与判断</small></a>
             <a href="../research/library/index.html"><strong>通用经验</strong><small>复核并脱敏的跨标的方法</small></a>
             <a href="../research/methods/storage-backtesting.html"><strong>数据与回测</strong><small>历史存储与验证纪律</small></a>
@@ -107,6 +108,14 @@ cd "$HOME/Quant"
 ./quant automate --all --no-send
 ./scripts/service.sh status</code></pre>
         </li>
+        <li>
+          <h3>由主写设备同步研究数据</h3>
+          <pre><code>./scripts/sync_runtime_data.sh
+git add data research
+git commit -m "data: 同步研究数据"
+git push origin main</code></pre>
+          <p>SQLite 不做 Git 自动合并。更换主写设备时先在旧设备导出并推送，再在新设备执行 <code>QUANT_RUNTIME_DATA_MODE=replace ./scripts/install_macos.sh</code>。</p>
+        </li>
       </ol>
     </section>
 
@@ -156,6 +165,14 @@ cd "$HOME/Quant"
           <div class="capability-head"><h3>远程执行</h3><span class="status ok">白名单</span></div>
           <p>只识别固定命令和已配置标的，不提供任意 Shell。</p>
         </article>
+        <article class="capability">
+          <div class="capability-head"><h3>跨设备数据</h3><span class="status conditional">私有仓库</span></div>
+          <p>主写设备显式导出运行数据；默认安装只补齐缺失文件，接管时才允许仓库数据覆盖。</p>
+        </article>
+      </div>
+      <div class="notice">
+        同一时刻只能有一台设备写入并提交 <code>market.sqlite3</code>；配置、日志、
+        SQLite 事务边车文件和凭证始终保持本机隔离。
       </div>
     </section>
   </main>
@@ -166,6 +183,6 @@ cd "$HOME/Quant"
       <span>部署前先使用 <code>--no-send</code> 验证。</span>
     </div>
   </footer>
-  <script src="assets/navigation.js?v=0.5.1"></script>
+  <script src="assets/navigation.js?v=0.6.0"></script>
 </body>
 </html>

@@ -155,8 +155,6 @@ pre code {
   border-bottom-color: #d4a437;
 }
 
-.nav-dropdown:hover > summary::after,
-.nav-dropdown:focus-within > summary::after,
 .nav-dropdown[open] > summary::after {
   transform: translateY(2px) rotate(225deg);
 }
@@ -181,9 +179,7 @@ pre code {
   left: auto;
 }
 
-.nav-dropdown[open] > .nav-menu,
-.nav-dropdown:hover > .nav-menu,
-.nav-dropdown:focus-within > .nav-menu {
+.nav-dropdown[open] > .nav-menu {
   display: grid;
 }
 
@@ -510,6 +506,10 @@ table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
+}
+
+table.selection-table {
+  min-width: 1120px;
 }
 
 th,

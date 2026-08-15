@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>架构设计 · Quant Monitor</title>
-  <link rel="stylesheet" href="assets/docs.css?v=0.5.1">
+  <link rel="stylesheet" href="assets/docs.css?v=0.6.0">
 </head>
 <body>
   <header class="site-header">
@@ -31,6 +31,7 @@
           <summary>研究工作台</summary>
           <div class="nav-menu">
             <a href="../research/index.html"><strong>研究总览</strong><small>研究资产与隐私分层入口</small></a>
+            <a href="../research/selections/index.html"><strong>候选筛选</strong><small>发现同类标的并形成短名单</small></a>
             <a href="../research/instruments/index.html"><strong>标的档案</strong><small>按代码沉淀讨论与判断</small></a>
             <a href="../research/library/index.html"><strong>通用经验</strong><small>复核并脱敏的跨标的方法</small></a>
             <a href="../research/methods/storage-backtesting.html"><strong>数据与回测</strong><small>历史存储与验证纪律</small></a>
@@ -63,6 +64,42 @@
 
     <section class="section">
       <div class="section-head">
+        <p class="section-label">选择链路</p>
+        <div><h2>候选池先于正式标的配置</h2></div>
+      </div>
+      <div class="diagram" aria-label="候选筛选架构图">
+        <article class="diagram-node gold">
+          <small>目标</small>
+          <strong>暴露与约束</strong>
+          <p>先明确需要什么。</p>
+        </article>
+        <div class="diagram-arrow" aria-hidden="true">→</div>
+        <article class="diagram-node">
+          <small>公开来源</small>
+          <strong>候选池 TOML</strong>
+          <p>身份、门槛、事实与日期。</p>
+        </article>
+        <div class="diagram-arrow" aria-hidden="true">→</div>
+        <article class="diagram-node">
+          <small>本地程序</small>
+          <strong>SelectionService</strong>
+          <p>指标、硬门槛和失败隔离。</p>
+        </article>
+        <div class="diagram-arrow" aria-hidden="true">→</div>
+        <article class="diagram-node green">
+          <small>研究代理</small>
+          <strong>短名单报告</strong>
+          <p>补证、比较和淘汰理由。</p>
+        </article>
+      </div>
+      <div class="notice">
+        缺失字段只能标记为待补证据，不能直接判定产品不合格；
+        市场排名也不能转换为自动买入顺序。
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
         <p class="section-label">数据底座</p>
         <div><h2>历史查询、审计与回测分层</h2></div>
       </div>
@@ -87,6 +124,8 @@
       <div class="notice">
         完整数据与回测方法见
         <a href="../research/methods/storage-backtesting.html">历史数据与回测方法</a>。
+        常驻服务由主写设备通过 <code>sync_runtime_data.sh</code> 把一致性 SQLite
+        备份和研究产物导出到私有仓库；多设备不并发写入或合并 SQLite 二进制文件。
       </div>
     </section>
 
@@ -208,6 +247,6 @@
       <span>领域层不依赖外部系统</span>
     </div>
   </footer>
-  <script src="assets/navigation.js?v=0.5.1"></script>
+  <script src="assets/navigation.js?v=0.6.0"></script>
 </body>
 </html>

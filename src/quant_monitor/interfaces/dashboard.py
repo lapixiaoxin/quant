@@ -99,7 +99,7 @@ def _render_instrument(packet: dict[str, Any]) -> str:
           <time datetime="{_text(packet["as_of"])}">{as_of:%Y-%m-%d %H:%M}</time>
         </footer>
       </article>
-    """
+    """.strip() + "\n"
 
 
 def build_dashboard(packets: list[dict[str, Any]]) -> str:
@@ -121,7 +121,7 @@ def build_dashboard(packets: list[dict[str, Any]]) -> str:
           </section>
         """
     error_html = (
-        f'<p class="warning">有 {len(errors)} 个数据包无法解析。</p>'
+        f'\n    <p class="warning">有 {len(errors)} 个数据包无法解析。</p>'
         if errors
         else ""
     )
@@ -240,8 +240,7 @@ def build_dashboard(packets: list[dict[str, Any]]) -> str:
     <div class="overview">
       <h2>最新标的</h2>
       <span>生成于 {_text(generated_at)}</span>
-    </div>
-    {error_html}
+    </div>{error_html}
     <div class="instruments">{body}</div>
   </main>
 </body>

@@ -9,7 +9,13 @@ ROOT = Path(__file__).resolve().parents[1]
 PAGES = sorted(
     [
         *ROOT.joinpath("docs").glob("*.html"),
-        *ROOT.joinpath("research").rglob("*.html"),
+        ROOT / "research" / "index.html",
+        ROOT / "research" / "instruments" / "index.html",
+        ROOT / "research" / "library" / "index.html",
+        ROOT / "research" / "library" / "instrument-selection-open-source-review.html",
+        ROOT / "research" / "methods" / "storage-backtesting.html",
+        ROOT / "research" / "selections" / "index.html",
+        ROOT / "research" / "templates" / "discussion-report.html",
     ]
 )
 EXPECTED_DESTINATIONS = {
@@ -20,6 +26,7 @@ EXPECTED_DESTINATIONS = {
     ROOT / "docs" / "architecture.html",
     ROOT / "docs" / "refactor-report.html",
     ROOT / "research" / "index.html",
+    ROOT / "research" / "selections" / "index.html",
     ROOT / "research" / "instruments" / "index.html",
     ROOT / "research" / "library" / "index.html",
     ROOT / "research" / "methods" / "storage-backtesting.html",
@@ -91,7 +98,7 @@ class NavigationParser(HTMLParser):
 
 class DocumentationNavigationTest(unittest.TestCase):
     def test_all_pages_share_one_predictable_global_navigation(self) -> None:
-        self.assertEqual(len(PAGES), 11)
+        self.assertEqual(len(PAGES), 13)
         for page in PAGES:
             with self.subTest(page=page.relative_to(ROOT)):
                 parser = NavigationParser()
@@ -112,9 +119,28 @@ class DocumentationNavigationTest(unittest.TestCase):
                 expected_groups = 0 if page == ROOT / "docs" / "index.html" else 1
                 self.assertEqual(parser.current_groups, expected_groups)
                 self.assertEqual(len(parser.stylesheets), 1)
-                self.assertIn("docs.css?v=0.5.1", parser.stylesheets[0])
+                self.assertIn("docs.css?v=0.6.0", parser.stylesheets[0])
                 self.assertEqual(len(parser.scripts), 1)
-                self.assertIn("navigation.js?v=0.5.1", parser.scripts[0])
+                self.assertIn("navigation.js?v=0.6.0", parser.scripts[0])
+
+    def test_escape_can_visually_close_a_focused_dropdown(self) -> None:
+        stylesheet = (ROOT / "docs" / "assets" / "docs.css").read_text(
+            encoding="utf-8"
+        )
+        script = (ROOT / "docs" / "assets" / "navigation.js").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertNotIn(
+            ".nav-dropdown:focus-within > .nav-menu",
+            stylesheet,
+        )
+        self.assertNotIn(
+            ".nav-dropdown:hover > .nav-menu",
+            stylesheet,
+        )
+        self.assertIn('event.key !== "Escape"', script)
+        self.assertIn("closeDropdown(activeDropdown, true)", script)
 
 
 if __name__ == "__main__":

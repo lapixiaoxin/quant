@@ -83,3 +83,27 @@ class FileResearchRepository:
             except (OSError, ValueError):
                 continue
         return packets
+
+    def save_selection_packet(
+        self,
+        universe_id: str,
+        packet: dict[str, Any],
+    ) -> Path:
+        now = datetime.fromisoformat(str(packet["as_of"]))
+        latest_path = (
+            self._data_dir
+            / "selections"
+            / "latest"
+            / f"{universe_id}.json"
+        )
+        snapshot_path = (
+            self._data_dir
+            / "selections"
+            / "snapshots"
+            / now.strftime("%Y-%m-%d")
+            / f"{universe_id}-{now.strftime('%H%M%S')}.json"
+        )
+        content = json.dumps(packet, ensure_ascii=False, indent=2) + "\n"
+        self._atomic_write(latest_path, content)
+        self._atomic_write(snapshot_path, content)
+        return latest_path
