@@ -1,0 +1,101 @@
+[app]
+timezone = "Asia/Shanghai"
+report_time = "14:00"
+data_dir = "data"
+log_dir = "logs"
+
+# 产品大类定义共性默认值；单个标的可覆盖这些字段。
+[product_types.etf]
+strategy_profiles = ["dividend_low_vol_default"]
+research_profile = "etf_core"
+notification_policy = "daily_research"
+history_days = 500
+
+# 策略画像绑定代码中的策略实现，并只暴露确有业务意义的参数。
+[strategy_profiles.dividend_low_vol_default]
+strategy = "dividend_low_vol"
+
+[strategy_profiles.dividend_low_vol_default.parameters]
+deep_drawdown = -0.08
+attention_drawdown = -0.05
+mild_drawdown = -0.03
+near_high = -0.01
+high_volatility = 0.25
+
+# 研究画像定义“想了解什么”，可被多个同类标的复用。
+[research_profiles.etf_core]
+skill = "instrument-analyst"
+sections = [
+  "数据可靠性",
+  "价格位置与趋势",
+  "估值与基本面",
+  "风险与失效条件",
+  "后续情景",
+]
+focus = [
+  "规模、份额、费率和跟踪误差",
+  "跟踪指数估值、股息率和历史分位",
+  "成分股、行业权重与集中度变化",
+]
+source_priorities = [
+  "基金管理人和基金公告",
+  "指数编制机构",
+  "证券交易所",
+  "权威金融数据网站",
+]
+max_sources = 6
+instructions = [
+  "区分盘中事实、低频基本面和分析判断",
+  "不因单日涨跌直接给出方向性结论",
+]
+
+# 通知策略定义“什么事件发到哪里”，标的可引用不同策略。
+[notification_policies.daily_research]
+enabled = true
+channels = ["feishu_primary"]
+events = ["manual", "base_report", "agent_report"]
+title_template = "{symbol} {name} 研究简报"
+
+[notification_policies.silent]
+enabled = false
+channels = []
+events = []
+title_template = "{symbol} {name} 研究简报"
+
+# 通知通道定义实际发送机制。模板默认关闭，避免初始化后误发消息。
+[notification_channels.feishu_primary]
+type = "feishu"
+enabled = false
+mode = "app"
+app_id = ""
+app_secret_env = "FEISHU_APP_SECRET"
+receive_id_env = "FEISHU_RECEIVE_ID"
+receive_id = ""
+receive_id_type = "chat_id"
+keychain_service = "etf-monitor.feishu-app-secret"
+webhook_env = "FEISHU_WEBHOOK_URL"
+
+[[instruments]]
+symbol = "515100"
+name = "红利低波100ETF景顺"
+exchange = "SH"
+type = "etf"
+tracking_index = "中证红利低波动100指数"
+tracking_index_code = "930955"
+# 以下字段省略时继承 product_types.etf。
+# strategy_profiles = ["dividend_low_vol_default"]
+# research_profile = "etf_core"
+# notification_policy = "daily_research"
+research_focus = [
+  "红利风格相对沪深300和中证500的强弱",
+  "分红记录与股息可持续性",
+]
+research_instructions = [
+  "重点解释红利低波策略是否仍然有效",
+]
+
+[portfolio.515100]
+enabled = false
+shares = 0
+average_cost = 0.0
+planned_total_amount = 0.0

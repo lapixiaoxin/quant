@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.ruff_cache/
+.pytest_cache/
+build/
+dist/
+config/config.toml
+data/latest/*
+data/snapshots/
+data/reports/*
+data/dashboard/
+logs/*
+!data/latest/.gitkeep
+!data/reports/.gitkeep
+!logs/.gitkeep

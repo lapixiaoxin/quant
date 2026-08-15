@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quant Monitor 工程升级报告</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #20231f;
+      --muted: #687069;
+      --line: #dce1da;
+      --canvas: #f4f6f2;
+      --surface: #ffffff;
+      --green: #176b44;
+      --green-soft: #e8f2ec;
+      --gold: #a36b12;
+      --gold-soft: #f6eedc;
+      --red: #a43f38;
+      --blue: #31658a;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font: 15px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI",
+        "PingFang SC", "Hiragino Sans GB", sans-serif;
+    }
+    a { color: var(--green); text-underline-offset: 3px; }
+    .masthead {
+      background: #1f2923;
+      color: #fff;
+      border-bottom: 5px solid #d4a437;
+    }
+    .masthead-inner,
+    main,
+    .footer-inner {
+      width: min(1160px, calc(100% - 36px));
+      margin: 0 auto;
+    }
+    .masthead-inner {
+      min-height: 230px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 36px;
+      padding: 48px 0 38px;
+    }
+    .kicker {
+      margin: 0 0 9px;
+      color: #d9c481;
+      font-size: 12px;
+      font-weight: 750;
+      text-transform: uppercase;
+    }
+    h1, h2, h3, p { letter-spacing: 0; }
+    h1 {
+      max-width: 760px;
+      margin: 0;
+      font-size: clamp(32px, 5vw, 54px);
+      line-height: 1.08;
+    }
+    .subtitle {
+      max-width: 760px;
+      margin: 18px 0 0;
+      color: #cfd7d1;
+      font-size: 16px;
+    }
+    .release {
+      min-width: 170px;
+      padding-left: 22px;
+      border-left: 1px solid #56615a;
+    }
+    .release span, .release strong { display: block; }
+    .release span { color: #aeb8b1; font-size: 12px; }
+    .release strong { margin: 3px 0 13px; font-size: 17px; }
+    main { padding: 34px 0 68px; }
+    .quick-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+      padding: 0 0 22px;
+      border-bottom: 1px solid var(--line);
+    }
+    .quick-nav a {
+      color: #495149;
+      font-size: 13px;
+      font-weight: 650;
+      text-decoration: none;
+    }
+    section {
+      padding: 40px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    section:last-child { border-bottom: 0; }
+    .section-head {
+      display: grid;
+      grid-template-columns: 210px minmax(0, 1fr);
+      gap: 30px;
+      margin-bottom: 24px;
+    }
+    .section-number {
+      margin: 2px 0 0;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 750;
+    }
+    h2 {
+      margin: 0;
+      font-size: 27px;
+      line-height: 1.25;
+    }
+    .section-intro {
+      max-width: 780px;
+      margin: 8px 0 0;
+      color: var(--muted);
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+    .stat { min-width: 0; padding: 23px; border-right: 1px solid var(--line); }
+    .stat:last-child { border-right: 0; }
+    .stat strong {
+      display: block;
+      font-size: 29px;
+      line-height: 1.1;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat span { display: block; margin-top: 7px; color: var(--muted); }
+    .callout {
+      margin-top: 18px;
+      padding: 16px 18px;
+      background: var(--green-soft);
+      border-left: 4px solid var(--green);
+    }
+    .callout strong { color: var(--green); }
+    .architecture {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(92px, 1fr));
+      align-items: stretch;
+      gap: 8px;
+    }
+    .node {
+      min-height: 118px;
+      padding: 15px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--blue);
+      border-radius: 5px;
+    }
+    .node.domain { border-top-color: var(--green); background: #fbfdfb; }
+    .node.infra { border-top-color: var(--gold); }
+    .node small {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .node strong { display: block; margin: 5px 0; line-height: 1.25; }
+    .node p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .arrow {
+      display: grid;
+      place-items: center;
+      color: #8b948d;
+      font-size: 22px;
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 20px;
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .legend b { color: var(--ink); }
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .comparison > div { padding: 22px; background: var(--surface); }
+    .comparison > div:first-child {
+      border-right: 1px solid var(--line);
+      background: #fafbf9;
+    }
+    .comparison h3 { margin: 0 0 12px; font-size: 15px; }
+    .comparison ul, .work-list, .roadmap { margin: 0; padding-left: 19px; }
+    .comparison li, .work-list li, .roadmap li { margin: 7px 0; }
+    .decision-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      font-size: 14px;
+    }
+    .decision-table th,
+    .decision-table td {
+      padding: 13px 15px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+    .decision-table tr:last-child td { border-bottom: 0; }
+    .decision-table th { background: #eef1ec; font-size: 12px; }
+    .decision-table td:first-child { width: 25%; font-weight: 700; }
+    .work-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .work-item {
+      min-width: 0;
+      padding: 19px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+    .work-item h3 { margin: 0 0 8px; font-size: 15px; }
+    .work-item p { margin: 0; color: var(--muted); font-size: 13px; }
+    .verification {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .verify-block {
+      padding: 20px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+    .verify-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .verify-head h3 { margin: 0; font-size: 15px; }
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: var(--green-soft);
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 750;
+    }
+    .facts { margin: 0; }
+    .facts div {
+      display: grid;
+      grid-template-columns: 145px minmax(0, 1fr);
+      gap: 12px;
+      padding: 7px 0;
+      border-top: 1px solid #edf0eb;
+    }
+    .facts dt { color: var(--muted); }
+    .facts dd { margin: 0; font-weight: 650; overflow-wrap: anywhere; }
+    .note {
+      margin: 18px 0 0;
+      padding: 14px 16px;
+      background: var(--gold-soft);
+      border-left: 4px solid var(--gold);
+      color: #5f4a20;
+    }
+    .roadmap {
+      list-style: none;
+      padding: 0;
+      counter-reset: stage;
+    }
+    .roadmap li {
+      position: relative;
+      min-height: 66px;
+      margin: 0;
+      padding: 0 0 22px 58px;
+      counter-increment: stage;
+    }
+    .roadmap li::before {
+      content: counter(stage);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--green);
+      border-radius: 50%;
+      color: var(--green);
+      font-weight: 750;
+    }
+    .roadmap li::after {
+      content: "";
+      position: absolute;
+      left: 17px;
+      top: 35px;
+      bottom: 0;
+      width: 1px;
+      background: var(--line);
+    }
+    .roadmap li:last-child::after { display: none; }
+    .roadmap strong { display: block; }
+    .roadmap span { color: var(--muted); }
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .links a {
+      display: inline-block;
+      padding: 9px 12px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      font-weight: 650;
+      text-decoration: none;
+    }
+    footer.page-footer {
+      background: #e8ece7;
+      border-top: 1px solid #d2d8d1;
+    }
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 22px 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    code {
+      padding: 2px 5px;
+      background: #e9ede7;
+      border-radius: 3px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: .92em;
+    }
+    @media (max-width: 900px) {
+      .masthead-inner { grid-template-columns: 1fr; align-items: start; }
+      .release { padding: 0; border-left: 0; }
+      .release div { display: inline-block; margin-right: 28px; }
+      .section-head { grid-template-columns: 1fr; gap: 7px; }
+      .stats, .work-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .stat:nth-child(2) { border-right: 0; }
+      .stat:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+      .architecture { grid-template-columns: 1fr; }
+      .arrow { height: 22px; transform: rotate(90deg); }
+    }
+    @media (max-width: 620px) {
+      .masthead-inner { min-height: 0; padding: 34px 0 28px; }
+      h1 { font-size: 34px; }
+      .stats, .work-grid, .comparison, .verification { grid-template-columns: 1fr; }
+      .stat { border-right: 0; border-bottom: 1px solid var(--line); }
+      .stat:last-child { border-bottom: 0; }
+      .comparison > div:first-child {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .decision-table { display: block; overflow-x: auto; }
+      .facts div { grid-template-columns: 1fr; gap: 2px; }
+      .footer-inner { flex-direction: column; gap: 3px; }
+    }
+    @media print {
+      body { background: white; }
+      .quick-nav { display: none; }
+      section { break-inside: avoid; }
+      .masthead { print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <div>
+        <p class="kicker">Engineering Evolution Report</p>
+        <h1>Quant Monitor 工程升级报告</h1>
+        <p class="subtitle">
+          从单一 ETF 脚本演进为可持续扩展的个人投资研究内核，
+          通过产品类别默认值、标的覆盖、策略画像、研究画像和通知路由，
+          为多产品、多策略、远程命令与 Web UI 固定扩展边界。
+        </p>
+      </div>
+      <div class="release">
+        <div><span>版本</span><strong>0.3.0</strong></div>
+        <div><span>完成日期</span><strong>2026-08-15</strong></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <nav class="quick-nav" aria-label="报告目录">
+      <a href="#summary">成果摘要</a>
+      <a href="#architecture">目标架构</a>
+      <a href="#decisions">关键决策</a>
+      <a href="#inventory">实施清单</a>
+      <a href="#verification">验证证据</a>
+      <a href="#roadmap">后续路线</a>
+    </nav>
+
+    <section id="summary">
+      <div class="section-head">
+        <p class="section-number">01 / 成果摘要</p>
+        <div>
+          <h2>保住当前可用性，建立未来演化骨架</h2>
+          <p class="section-intro">
+            这次改造没有把早期项目做成重型平台。核心选择是模块化单体：
+            用明确依赖方向解决扩展问题，同时继续保持一条命令即可运行的低成本体验。
+          </p>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat"><strong>20 / 20</strong><span>自动化测试通过</span></div>
+        <div class="stat"><strong>4 层</strong><span>可复用行为配置</span></div>
+        <div class="stat"><strong>7</strong><span>可直接使用的 CLI 命令</span></div>
+        <div class="stat"><strong>v3</strong><span>结构化研究数据契约</span></div>
+      </div>
+      <div class="callout">
+        <strong>真实验收结果：</strong>
+        515100 在非交易日正确使用最近交易日 2026-08-14；
+        东方财富异常后自动降级到腾讯行情，取得 500 根日线，完成多策略评估、
+        个性研究计划、通知计划、Markdown 报告和静态看板，
+        全程未发送交易指令或飞书消息。
+      </div>
+    </section>
+
+    <section id="architecture">
+      <div class="section-head">
+        <p class="section-number">02 / 目标架构</p>
+        <div>
+          <h2>依赖向内，入口和外部系统都可替换</h2>
+          <p class="section-intro">
+            定时任务、未来远程命令和 Web UI 只是不同入口；它们调用同一应用服务，
+            不重复行情计算、策略判断、持久化或通知逻辑。
+          </p>
+        </div>
+      </div>
+      <div class="architecture" aria-label="模块化单体架构图">
+        <div class="node">
+          <small>触发器</small>
+          <strong>launchd / CLI</strong>
+          <p>未来可增加经认证的远程命令和 HTTP API。</p>
+        </div>
+        <div class="arrow" aria-hidden="true">→</div>
+        <div class="node">
+          <small>交互层</small>
+          <strong>interfaces</strong>
+          <p>参数校验、报告渲染、静态看板和组合根。</p>
+        </div>
+        <div class="arrow" aria-hidden="true">→</div>
+        <div class="node">
+          <small>应用层</small>
+          <strong>application</strong>
+          <p>编排采集、计算、评估与保存，不关心具体外部实现。</p>
+        </div>
+        <div class="arrow" aria-hidden="true">→</div>
+        <div class="node domain">
+          <small>领域内核</small>
+          <strong>domain</strong>
+          <p>统一标的、行情模型、纯指标和可注册策略。</p>
+        </div>
+      </div>
+      <div class="legend">
+        <span><b>外部适配：</b>东方财富 / 腾讯 / 文件系统 / 飞书</span>
+        <span><b>稳定规则：</b>领域层不读取网络、文件、环境变量或系统时间</span>
+        <span><b>单一入口：</b>业务源码只使用 <code>quant_monitor</code></span>
+      </div>
+    </section>
+
+    <section id="decisions">
+      <div class="section-head">
+        <p class="section-number">03 / 关键决策</p>
+        <div>
+          <h2>结构清晰，但不提前支付平台化成本</h2>
+          <p class="section-intro">
+            每项选择都有退出路径。未来达到明确触发条件时，可以替换存储、
+            数据源或入口，而不是推翻领域与应用逻辑。
+          </p>
+        </div>
+      </div>
+      <div class="comparison">
+        <div>
+          <h3>改造前</h3>
+          <ul>
+            <li>ETF、指标、网络、文件和 CLI 集中在少量大文件。</li>
+            <li>通用指标中混入红利低波专属评分。</li>
+            <li>配置只有单策略与全局飞书，无法表达类别共性和标的差异。</li>
+            <li>只有 3 个数学测试，应用链路与契约行为未覆盖。</li>
+            <li>缺少统一工程约束、架构决策和本地可视化入口。</li>
+          </ul>
+        </div>
+        <div>
+          <h3>改造后</h3>
+          <ul>
+            <li>领域、应用、基础设施和交互边界明确。</li>
+            <li>产品默认、策略画像、研究画像和通知策略可复用、可覆盖。</li>
+            <li>ETF、股票、指数使用统一 <code>Instrument</code> 模型。</li>
+            <li>测试覆盖配置继承、策略参数、通知路由、schema 和 UI。</li>
+            <li>工程规范、架构文档、静态看板与 HTML 报告齐备。</li>
+          </ul>
+        </div>
+      </div>
+      <table class="decision-table">
+        <thead>
+          <tr><th>决策</th><th>当前理由</th><th>升级触发条件</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>模块化单体</td>
+            <td>保持一条命令运行，不承担服务部署与分布式一致性成本。</td>
+            <td>出现独立团队、独立扩缩容或严格故障隔离需求。</td>
+          </tr>
+          <tr>
+            <td>本地原子文件仓储</td>
+            <td>数据量小、透明可审计、备份和迁移简单。</td>
+            <td>标的超过约 20 个、需要跨年查询或出现并发写入。</td>
+          </tr>
+          <tr>
+            <td>策略实现与画像分离</td>
+            <td>稳定算法留在代码，产品或标的只引用带业务阈值的画像。</td>
+            <td>策略需要版本冻结、组合编排或回测发布流程。</td>
+          </tr>
+          <tr>
+            <td>远程命令不开放 Shell</td>
+            <td>将外部消息转换为白名单应用命令，控制凭证与执行风险。</td>
+            <td>正式开放远程入口前补齐认证、授权、审计和限流。</td>
+          </tr>
+          <tr>
+            <td>静态看板先行</td>
+            <td>无服务进程和前端构建链，直接消费最新 JSON。</td>
+            <td>需要历史图表、交互筛选、实时刷新或多端访问。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="inventory">
+      <div class="section-head">
+        <p class="section-number">04 / 实施清单</p>
+        <div>
+          <h2>从规则、代码到运维入口同步落地</h2>
+          <p class="section-intro">
+            改造不仅是移动文件。数据契约、用户命令、扩展边界、文档和测试一起更新，
+            使工程说明与实际行为保持一致。
+          </p>
+        </div>
+      </div>
+      <div class="work-grid">
+        <article class="work-item">
+          <h3>工程治理</h3>
+          <p>新增中文 <code>AGENTS.md</code>，规定设计哲学、目录职责、扩展流程、测试标准、文档同步和完成定义。</p>
+        </article>
+        <article class="work-item">
+          <h3>领域建模</h3>
+          <p>新增 ETF、股票、指数类型，统一日线、报价与行情批次模型，明确比例和金额语义。</p>
+        </article>
+        <article class="work-item">
+          <h3>分层个性化</h3>
+          <p>产品类别提供默认值，单标的可覆盖策略画像、研究画像、通知策略和数据窗口。</p>
+        </article>
+        <article class="work-item">
+          <h3>应用编排</h3>
+          <p><code>MonitoringService</code> 成为 CLI、定时任务和未来远程入口共用的稳定用例。</p>
+        </article>
+        <article class="work-item">
+          <h3>行情韧性</h3>
+          <p>东方财富和腾讯转换为统一适配器，保留有限重试、超时和顺序降级。</p>
+        </article>
+        <article class="work-item">
+          <h3>schema v3</h3>
+          <p>数据包同时固化 <code>assessments</code>、<code>research_plan</code> 和 <code>notification_plan</code>。</p>
+        </article>
+        <article class="work-item">
+          <h3>代理入口适配</h3>
+          <p><code>.trae</code> 与 <code>.traecli</code> 改为读取执行计划的通用标的研究入口。</p>
+        </article>
+        <article class="work-item">
+          <h3>通知路由</h3>
+          <p>业务事件先经过标的通知策略，再路由飞书等通道，不再由 CLI 直接选择发送机制。</p>
+        </article>
+        <article class="work-item">
+          <h3>开发基线</h3>
+          <p>新增检查脚本、Ruff、中文工程文档，并以 GitHub <code>origin/main</code> 作为持续交付基线。</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="verification">
+      <div class="section-head">
+        <p class="section-number">05 / 验证证据</p>
+        <div>
+          <h2>自动化测试与真实行情双重验收</h2>
+          <p class="section-intro">
+            测试使用假行情和临时目录保证稳定；真实运行验证网络降级、文件落盘和当前配置。
+          </p>
+        </div>
+      </div>
+      <div class="verification">
+        <div class="verify-block">
+          <div class="verify-head"><h3>本地质量检查</h3><span class="badge">通过</span></div>
+          <dl class="facts">
+            <div><dt>命令</dt><dd><code>./scripts/check.sh</code></dd></div>
+            <div><dt>语法编译</dt><dd>通过</dd></div>
+            <div><dt>自动化测试</dt><dd>20 项全部通过</dd></div>
+            <div><dt>覆盖范围</dt><dd>继承、覆盖、策略、路由、schema、UI</dd></div>
+            <div><dt>Ruff 静态检查</dt><dd>全部通过</dd></div>
+          </dl>
+        </div>
+        <div class="verify-block">
+          <div class="verify-head"><h3>真实 515100 链路</h3><span class="badge">通过</span></div>
+          <dl class="facts">
+            <div><dt>数据契约</dt><dd>schema v3</dd></div>
+            <div><dt>行情来源</dt><dd>腾讯证券公开行情接口（降级成功）</dd></div>
+            <div><dt>历史样本</dt><dd>500 个交易日</dd></div>
+            <div><dt>行情可用</dt><dd>true</dd></div>
+            <div><dt>基础判断</dt><dd>保持等待，规则分 50 / 100</dd></div>
+          </dl>
+        </div>
+      </div>
+      <div class="note">
+        运行日期为周六，数据包中的最近行情交易日为前一交易日，属于预期行为。
+        本次仅验证研究链路，没有使用 <code>--send-base</code>，因此不会向飞书发送消息。
+      </div>
+    </section>
+
+    <section id="roadmap">
+      <div class="section-head">
+        <p class="section-number">06 / 后续路线</p>
+        <div>
+          <h2>下一阶段按真实需求和数据规模推进</h2>
+          <p class="section-intro">
+            架构已预留入口，但不建议同时铺开所有方向。优先积累可靠历史数据和策略验证证据。
+          </p>
+        </div>
+      </div>
+      <ol class="roadmap">
+        <li>
+          <strong>建立版本基线并持续积累日快照</strong>
+          <span>代码直接维护 GitHub main；持续观察行情源稳定性和数据质量字段。</span>
+        </li>
+        <li>
+          <strong>增加第二类标的与第二个策略</strong>
+          <span>优先选一个宽基指数或股票，以真实需求验证统一模型和策略注册边界。</span>
+        </li>
+        <li>
+          <strong>补充回测与策略版本管理</strong>
+          <span>当规则开始影响真实资金判断时，冻结版本、记录参数和样本外表现。</span>
+        </li>
+        <li>
+          <strong>增加受控远程命令适配器</strong>
+          <span>完成身份认证、命令白名单、幂等键和审计日志后，再连接飞书或其他入口。</span>
+        </li>
+        <li>
+          <strong>按查询压力升级存储与 Web UI</strong>
+          <span>需要长周期图表和多标的比较时引入 SQLite，再构建只读优先的精细化页面。</span>
+        </li>
+      </ol>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <p class="section-number">07 / 交付入口</p>
+        <div>
+          <h2>文档与可视化产物</h2>
+          <p class="section-intro">所有入口均位于当前工作区，可直接打开或继续维护。</p>
+        </div>
+      </div>
+      <div class="links">
+        <a href="../AGENTS.md">工程协作约定</a>
+        <a href="architecture.md">架构与技术决策</a>
+        <a href="../README.md">使用说明</a>
+        <a href="../data/dashboard/index.html">最新投资看板</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="page-footer">
+    <div class="footer-inner">
+      <span>Quant Monitor 0.3.0</span>
+      <span>研究与监控工具，不构成投资建议或自动交易指令。</span>
+    </div>
+  </footer>
+</body>
+</html>
