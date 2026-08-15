@@ -5,20 +5,26 @@
 不会把本目录中的原始 JSON 快照或 SQLite 直接当作导航页面。
 
 ```text
-latest/                 每个标的最新的 schema v3 数据包、代理提示和基础报告
+latest/                 每个标的最新的 schema v4 数据包、代理提示和基础报告
 snapshots/YYYY-MM-DD/   每次采集的带时间戳快照
 reports/YYYY-MM-DD/     基础报告和研究代理报告
 dashboard/              从 latest 数据包生成的静态看板
-history/market.sqlite3  标准化日线历史库，供长期查询和未来回测使用
+history/market.sqlite3  标准化日线历史库，供长期查询和回测使用
+control/research.sqlite3 选择、分析、回测、报告和发布状态索引
+analysis/latest/        标准分析请求
+analysis/snapshots/     按日期保存的分析请求快照
+backtests/<代码>/       冻结回测 JSON 和 HTML 验证报告
 selections/latest/      每个候选池最新的初筛 JSON 和基础 HTML 报告
 selections/snapshots/   带时间戳的候选池初筛快照
 ```
 
-## schema v3
+## schema v4
 
 最新数据包包含：
 
 - `instrument`：标的身份和最终解析后的画像引用。
+- `strategy_plan`：当前启用策略版本、生命周期、指纹和回测绑定。
+- `analysis_plan`：请求 ID、触发入口、周期、因子、模式和发送要求。
 - `metrics`：与策略无关的确定性指标。
 - `assessments`：各策略画像独立给出的基线判断。
 - `research_plan`：TRAE 应执行的章节、关注点、来源与个性指令。
@@ -55,8 +61,10 @@ LaunchAgent 写入的是 `~/.local/share/quant-monitor` 运行副本。由主写
 - 每次同步的来源、日期范围和条数。
 
 当降级行情源缺少成交额或换手率时，更新不会用零值覆盖历史库中已有的非零值。
-JSON 快照继续保留一次任务的审计上下文；SQLite 负责跨日期查询和未来回测输入，
-两者不能相互替代。
+正常更新只请求最多 40 根重叠日线；首次、条数不足或明显陈旧时请求完整窗口。
+增量响应中补回的近期历史日期记录在
+`data_quality.repaired_history_dates`。JSON 快照继续保留一次任务的审计上下文；
+SQLite 负责跨日期查询和回测输入，两者不能相互替代。
 
 查看覆盖范围：
 
@@ -72,7 +80,8 @@ JSON 快照继续保留一次任务的审计上下文；SQLite 负责跨日期�
 ./quant select --universe research/universes/<候选池 ID>.toml
 ```
 
-会生成独立的 `selection_schema_version = 1` 数据包。候选状态包括：
+会生成独立的 `selection_schema_version = 2` 数据包，候选池额外记录投资期限、
+主题和创建日期。候选状态包括：
 
 - `eligible`：硬门槛和必需证据完整。
 - `needs_research`：硬门槛未失败，但仍缺少费率、规模或跟踪质量等证据。
@@ -81,3 +90,15 @@ JSON 快照继续保留一次任务的审计上下文；SQLite 负责跨日期�
 
 `market_score` 只比较流动性、近期波动和一年最大回撤，不代表最终适配性、
 收益预测或买入顺序。
+
+## 控制面与回测
+
+`control/research.sqlite3` 只保存运行索引，不保存报告正文。当前表包括：
+
+- `selection_runs`：候选池、期限、主题、候选数和短名单数。
+- `analysis_runs`：触发入口、标的范围、周期、因子、模式和完成状态。
+- `backtest_runs`：策略版本、结果路径、收益、回撤和交易次数。
+- `report_records`：标的、策略版本、周期、因子、渠道和发布状态。
+
+回测使用现有历史库，不会额外联网。报告生成和渠道发送分别记账；发送失败时，
+报告文件仍保留并在控制面显示 `partial` 或 `failed`。

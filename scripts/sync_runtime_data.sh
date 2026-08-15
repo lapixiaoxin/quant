@@ -31,6 +31,8 @@ fi
 "$REPOSITORY_ROOT/scripts/service.sh" stop all >/dev/null
 
 for relative_dir in \
+  data/analysis \
+  data/backtests \
   data/dashboard \
   data/latest \
   data/reports \
@@ -49,10 +51,16 @@ do
   fi
 done
 
-RUNTIME_DATABASE="$RUNTIME_ROOT/data/history/market.sqlite3"
-REPOSITORY_DATABASE="$REPOSITORY_ROOT/data/history/market.sqlite3"
-if [ -f "$RUNTIME_DATABASE" ]; then
-  mkdir -p "$REPOSITORY_ROOT/data/history"
+for relative_database in \
+  data/history/market.sqlite3 \
+  data/control/research.sqlite3
+do
+  RUNTIME_DATABASE="$RUNTIME_ROOT/$relative_database"
+  REPOSITORY_DATABASE="$REPOSITORY_ROOT/$relative_database"
+  if [ ! -f "$RUNTIME_DATABASE" ]; then
+    continue
+  fi
+  mkdir -p "$(dirname "$REPOSITORY_DATABASE")"
   "$PYTHON" - "$RUNTIME_DATABASE" "$REPOSITORY_DATABASE" <<'PY'
 import os
 import sqlite3
@@ -75,7 +83,7 @@ try:
 finally:
     temporary_path.unlink(missing_ok=True)
 PY
-fi
+done
 
 printf '%s\n' "运行数据已导出到私有仓库：$REPOSITORY_ROOT"
 printf '%s\n' "提交前仍需执行敏感信息、文件体积和 Git 差异检查。"

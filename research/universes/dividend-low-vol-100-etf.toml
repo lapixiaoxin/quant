@@ -1,8 +1,11 @@
-schema_version = 1
+schema_version = 2
 universe_id = "dividend-low-vol-100-etf"
 name = "中证红利低波动100指数 ETF"
 objective = "在跟踪同一指数的场内 ETF 中比较存续风险、流动性、持有成本、跟踪质量和历史风险，形成可继续深度研究的短名单。"
 instrument_type = "etf"
+horizon = "long"
+theme = "dividend-low-vol"
+created_at = 2026-08-15
 history_days = 500
 shortlist_size = 3
 

@@ -71,11 +71,14 @@ research/universes/<候选池 ID>.toml
 候选池 schema 示例：
 
 ```toml
-schema_version = 1
+schema_version = 2
 universe_id = "dividend-low-vol-etf"
 name = "A股红利低波 ETF"
 objective = "比较可投资性、成本、跟踪质量和底层暴露"
 instrument_type = "etf"
+horizon = "long"
+theme = "dividend-low-vol"
+created_at = 2026-08-15
 history_days = 500
 shortlist_size = 3
 
@@ -126,7 +129,8 @@ data/selections/latest/<候选池 ID>.html
 
 必须检查：
 
-- `selection_schema_version` 为 `1`。
+- `selection_schema_version` 为 `2`。
+- 候选池保留 `horizon`、`theme` 和 `created_at`。
 - 每个候选都有状态、原始指标、硬门槛理由和证据缺口。
 - `data_error` 候选不能静默消失。
 - `market_score` 只比较流动性、波动和一年回撤。

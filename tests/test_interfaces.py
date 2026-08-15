@@ -6,7 +6,7 @@ from quant_monitor.interfaces.dashboard import build_dashboard
 from quant_monitor.interfaces.reporting import build_base_report
 
 
-def packet(version: int = 3) -> dict:
+def packet(version: int = 4) -> dict:
     metrics = {
         "latest_trading_date": "2026-08-15",
         "latest_close": 1.25,
@@ -95,6 +95,22 @@ def packet(version: int = 3) -> dict:
     }
     value["instrument"] = instrument
     value["assessments"] = [assessment, risk_assessment]
+    if version == 4:
+        value["strategy_plan"] = [
+            {
+                "record_id": "strategy-v1",
+                "profile_id": "dividend_default",
+                "name": "测试策略",
+                "version": "1.0.0",
+                "lifecycle": "active",
+            }
+        ]
+        value["analysis_plan"] = {
+            "trigger": "manual",
+            "cycles": ["daily", "moving_average"],
+            "factor_ids": ["market_snapshot", "strategy"],
+        }
+        value["data_quality"]["sync_mode"] = "incremental"
     return value
 
 
@@ -105,6 +121,13 @@ class InterfaceTest(unittest.TestCase):
         self.assertIn("可以观察", current)
         self.assertIn("风险约束", current)
         self.assertIn("测试指数", current)
+        self.assertIn("strategy-v1", current)
+        self.assertIn("moving_average", current)
+
+    def test_report_keeps_schema_v3_read_compatibility(self) -> None:
+        legacy = build_base_report(packet(version=3))
+
+        self.assertIn("可以观察", legacy)
 
     def test_report_rejects_old_schema(self) -> None:
         with self.assertRaisesRegex(ValueError, "schema_version=3"):

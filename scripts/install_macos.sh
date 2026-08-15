@@ -45,6 +45,9 @@ rsync -a --delete \
   --exclude '*.egg-info/' \
   --exclude 'config/config.toml' \
   --exclude 'data/dashboard/' \
+  --exclude 'data/analysis/' \
+  --exclude 'data/backtests/' \
+  --exclude 'data/control/' \
   --exclude 'data/latest/*.json' \
   --exclude 'data/latest/*.md' \
   --exclude 'data/latest/*.txt' \
@@ -59,6 +62,9 @@ rsync -a --delete \
 
 # 私有仓库中的研究资产只用于补齐新设备，绝不覆盖运行目录已有的新数据。
 for relative_dir in \
+  data/analysis \
+  data/backtests \
+  data/control \
   data/dashboard \
   data/history \
   data/latest \
@@ -81,6 +87,9 @@ done
 if [ "$RUNTIME_DATA_MODE" = "replace" ]; then
   # 仅用于单写者设备交接：仓库版本覆盖同名运行数据，但保留目标端独有文件。
   for relative_dir in \
+    data/analysis \
+    data/backtests \
+    data/control \
     data/dashboard \
     data/history \
     data/latest \

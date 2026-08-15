@@ -8,10 +8,11 @@
 - 产品大类默认值与单标的个性化覆盖。
 - 可配置的多策略画像、研究画像、通知策略和通知通道。
 - 东方财富行情采集，失败后自动降级腾讯。
-- SQLite 日线历史库、JSON 审计快照、Markdown 报告和静态本地看板。
-- 可版本化的策略目录、回测领域契约和 HTML 研究知识库。
+- 增量 SQLite 日线历史库、JSON 审计快照、Markdown 报告和静态本地看板。
+- 可版本化策略生命周期、无未来数据回测执行器和 HTML 验证报告。
 - 候选池发现、硬门槛初筛、证据缺口和同类标的短名单工作流。
-- schema v3 将最终研究与通知计划交给 TRAE，避免代理入口硬编码 ETF。
+- schema v4 动态注入启用策略、分析周期、因子、研究计划和通知计划。
+- 选择、分析、回测、报告和发布状态统一登记到控制面 SQLite。
 - TraeCode CLI 非交互定时研究，并在 CLI 不可用时按配置降级。
 - 基于 lark-cli WebSocket 的飞书白名单远程命令。
 
@@ -19,7 +20,8 @@
 [docs/architecture.md](docs/architecture.md)。
 
 统一研究工作台：[index.html](index.html)。它自动汇总投资看板、候选筛选、
-最近报告、研究入口和系统文档；原始 JSON 快照与 SQLite 不进入可视化目录。
+策略与回测、分析作业、报告中心、渠道状态和系统文档；原始 JSON 快照与
+SQLite 不进入可视化目录。
 
 - 文档中心：[docs/index.html](docs/index.html)
 - 研究中心：[research/index.html](research/index.html)
@@ -38,7 +40,7 @@
               ↓
        单个标的覆盖或追加
               ↓
-    data/latest schema v3 执行计划
+    data/latest schema v4 执行计划
 ```
 
 精简示例：
@@ -129,8 +131,13 @@ export FEISHU_RECEIVE_ID="<群聊 chat_id>"
 ./quant doctor
 ./quant instruments
 ./quant history --all
+./quant strategies --symbol 515100
 ./quant select \
   --universe research/universes/dividend-low-vol-100-etf.toml
+./quant backtest \
+  --strategy-record 515100-dividend-low-vol-v1
+./quant analyze --symbol 515100 \
+  --cycle daily --cycle moving_average --no-send
 ./quant prepare --symbol 515100
 ./quant daily --symbol 515100
 ./quant daily --all
@@ -146,9 +153,9 @@ export FEISHU_RECEIVE_ID="<群聊 chat_id>"
 
 发送命令不会直接选择飞书，而是按该标的的通知策略校验事件并路由通道。
 
-`site` 会刷新 `index.html` 根路径工作台和静态投资看板。`dashboard`、
-`select`、自动化研究和飞书看板命令也会同步刷新工作台；Agent 新建 HTML
-报告后仍应执行一次 `./quant site`。
+`site` 会刷新根工作台、五个管理模块、投资看板和全部可浏览页面的统一导航。
+`dashboard`、`select`、`backtest`、自动化研究和飞书分析命令也会同步刷新；
+Agent 新建 HTML 报告后仍应执行一次 `./quant site`。
 
 本地浏览：
 
@@ -161,7 +168,7 @@ python3 -m http.server 8765 --bind 127.0.0.1
 `automate` 有两种模式：
 
 - `base`：无需大模型的确定性基础分析。
-- `traecli`：非交互执行 `/instrument-daily` 完成联网研究；CLI 不可用时可降级为 `base`。
+- `traecli`：非交互执行 `/instrument-analyze` 标准作业；CLI 不可用时可降级为 `base`。
 
 定时任务管理：
 
@@ -192,12 +199,14 @@ python3 -m http.server 8765 --bind 127.0.0.1
 ```text
 /instrument-daily 515100
 /instrument-daily 515100 push
+/instrument-analyze 515100 data/analysis/latest/<请求 ID>.json
 /instrument-select dividend-low-vol-100-etf
 ```
 
 TraeCode CLI 的同语义命令位于
-`.traecli/commands/instrument-daily.md`。两种入口都读取 schema v3
-`research_plan`，因此新增产品类型或标的画像时不需要复制 ETF 专用命令。
+`.traecli/commands/`。标准分析入口读取 schema v4 的 `strategy_plan`、
+`analysis_plan` 和 `research_plan`，因此新增产品类型、周期或标的画像时不需要
+复制 ETF 专用命令。`instrument-daily` 继续作为兼容入口。
 
 引导脚本在字节内场网络优先安装内部版 TraeCode CLI，其他环境回退公开版。
 项目还会识别官方默认路径 `~/.local/bin/traecli`，不依赖交互式 shell 的 PATH。
@@ -213,6 +222,7 @@ research/methods/   数据、策略与回测方法说明
 research/templates/ HTML 讨论报告模板
 research/universes/ 候选池、硬门槛、低频事实与来源日期
 research/selections/候选筛选工作台和深度选择报告
+research/strategies/策略生命周期、参数指纹和回测模型绑定
 ```
 
 具体标的讨论默认保存为
@@ -225,7 +235,9 @@ research/selections/候选筛选工作台和深度选择报告
 
 ```text
 /quant status
-/quant analyze 515100
+/quant strategies 515100
+/quant analyze 515100 daily,moving_average
+/quant analyze all daily
 /quant base 515100
 /quant prepare 515100
 /quant dashboard
@@ -238,11 +250,14 @@ research/selections/候选筛选工作台和深度选择报告
 ## 数据目录
 
 ```text
-data/latest/                 最新 schema v3 数据包、提示和基础报告
+data/latest/                 最新 schema v4 数据包、提示和基础报告
 data/snapshots/YYYY-MM-DD/   带采集时刻的不可变快照
 data/reports/YYYY-MM-DD/     基础报告和研究代理报告
 data/dashboard/              静态本地看板
 data/history/market.sqlite3  标准化日线历史库
+data/control/research.sqlite3 统一运行索引
+data/analysis/               标准分析请求及快照
+data/backtests/              回测 JSON 与 HTML 验证报告
 data/selections/             候选初筛数据包、快照与基础 HTML 报告
 ```
 
@@ -252,9 +267,10 @@ data/selections/             候选初筛数据包、快照与基础 HTML 报告
 幂等写入 SQLite；JSON 快照继续保留单次任务的审计上下文。盘中快照不是最终
 收盘价；研究前必须检查 `as_of`、交易日和 `data_quality`。
 
-当前 SQLite 适合单机、日线和中长线研究，无需部署数据库服务。回测输入契约
-已经建立，但撮合、参数优化和样本外评估引擎尚未交付，不能把当前关注度策略
-当作已验证的买卖信号。
+当前 SQLite 适合单机、日线和中长线研究，无需部署数据库服务。系统已提供
+长线目标仓位回测、成本、基准、回撤、波动、换手和交易次数；尚未实现参数优化、
+严格样本外评估、涨跌停、停牌、分红再投资和申赎冲击，因此不能把当前关注度
+映射当作已验证的买卖信号。
 
 当前远端仓库是私有仓库，`data/` 和 `research/private/` 会进入 Git，方便
 跨设备复用。`config/config.toml`、日志、凭证和 SQLite 事务边车文件仍被忽略。

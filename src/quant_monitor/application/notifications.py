@@ -6,6 +6,19 @@ from ..config import Settings
 from .ports import NotificationChannel
 
 
+class NotificationDeliveryError(RuntimeError):
+    """报告已生成但一个或多个通知通道发送失败。"""
+
+    def __init__(
+        self,
+        sent_channels: tuple[str, ...],
+        failures: tuple[str, ...],
+    ) -> None:
+        self.sent_channels = sent_channels
+        self.failures = failures
+        super().__init__("；".join(failures))
+
+
 class NotificationService:
     """将业务事件发送到标的最终解析出的通知通道。"""
 
@@ -44,11 +57,18 @@ class NotificationService:
             event=event,
         )
         sent: list[str] = []
+        failures: list[str] = []
         for channel_id in policy.channels:
             try:
                 channel = self._channels[channel_id]
-            except KeyError as error:
-                raise ValueError(f"通知通道 {channel_id} 未装配") from error
-            channel.send(rendered_title, markdown)
+                channel.send(rendered_title, markdown)
+            except (KeyError, OSError, RuntimeError, ValueError) as error:
+                failures.append(f"{channel_id}：{error}")
+                continue
             sent.append(channel_id)
+        if failures:
+            raise NotificationDeliveryError(
+                tuple(sent),
+                tuple(failures),
+            )
         return tuple(sent)

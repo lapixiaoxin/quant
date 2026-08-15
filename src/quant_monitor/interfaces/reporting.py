@@ -5,15 +5,16 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-CURRENT_SCHEMA_VERSION = 3
+CURRENT_SCHEMA_VERSION = 4
+SUPPORTED_SCHEMA_VERSIONS = {3, 4}
 
 
 def _validate_schema(packet: dict[str, Any]) -> None:
     version = packet.get("schema_version")
-    if version != CURRENT_SCHEMA_VERSION:
+    if version not in SUPPORTED_SCHEMA_VERSIONS:
         raise ValueError(
             f"不支持的数据包版本 {version!r}，"
-            f"当前要求 schema_version={CURRENT_SCHEMA_VERSION}"
+            f"当前支持 schema_version=3 或 {CURRENT_SCHEMA_VERSION}"
         )
 
 
@@ -84,6 +85,29 @@ def build_base_report(packet: dict[str, Any]) -> str:
             f"（规则分 {assessment['score']}/100）"
         )
         lines.extend(f"  - 依据：{reason}" for reason in assessment["reasons"])
+    strategy_plan = packet.get("strategy_plan", [])
+    if strategy_plan:
+        lines.extend(["", "## 生效策略", ""])
+        for strategy in strategy_plan:
+            lines.append(
+                f"- {strategy.get('name', strategy.get('profile_id'))} "
+                f"{strategy.get('version', '')}："
+                f"{strategy.get('lifecycle', '未知状态')}"
+            )
+            if strategy.get("record_id"):
+                lines.append(f"  - 策略记录：{strategy['record_id']}")
+    analysis_plan = packet.get("analysis_plan", {})
+    if analysis_plan:
+        lines.extend(
+            [
+                "",
+                "## 本次分析范围",
+                "",
+                f"- 触发方式：{analysis_plan.get('trigger', 'manual')}",
+                f"- 周期维度：{'、'.join(analysis_plan.get('cycles', []))}",
+                f"- 因子：{'、'.join(analysis_plan.get('factor_ids', []))}",
+            ]
+        )
     lines.extend(
         [
             "",
@@ -159,6 +183,7 @@ def build_base_report(packet: dict[str, Any]) -> str:
             f"- 行情时间戳："
             f"{packet['data_quality'].get('market_timestamp') or '未提供'}",
             f"- 历史样本：{packet['data_quality']['history_bars']} 个交易日",
+            f"- 同步模式：{packet['data_quality'].get('sync_mode', 'legacy')}",
             f"- 生成时间：{datetime.fromisoformat(packet['as_of']).isoformat()}",
             "- 本报告是监控与研究材料，不构成收益承诺或自动交易指令。",
         ]

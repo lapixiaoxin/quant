@@ -8,8 +8,9 @@ from pathlib import Path
 from typing import Any
 
 from ..config import Settings
+from ..domain.control_plane import AnalysisRequest
 from .monitoring import MonitoringService
-from .notifications import NotificationService
+from .notifications import NotificationDeliveryError, NotificationService
 from .ports import ResearchAgentRunner, ResearchRepository
 
 
@@ -21,6 +22,7 @@ class AutomationResult:
     mode: str
     report_path: Path
     sent_channels: tuple[str, ...]
+    delivery_errors: tuple[str, ...] = ()
     fallback_used: bool = False
 
 
@@ -48,27 +50,54 @@ class AutomationService:
         symbol: str,
         send: bool,
         event: str,
+        analysis_request: AnalysisRequest | None,
     ) -> AutomationResult:
-        _, packet = self._monitoring.prepare(symbol)
+        if analysis_request is None:
+            _, packet = self._monitoring.prepare(symbol)
+        else:
+            _, packet = self._monitoring.prepare(symbol, analysis_request)
         report_path = self._repository.save_base_report(
             symbol,
             str(packet["as_of"]),
             self._report_renderer(packet),
         )
-        channels: tuple[str, ...] = ()
-        if send:
-            markdown = report_path.read_text(encoding="utf-8")
-            channels = self._notifications.send(
-                symbol,
-                event,
-                markdown,
-            )
+        channels, delivery_errors = self._deliver(
+            symbol,
+            event,
+            report_path,
+            send,
+        )
         return AutomationResult(
             symbol=symbol,
             mode="base",
             report_path=report_path,
             sent_channels=channels,
+            delivery_errors=delivery_errors,
         )
+
+    def _deliver(
+        self,
+        symbol: str,
+        event: str,
+        report_path: Path,
+        send: bool,
+    ) -> tuple[tuple[str, ...], tuple[str, ...]]:
+        channels: tuple[str, ...] = ()
+        delivery_errors: tuple[str, ...] = ()
+        if send:
+            markdown = report_path.read_text(encoding="utf-8")
+            try:
+                channels = self._notifications.send(
+                    symbol,
+                    event,
+                    markdown,
+                )
+            except NotificationDeliveryError as error:
+                channels = error.sent_channels
+                delivery_errors = error.failures
+            except (OSError, RuntimeError, ValueError) as error:
+                delivery_errors = (str(error),)
+        return channels, delivery_errors
 
     def run(
         self,
@@ -77,30 +106,60 @@ class AutomationService:
         mode: str | None = None,
         send: bool | None = None,
         event: str = "scheduled_report",
+        analysis_request: AnalysisRequest | None = None,
+        analysis_request_path: Path | None = None,
     ) -> AutomationResult:
         config = self._settings.automation
         selected_mode = mode or config.mode
         should_send = config.send if send is None else send
         if selected_mode == "base":
-            return self._run_base(symbol, should_send, event)
+            return self._run_base(
+                symbol,
+                should_send,
+                event,
+                analysis_request,
+            )
         if selected_mode != "traecli":
             raise ValueError(f"不支持的自动化模式：{selected_mode}")
 
         if self._agent_runner.is_available():
-            report_path = self._agent_runner.run(symbol, send=should_send)
+            if analysis_request_path is None:
+                report_path = self._agent_runner.run(
+                    symbol,
+                    send=False,
+                )
+            else:
+                report_path = self._agent_runner.run(
+                    symbol,
+                    send=False,
+                    analysis_request_path=analysis_request_path,
+                )
+            channels, delivery_errors = self._deliver(
+                symbol,
+                event,
+                report_path,
+                should_send,
+            )
             return AutomationResult(
                 symbol=symbol,
                 mode="traecli",
                 report_path=report_path,
-                sent_channels=("按 Agent 命令路由",) if should_send else (),
+                sent_channels=channels,
+                delivery_errors=delivery_errors,
             )
         if not config.fallback_to_base:
             raise RuntimeError("TraeCode CLI 不可用，且未允许降级为基础分析")
-        fallback = self._run_base(symbol, should_send, event)
+        fallback = self._run_base(
+            symbol,
+            should_send,
+            event,
+            analysis_request,
+        )
         return AutomationResult(
             symbol=fallback.symbol,
             mode=fallback.mode,
             report_path=fallback.report_path,
             sent_channels=fallback.sent_channels,
+            delivery_errors=fallback.delivery_errors,
             fallback_used=True,
         )

@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>策略与回测 · Quant Monitor</title>
+  <link rel="stylesheet"
+    href="../../docs/assets/docs.css?v=0.8.0">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="../../index.html">Quant Monitor</a>
+      <nav class="site-nav" aria-label="全局导航">
+        <a href="../../index.html">
+          工作台
+        </a>
+        <details class="nav-dropdown is-current">
+          <summary aria-current="true">研究流程</summary>
+          <div class="nav-menu">
+            <a href="../../research/selections/index.html">
+              <strong>标的选择</strong><small>候选池、筛选历史与短名单</small>
+            </a>
+            <a href="../../research/strategies/index.html" aria-current="page">
+              <strong>策略与回测</strong><small>版本、状态、配置与验证</small>
+            </a>
+            <a href="../../research/analysis/index.html">
+              <strong>分析作业</strong><small>触发、周期、因子与运行状态</small>
+            </a>
+            <a href="../../research/reports/index.html">
+              <strong>报告中心</strong><small>分类、时间和发布状态</small>
+            </a>
+          </div>
+        </details>
+        <details class="nav-dropdown">
+          <summary>资产与渠道</summary>
+          <div class="nav-menu">
+            <a href="../../research/index.html">
+              <strong>研究中心</strong><small>标的档案、经验与方法入口</small>
+            </a>
+            <a href="../../research/instruments/index.html">
+              <strong>标的档案</strong><small>按代码沉淀讨论和判断</small>
+            </a>
+            <a href="../../research/library/index.html">
+              <strong>研究经验</strong><small>复核并脱敏的方法</small>
+            </a>
+            <a href="../../research/channels/index.html">
+              <strong>渠道与通知</strong><small>策略、事件和发送通道</small>
+            </a>
+          </div>
+        </details>
+        <details class="nav-dropdown align-right">
+          <summary>系统</summary>
+          <div class="nav-menu">
+            <a href="../../docs/index.html">
+              <strong>文档中心</strong><small>能力、部署和运维入口</small>
+            </a>
+            <a href="../../docs/capabilities.html">
+              <strong>能力边界</strong><small>当前支持和明确限制</small>
+            </a>
+            <a href="../../docs/architecture.html">
+              <strong>架构设计</strong><small>数据流、契约和扩展方式</small>
+            </a>
+          </div>
+        </details>
+        <a href="../../data/dashboard/index.html">
+          投资看板
+        </a>
+      </nav>
+    </div>
+  </header>
+  <main class="page control-page">
+    <section class="control-heading">
+      <p class="eyebrow">Strategy Lifecycle</p>
+      <h1>策略与回测</h1>
+      <p>按标的管理策略版本、启用和弃用时间，并用冻结参数和本地历史验证。</p>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="section-label">策略版本</p>
+        <div><h2>启用状态与实际配置同源</h2>
+          <p class="section-intro">
+            策略目录保存生命周期，配置保存算法参数；参数指纹阻止两者漂移。
+          </p>
+        </div>
+      </div>
+<form class="catalog-filters" data-catalog-filters="strategies">
+        <label class="catalog-search">
+          <span>搜索</span>
+          <input data-field="text" type="search"
+            placeholder="代码、名称、ID 或路径">
+        </label>
+<label>
+          <span>生命周期</span>
+          <select data-field="lifecycle">
+            <option value="">全部</option>
+            <option value="draft">草稿</option><option value="active">启用</option><option value="retired">弃用</option>
+          </select>
+        </label>
+<label>
+          <span>验证</span>
+          <select data-field="validation">
+            <option value="">全部</option>
+            <option value="pending">待验证</option><option value="passed">已通过</option><option value="failed">失败</option>
+          </select>
+        </label>
+<label>
+          <span>期限</span>
+          <select data-field="horizon">
+            <option value="">全部</option>
+            <option value="short">短期</option><option value="long">长期</option>
+          </select>
+        </label>
+        <button type="reset">重置</button>
+        <output data-catalog-count="strategies"></output>
+      </form>
+      <div class="table-wrap">
+        <table class="management-table" data-catalog="strategies">
+          <thead><tr><th>策略</th><th>标的</th><th>版本</th><th>状态</th><th>期限</th><th>验证</th><th>启用时间</th><th>配置</th><th>算法</th></tr></thead>
+          <tbody><tr data-catalog-row
+          data-lifecycle="active"
+          data-validation="pending"
+          data-horizon="long">
+          <td><strong>515100 红利低波中长线策略</strong>
+            <small>515100-dividend-low-vol-v1</small></td>
+          <td>515100</td>
+          <td>1.0.0</td>
+          <td>
+            <span class="status ok">
+              启用
+            </span>
+          </td>
+          <td>长期</td>
+          <td>
+            <span class="status conditional">
+              待验证
+            </span>
+          </td>
+          <td>2026-08-15 00:00:00+08:00</td>
+          <td>一致</td>
+          <td><code>dividend_low_vol</code></td>
+        </tr></tbody>
+        </table>
+      </div>
+    </section>
+    <section class="section">
+      <div class="section-head">
+        <p class="section-label">回测任务</p>
+        <div><h2>版本冻结后再验证</h2>
+          <p class="section-intro">
+            本地历史、下一交易日执行、成本和限制均写入结果。
+          </p>
+        </div>
+      </div>
+<form class="catalog-filters" data-catalog-filters="backtests">
+        <label class="catalog-search">
+          <span>搜索</span>
+          <input data-field="text" type="search"
+            placeholder="代码、名称、ID 或路径">
+        </label>
+<label>
+          <span>状态</span>
+          <select data-field="status">
+            <option value="">全部</option>
+            <option value="running">运行中</option><option value="completed">已完成</option><option value="failed">失败</option>
+          </select>
+        </label>
+        <button type="reset">重置</button>
+        <output data-catalog-count="backtests"></output>
+      </form>
+      <div class="table-wrap">
+        <table data-catalog="backtests">
+          <thead><tr><th>运行</th><th>标的</th><th>策略记录</th><th>状态</th><th>收益</th><th>回撤</th><th>交易数</th></tr></thead>
+          <tbody><tr data-catalog-row data-status="completed">
+          <td><a href="../../data/backtests/515100/20260816T003052-e0f4706e.html">20260816T003052-e0f4706e</a></td>
+          <td>515100</td>
+          <td>515100-dividend-low-vol-v1</td>
+          <td>
+            <span class="status ok">
+              已完成
+            </span>
+          </td>
+          <td>-1.87%</td>
+          <td>-5.30%</td>
+          <td>54</td>
+        </tr><tr data-catalog-row data-status="completed">
+          <td><a href="../../data/backtests/515100/20260816T001648-447d9d79.html">20260816T001648-447d9d79</a></td>
+          <td>515100</td>
+          <td>515100-dividend-low-vol-v1</td>
+          <td>
+            <span class="status ok">
+              已完成
+            </span>
+          </td>
+          <td>-1.87%</td>
+          <td>-5.30%</td>
+          <td>54</td>
+        </tr></tbody>
+        </table>
+      </div>
+      <div class="notice">
+        运行示例：
+        <code>
+          ./quant backtest --strategy-record 515100-dividend-low-vol-v1
+        </code>
+      </div>
+    </section>
+
+  </main>
+  <script
+    src="../../docs/assets/navigation.js?v=0.8.0"></script>
+  <script src="../../docs/assets/catalog.js?v=0.8.0"></script>
+</body>
+</html>

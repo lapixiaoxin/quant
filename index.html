@@ -4,66 +4,67 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>研究工作台 · Quant Monitor</title>
-  <link rel="stylesheet" href="docs/assets/docs.css?v=0.7.0">
+  <link rel="stylesheet" href="docs/assets/docs.css?v=0.8.0">
 </head>
 <body>
   <header class="site-header">
     <div class="header-inner">
       <a class="brand" href="index.html">Quant Monitor</a>
       <nav class="site-nav" aria-label="全局导航">
-        <a href="index.html" aria-current="page">工作台</a>
+        <a href="index.html" aria-current="page">
+          工作台
+        </a>
         <details class="nav-dropdown">
-          <summary>使用指南</summary>
+          <summary>研究流程</summary>
           <div class="nav-menu">
-            <a href="docs/index.html">
-              <strong>文档总览</strong><small>能力、入口与阅读路径</small>
+            <a href="research/selections/index.html">
+              <strong>标的选择</strong><small>候选池、筛选历史与短名单</small>
             </a>
-            <a href="docs/install.html">
-              <strong>安装部署</strong><small>新设备、凭证与常驻服务</small>
+            <a href="research/strategies/index.html">
+              <strong>策略与回测</strong><small>版本、状态、配置与验证</small>
             </a>
-            <a href="docs/operations.html">
-              <strong>运行运维</strong><small>命令、日志与故障处理</small>
+            <a href="research/analysis/index.html">
+              <strong>分析作业</strong><small>触发、周期、因子与运行状态</small>
+            </a>
+            <a href="research/reports/index.html">
+              <strong>报告中心</strong><small>分类、时间和发布状态</small>
             </a>
           </div>
         </details>
         <details class="nav-dropdown">
-          <summary>系统设计</summary>
+          <summary>资产与渠道</summary>
           <div class="nav-menu">
-            <a href="docs/capabilities.html">
-              <strong>能力边界</strong><small>已支持、条件支持与明确限制</small>
+            <a href="research/index.html">
+              <strong>研究中心</strong><small>标的档案、经验与方法入口</small>
             </a>
-            <a href="docs/architecture.html">
-              <strong>架构设计</strong><small>模块、数据流与扩展契约</small>
+            <a href="research/instruments/index.html">
+              <strong>标的档案</strong><small>按代码沉淀讨论和判断</small>
             </a>
-            <a href="docs/refactor-report.html">
-              <strong>升级报告</strong><small>工程演进过程与验证证据</small>
+            <a href="research/library/index.html">
+              <strong>研究经验</strong><small>复核并脱敏的方法</small>
+            </a>
+            <a href="research/channels/index.html">
+              <strong>渠道与通知</strong><small>策略、事件和发送通道</small>
             </a>
           </div>
         </details>
         <details class="nav-dropdown align-right">
-          <summary>研究中心</summary>
+          <summary>系统</summary>
           <div class="nav-menu">
-            <a href="research/index.html">
-              <strong>研究总览</strong><small>研究资产与隐私分层入口</small>
+            <a href="docs/index.html">
+              <strong>文档中心</strong><small>能力、部署和运维入口</small>
             </a>
-            <a href="research/selections/index.html">
-              <strong>候选筛选</strong><small>发现同类标的并形成短名单</small>
+            <a href="docs/capabilities.html">
+              <strong>能力边界</strong><small>当前支持和明确限制</small>
             </a>
-            <a href="research/instruments/index.html">
-              <strong>标的档案</strong><small>按代码沉淀讨论与判断</small>
-            </a>
-            <a href="research/library/index.html">
-              <strong>通用经验</strong><small>复核并脱敏的跨标的方法</small>
-            </a>
-            <a href="research/methods/storage-backtesting.html">
-              <strong>数据与回测</strong><small>历史存储与验证纪律</small>
-            </a>
-            <a href="research/templates/discussion-report.html">
-              <strong>讨论模板</strong><small>统一事实、结论与失效条件</small>
+            <a href="docs/architecture.html">
+              <strong>架构设计</strong><small>数据流、契约和扩展方式</small>
             </a>
           </div>
         </details>
-        <a href="data/dashboard/index.html">投资看板</a>
+        <a href="data/dashboard/index.html">
+          投资看板
+        </a>
       </nav>
     </div>
   </header>
@@ -74,14 +75,14 @@
         <p class="eyebrow">Research Workspace</p>
         <h1>研究工作台</h1>
         <p>
-          从这里进入投资看板、候选筛选、研究报告和系统文档。
-          新增可阅读资产会在刷新工作台后自动进入下方目录。
+          从标的选择开始，经过策略与回测、分析作业、报告生成和渠道发布。
+          每个模块读取同一份配置或控制面数据。
         </p>
       </div>
       <dl class="workspace-summary">
-        <div><dt>可浏览内容</dt><dd>20</dd></div>
-        <div><dt>研究与报告</dt><dd>6</dd></div>
-        <div><dt>更新时间</dt><dd>2026-08-15 22:45</dd></div>
+        <div><dt>可浏览内容</dt><dd>26</dd></div>
+        <div><dt>研究与报告</dt><dd>8</dd></div>
+        <div><dt>更新时间</dt><dd>2026-08-16 00:41</dd></div>
       </dl>
     </section>
 
@@ -93,18 +94,24 @@
           <p class="section-intro">稳定入口不会随报告数量增长而改变。</p>
         </div>
       </div>
-      <div class="workspace-actions">
-        <a href="data/dashboard/index.html">
-          <strong>投资看板</strong><span>查看最新标的、指标与策略状态</span>
-        </a>
+      <div class="workspace-actions platform-actions">
         <a href="research/selections/index.html">
-          <strong>候选筛选</strong><span>从同类产品进入初筛和深度报告</span>
+          <strong>1. 标的选择</strong><span>短期/长期候选与筛选历史</span>
         </a>
-        <a href="research/index.html">
-          <strong>研究中心</strong><span>浏览标的档案、方法与讨论沉淀</span>
+        <a href="research/strategies/index.html">
+          <strong>2. 策略与回测</strong><span>版本、启停、参数一致性和验证</span>
         </a>
-        <a href="docs/index.html">
-          <strong>文档中心</strong><span>查看能力、部署、运维和架构</span>
+        <a href="research/analysis/index.html">
+          <strong>3. 分析作业</strong><span>标的范围、周期、因子和触发入口</span>
+        </a>
+        <a href="research/reports/index.html">
+          <strong>4. 报告中心</strong><span>策略化报告与历史归档</span>
+        </a>
+        <a href="research/channels/index.html">
+          <strong>5. 渠道与通知</strong><span>网页、飞书和发布状态</span>
+        </a>
+        <a href="data/dashboard/index.html">
+          <strong>投资看板</strong><span>当前标的趋势与策略判断</span>
         </a>
       </div>
     </section>
@@ -120,7 +127,9 @@
         </div>
       </div>
       <div class="resource-list">
-<a class="resource-row" href="data/selections/latest/dividend-low-vol-100-etf.html">
+<a class="resource-row" href="data/selections/latest/dividend-low-vol-100-etf.html"
+          data-catalog-row data-category="候选初筛"
+          data-date="持续更新">
           <span class="resource-main">
             <small>候选初筛</small>
             <strong>中证红利低波动100指数 ETF候选初筛</strong>
@@ -128,7 +137,9 @@
           </span>
           <span class="resource-date">持续更新</span>
         </a>
-<a class="resource-row" href="research/selections/dividend-low-vol-100-etf/2026-08-15-selection.html">
+<a class="resource-row" href="research/selections/dividend-low-vol-100-etf/2026-08-15-selection.html"
+          data-catalog-row data-category="选择报告"
+          data-date="2026-08-15">
           <span class="resource-main">
             <small>选择报告</small>
             <strong>中证红利低波动100指数ETF选择报告 2026-08-15</strong>
@@ -136,7 +147,9 @@
           </span>
           <span class="resource-date">2026-08-15</span>
         </a>
-<a class="resource-row" href="data/reports/2026-08-15/515100-base.md">
+<a class="resource-row" href="data/reports/2026-08-15/515100-base.md"
+          data-catalog-row data-category="标的研究"
+          data-date="2026-08-15">
           <span class="resource-main">
             <small>标的研究</small>
             <strong>红利低波100ETF景顺（515100）盘中决策简报</strong>
@@ -144,7 +157,9 @@
           </span>
           <span class="resource-date">2026-08-15</span>
         </a>
-<a class="resource-row" href="data/reports/2026-08-15/515100-research.md">
+<a class="resource-row" href="data/reports/2026-08-15/515100-research.md"
+          data-catalog-row data-category="标的研究"
+          data-date="2026-08-15">
           <span class="resource-main">
             <small>标的研究</small>
             <strong>515100 红利低波100ETF景顺 研究简报</strong>
@@ -152,7 +167,9 @@
           </span>
           <span class="resource-date">2026-08-15</span>
         </a>
-<a class="resource-row" href="data/reports/2026-08-14/515100-base.md">
+<a class="resource-row" href="data/reports/2026-08-14/515100-base.md"
+          data-catalog-row data-category="标的研究"
+          data-date="2026-08-14">
           <span class="resource-main">
             <small>标的研究</small>
             <strong>红利低波100ETF景顺（515100）盘中决策简报</strong>
@@ -160,7 +177,9 @@
           </span>
           <span class="resource-date">2026-08-14</span>
         </a>
-<a class="resource-row" href="data/reports/2026-08-14/515100-trae.md">
+<a class="resource-row" href="data/reports/2026-08-14/515100-trae.md"
+          data-catalog-row data-category="标的研究"
+          data-date="2026-08-14">
           <span class="resource-main">
             <small>标的研究</small>
             <strong>515100 红利低波100ETF分析简报</strong>
@@ -180,13 +199,32 @@
         </div>
       </div>
       <div class="resource-groups">
+        <form class="catalog-filters" data-catalog-filters="portal-assets">
+          <label class="catalog-search">
+            <span>搜索全部内容</span>
+            <input type="search" data-field="text"
+              placeholder="标的、报告、模块或路径">
+          </label>
+          <label>
+            <span>分类</span>
+            <select data-field="category">
+              <option value="">全部</option>
+              <option value="选择报告">选择报告</option><option value="候选初筛">候选初筛</option><option value="回测报告">回测报告</option><option value="标的研究">标的研究</option><option value="候选定义">候选定义</option><option value="方法与经验">方法与经验</option><option value="研究入口">研究入口</option><option value="系统文档">系统文档</option>
+            </select>
+          </label>
+          <button type="reset">重置</button>
+          <output data-catalog-count="portal-assets"></output>
+        </form>
+        <div data-catalog="portal-assets">
 <section class="resource-group">
         <header>
           <h3>选择报告</h3>
           <span>1 项</span>
         </header>
         <div class="resource-list compact">
-<a class="resource-row" href="research/selections/dividend-low-vol-100-etf/2026-08-15-selection.html">
+<a class="resource-row" href="research/selections/dividend-low-vol-100-etf/2026-08-15-selection.html"
+          data-catalog-row data-category="选择报告"
+          data-date="2026-08-15">
           <span class="resource-main">
             <small>选择报告</small>
             <strong>中证红利低波动100指数ETF选择报告 2026-08-15</strong>
@@ -202,7 +240,9 @@
           <span>1 项</span>
         </header>
         <div class="resource-list compact">
-<a class="resource-row" href="data/selections/latest/dividend-low-vol-100-etf.html">
+<a class="resource-row" href="data/selections/latest/dividend-low-vol-100-etf.html"
+          data-catalog-row data-category="候选初筛"
+          data-date="持续更新">
           <span class="resource-main">
             <small>候选初筛</small>
             <strong>中证红利低波动100指数 ETF候选初筛</strong>
@@ -214,11 +254,41 @@
       </section>
 <section class="resource-group">
         <header>
+          <h3>回测报告</h3>
+          <span>2 项</span>
+        </header>
+        <div class="resource-list compact">
+<a class="resource-row" href="data/backtests/515100/20260816T001648-447d9d79.html"
+          data-catalog-row data-category="回测报告"
+          data-date="持续更新">
+          <span class="resource-main">
+            <small>回测报告</small>
+            <strong>515100 红利低波中长线策略回测 · Quant Monitor</strong>
+            <code>data/backtests/515100/20260816T001648-447d9d79.html</code>
+          </span>
+          <span class="resource-date">持续更新</span>
+        </a>
+<a class="resource-row" href="data/backtests/515100/20260816T003052-e0f4706e.html"
+          data-catalog-row data-category="回测报告"
+          data-date="持续更新">
+          <span class="resource-main">
+            <small>回测报告</small>
+            <strong>515100 红利低波中长线策略回测 · Quant Monitor</strong>
+            <code>data/backtests/515100/20260816T003052-e0f4706e.html</code>
+          </span>
+          <span class="resource-date">持续更新</span>
+        </a>
+        </div>
+      </section>
+<section class="resource-group">
+        <header>
           <h3>标的研究</h3>
           <span>4 项</span>
         </header>
         <div class="resource-list compact">
-<a class="resource-row" href="data/reports/2026-08-15/515100-base.md">
+<a class="resource-row" href="data/reports/2026-08-15/515100-base.md"
+          data-catalog-row data-category="标的研究"
+          data-date="2026-08-15">
           <span class="resource-main">
             <small>标的研究</small>
             <strong>红利低波100ETF景顺（515100）盘中决策简报</strong>
@@ -226,7 +296,9 @@
           </span>
           <span class="resource-date">2026-08-15</span>
         </a>
-<a class="resource-row" href="data/reports/2026-08-15/515100-research.md">
+<a class="resource-row" href="data/reports/2026-08-15/515100-research.md"
+          data-catalog-row data-category="标的研究"
+          data-date="2026-08-15">
           <span class="resource-main">
             <small>标的研究</small>
             <strong>515100 红利低波100ETF景顺 研究简报</strong>
@@ -234,7 +306,9 @@
           </span>
           <span class="resource-date">2026-08-15</span>
         </a>
-<a class="resource-row" href="data/reports/2026-08-14/515100-base.md">
+<a class="resource-row" href="data/reports/2026-08-14/515100-base.md"
+          data-catalog-row data-category="标的研究"
+          data-date="2026-08-14">
           <span class="resource-main">
             <small>标的研究</small>
             <strong>红利低波100ETF景顺（515100）盘中决策简报</strong>
@@ -242,7 +316,9 @@
           </span>
           <span class="resource-date">2026-08-14</span>
         </a>
-<a class="resource-row" href="data/reports/2026-08-14/515100-trae.md">
+<a class="resource-row" href="data/reports/2026-08-14/515100-trae.md"
+          data-catalog-row data-category="标的研究"
+          data-date="2026-08-14">
           <span class="resource-main">
             <small>标的研究</small>
             <strong>515100 红利低波100ETF分析简报</strong>
@@ -258,7 +334,9 @@
           <span>1 项</span>
         </header>
         <div class="resource-list compact">
-<a class="resource-row" href="research/universes/dividend-low-vol-100-etf.toml">
+<a class="resource-row" href="research/universes/dividend-low-vol-100-etf.toml"
+          data-catalog-row data-category="候选定义"
+          data-date="持续更新">
           <span class="resource-main">
             <small>候选定义</small>
             <strong>中证红利低波动100指数 ETF</strong>
@@ -274,7 +352,9 @@
           <span>1 项</span>
         </header>
         <div class="resource-list compact">
-<a class="resource-row" href="research/library/instrument-selection-open-source-review.html">
+<a class="resource-row" href="research/library/instrument-selection-open-source-review.html"
+          data-catalog-row data-category="方法与经验"
+          data-date="持续更新">
           <span class="resource-main">
             <small>方法与经验</small>
             <strong>公开标的筛选方案评估 · Quant Monitor</strong>
@@ -287,18 +367,22 @@
 <section class="resource-group">
         <header>
           <h3>研究入口</h3>
-          <span>6 项</span>
+          <span>10 项</span>
         </header>
         <div class="resource-list compact">
-<a class="resource-row" href="research/selections/index.html">
+<a class="resource-row" href="research/analysis/index.html"
+          data-catalog-row data-category="研究入口"
+          data-date="持续更新">
           <span class="resource-main">
             <small>研究入口</small>
-            <strong>候选筛选 · Quant Monitor</strong>
-            <code>research/selections/index.html</code>
+            <strong>分析作业 · Quant Monitor</strong>
+            <code>research/analysis/index.html</code>
           </span>
           <span class="resource-date">持续更新</span>
         </a>
-<a class="resource-row" href="research/methods/storage-backtesting.html">
+<a class="resource-row" href="research/methods/storage-backtesting.html"
+          data-catalog-row data-category="研究入口"
+          data-date="持续更新">
           <span class="resource-main">
             <small>研究入口</small>
             <strong>历史数据与回测方法 · Quant Monitor</strong>
@@ -306,7 +390,19 @@
           </span>
           <span class="resource-date">持续更新</span>
         </a>
-<a class="resource-row" href="research/instruments/index.html">
+<a class="resource-row" href="research/reports/index.html"
+          data-catalog-row data-category="研究入口"
+          data-date="持续更新">
+          <span class="resource-main">
+            <small>研究入口</small>
+            <strong>报告中心 · Quant Monitor</strong>
+            <code>research/reports/index.html</code>
+          </span>
+          <span class="resource-date">持续更新</span>
+        </a>
+<a class="resource-row" href="research/instruments/index.html"
+          data-catalog-row data-category="研究入口"
+          data-date="持续更新">
           <span class="resource-main">
             <small>研究入口</small>
             <strong>标的档案 · Quant Monitor</strong>
@@ -314,7 +410,29 @@
           </span>
           <span class="resource-date">持续更新</span>
         </a>
-<a class="resource-row" href="research/index.html">
+<a class="resource-row" href="research/selections/index.html"
+          data-catalog-row data-category="研究入口"
+          data-date="持续更新">
+          <span class="resource-main">
+            <small>研究入口</small>
+            <strong>标的选择 · Quant Monitor</strong>
+            <code>research/selections/index.html</code>
+          </span>
+          <span class="resource-date">持续更新</span>
+        </a>
+<a class="resource-row" href="research/channels/index.html"
+          data-catalog-row data-category="研究入口"
+          data-date="持续更新">
+          <span class="resource-main">
+            <small>研究入口</small>
+            <strong>渠道与通知 · Quant Monitor</strong>
+            <code>research/channels/index.html</code>
+          </span>
+          <span class="resource-date">持续更新</span>
+        </a>
+<a class="resource-row" href="research/index.html"
+          data-catalog-row data-category="研究入口"
+          data-date="持续更新">
           <span class="resource-main">
             <small>研究入口</small>
             <strong>研究知识库 · Quant Monitor</strong>
@@ -322,7 +440,19 @@
           </span>
           <span class="resource-date">持续更新</span>
         </a>
-<a class="resource-row" href="research/templates/discussion-report.html">
+<a class="resource-row" href="research/strategies/index.html"
+          data-catalog-row data-category="研究入口"
+          data-date="持续更新">
+          <span class="resource-main">
+            <small>研究入口</small>
+            <strong>策略与回测 · Quant Monitor</strong>
+            <code>research/strategies/index.html</code>
+          </span>
+          <span class="resource-date">持续更新</span>
+        </a>
+<a class="resource-row" href="research/templates/discussion-report.html"
+          data-catalog-row data-category="研究入口"
+          data-date="持续更新">
           <span class="resource-main">
             <small>研究入口</small>
             <strong>讨论报告模板 · Quant Monitor</strong>
@@ -330,7 +460,9 @@
           </span>
           <span class="resource-date">持续更新</span>
         </a>
-<a class="resource-row" href="research/library/index.html">
+<a class="resource-row" href="research/library/index.html"
+          data-catalog-row data-category="研究入口"
+          data-date="持续更新">
           <span class="resource-main">
             <small>研究入口</small>
             <strong>通用经验 · Quant Monitor</strong>
@@ -346,7 +478,9 @@
           <span>6 项</span>
         </header>
         <div class="resource-list compact">
-<a class="resource-row" href="docs/refactor-report.html">
+<a class="resource-row" href="docs/refactor-report.html"
+          data-catalog-row data-category="系统文档"
+          data-date="持续更新">
           <span class="resource-main">
             <small>系统文档</small>
             <strong>Quant Monitor 工程升级报告</strong>
@@ -354,7 +488,9 @@
           </span>
           <span class="resource-date">持续更新</span>
         </a>
-<a class="resource-row" href="docs/index.html">
+<a class="resource-row" href="docs/index.html"
+          data-catalog-row data-category="系统文档"
+          data-date="持续更新">
           <span class="resource-main">
             <small>系统文档</small>
             <strong>Quant Monitor 文档中心</strong>
@@ -362,7 +498,9 @@
           </span>
           <span class="resource-date">持续更新</span>
         </a>
-<a class="resource-row" href="docs/install.html">
+<a class="resource-row" href="docs/install.html"
+          data-catalog-row data-category="系统文档"
+          data-date="持续更新">
           <span class="resource-main">
             <small>系统文档</small>
             <strong>安装部署 · Quant Monitor</strong>
@@ -370,7 +508,9 @@
           </span>
           <span class="resource-date">持续更新</span>
         </a>
-<a class="resource-row" href="docs/capabilities.html">
+<a class="resource-row" href="docs/capabilities.html"
+          data-catalog-row data-category="系统文档"
+          data-date="持续更新">
           <span class="resource-main">
             <small>系统文档</small>
             <strong>当前能力 · Quant Monitor</strong>
@@ -378,7 +518,9 @@
           </span>
           <span class="resource-date">持续更新</span>
         </a>
-<a class="resource-row" href="docs/architecture.html">
+<a class="resource-row" href="docs/architecture.html"
+          data-catalog-row data-category="系统文档"
+          data-date="持续更新">
           <span class="resource-main">
             <small>系统文档</small>
             <strong>架构设计 · Quant Monitor</strong>
@@ -386,7 +528,9 @@
           </span>
           <span class="resource-date">持续更新</span>
         </a>
-<a class="resource-row" href="docs/operations.html">
+<a class="resource-row" href="docs/operations.html"
+          data-catalog-row data-category="系统文档"
+          data-date="持续更新">
           <span class="resource-main">
             <small>系统文档</small>
             <strong>运行运维 · Quant Monitor</strong>
@@ -396,6 +540,7 @@
         </a>
         </div>
       </section>
+        </div>
       </div>
     </section>
   </main>
@@ -406,6 +551,7 @@
       <span>研究材料不构成投资建议或自动交易指令。</span>
     </div>
   </footer>
-  <script src="docs/assets/navigation.js?v=0.7.0"></script>
+  <script src="docs/assets/navigation.js?v=0.8.0"></script>
+  <script src="docs/assets/catalog.js?v=0.8.0"></script>
 </body>
 </html>

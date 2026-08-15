@@ -69,11 +69,14 @@ class FakeRepository:
 
 
 class FakeNotifications:
-    def __init__(self) -> None:
+    def __init__(self, *, fail: bool = False) -> None:
+        self.fail = fail
         self.calls: list[tuple[str, str, str]] = []
 
     def send(self, symbol: str, event: str, markdown: str):
         self.calls.append((symbol, event, markdown))
+        if self.fail:
+            raise RuntimeError("飞书暂时不可用")
         return ("primary",)
 
 
@@ -81,24 +84,36 @@ class FakeRunner:
     def __init__(self, root: Path, available: bool) -> None:
         self.available = available
         self.path = root / "515100-research.md"
-        self.calls: list[tuple[str, bool]] = []
+        self.calls: list[tuple[str, bool, Path | None]] = []
 
     def is_available(self) -> bool:
         return self.available
 
-    def run(self, symbol: str, *, send: bool) -> Path:
-        self.calls.append((symbol, send))
+    def run(
+        self,
+        symbol: str,
+        *,
+        send: bool,
+        analysis_request_path: Path | None = None,
+    ) -> Path:
+        self.calls.append((symbol, send, analysis_request_path))
         self.path.write_text("完整研究", encoding="utf-8")
         return self.path
 
 
 class AutomationTest(unittest.TestCase):
-    def _service(self, root: Path, runner: FakeRunner):
+    def _service(
+        self,
+        root: Path,
+        runner: FakeRunner,
+        *,
+        notification_failure: bool = False,
+    ):
         config_path = root / "config.toml"
         config_path.write_text(CONFIG, encoding="utf-8")
         settings = load_settings(root, config_path)
         monitoring = FakeMonitoring()
-        notifications = FakeNotifications()
+        notifications = FakeNotifications(fail=notification_failure)
         service = AutomationService(
             settings=settings,
             monitoring=monitoring,
@@ -118,9 +133,13 @@ class AutomationTest(unittest.TestCase):
             result = service.run("515100")
 
             self.assertEqual(result.mode, "traecli")
-            self.assertEqual(runner.calls, [("515100", True)])
+            self.assertEqual(runner.calls, [("515100", False, None)])
             self.assertEqual(monitoring.calls, [])
-            self.assertEqual(notifications.calls, [])
+            self.assertEqual(
+                notifications.calls[0][:2],
+                ("515100", "scheduled_report"),
+            )
+            self.assertEqual(result.sent_channels, ("primary",))
 
     def test_falls_back_to_base_and_sends(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -163,6 +182,47 @@ class AutomationTest(unittest.TestCase):
                 notifications.calls[0][1],
                 "base_report",
             )
+
+    def test_delivery_failure_keeps_generated_report_visible(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runner = FakeRunner(root, available=False)
+            service, _, _ = self._service(
+                root,
+                runner,
+                notification_failure=True,
+            )
+
+            result = service.run("515100", mode="base", send=True)
+
+            self.assertTrue(result.report_path.exists())
+            self.assertEqual(result.sent_channels, ())
+            self.assertEqual(
+                result.delivery_errors,
+                ("飞书暂时不可用",),
+            )
+
+    def test_standard_agent_request_generates_then_application_sends(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runner = FakeRunner(root, available=True)
+            service, _, notifications = self._service(root, runner)
+            request_path = root / "data" / "analysis" / "request.json"
+
+            result = service.run(
+                "515100",
+                analysis_request_path=request_path,
+            )
+
+            self.assertEqual(
+                runner.calls,
+                [("515100", False, request_path)],
+            )
+            self.assertEqual(
+                notifications.calls[0][:2],
+                ("515100", "scheduled_report"),
+            )
+            self.assertEqual(result.sent_channels, ("primary",))
 
 
 if __name__ == "__main__":

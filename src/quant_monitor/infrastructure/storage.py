@@ -107,3 +107,27 @@ class FileResearchRepository:
         self._atomic_write(latest_path, content)
         self._atomic_write(snapshot_path, content)
         return latest_path
+
+    def save_analysis_request(
+        self,
+        request_id: str,
+        packet: dict[str, Any],
+    ) -> Path:
+        requested_at = datetime.fromisoformat(str(packet["requested_at"]))
+        latest_path = (
+            self._data_dir
+            / "analysis"
+            / "latest"
+            / f"{request_id}.json"
+        )
+        snapshot_path = (
+            self._data_dir
+            / "analysis"
+            / "snapshots"
+            / requested_at.strftime("%Y-%m-%d")
+            / f"{request_id}.json"
+        )
+        content = json.dumps(packet, ensure_ascii=False, indent=2) + "\n"
+        self._atomic_write(latest_path, content)
+        self._atomic_write(snapshot_path, content)
+        return latest_path

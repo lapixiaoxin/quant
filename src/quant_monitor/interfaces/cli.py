@@ -3,17 +3,33 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import subprocess
 import sys
+from dataclasses import replace
+from datetime import date, datetime
 from pathlib import Path
+from uuid import uuid4
 
+from ..application.analysis import AnalysisService
 from ..application.automation import AutomationService
+from ..application.backtesting import BacktestService, save_backtest_result
 from ..application.monitoring import MonitoringService
 from ..application.notifications import NotificationService
 from ..application.selection import SelectionService
 from ..config import Settings, load_settings
+from ..domain.backtesting import BacktestSpecification
+from ..domain.control_plane import (
+    AnalysisCycle,
+    AnalysisRequest,
+    AnalysisTrigger,
+    BacktestRunRecord,
+    SelectionRunRecord,
+)
+from ..domain.factors import FactorRegistry
 from ..domain.strategies import StrategyRegistry
+from ..infrastructure.control_repository import SQLiteControlPlaneRepository
 from ..infrastructure.history import SQLiteMarketHistoryRepository
 from ..infrastructure.lark_events import LarkCliEventSource, LarkCliReplier
 from ..infrastructure.market_data import DataSourceError, FallbackMarketDataProvider
@@ -24,11 +40,18 @@ from ..infrastructure.notifications import (
 from ..infrastructure.research_agent import TraeCliResearchRunner
 from ..infrastructure.selection_config import load_selection_universe
 from ..infrastructure.storage import FileResearchRepository
+from ..infrastructure.strategy_catalog import (
+    StrategyCatalog,
+    load_strategy_catalog,
+)
+from .backtest_reporting import write_backtest_report
 from .dashboard import write_dashboard
+from .platform_pages import write_platform_pages
 from .portal import write_portal
 from .remote import RemoteCommandRouter, listen_remote_commands
 from .reporting import build_base_report
 from .selection_reporting import write_selection_report
+from .site_navigation import refresh_site_navigation
 
 
 class ChineseArgumentParser(argparse.ArgumentParser):
@@ -60,6 +83,16 @@ def _add_target_options(parser: argparse.ArgumentParser) -> None:
     group.add_argument("--all", action="store_true", help="处理配置中的全部标的")
 
 
+def _add_analysis_target_options(parser: argparse.ArgumentParser) -> None:
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--symbol", help="单个标的代码")
+    group.add_argument(
+        "--symbols",
+        help="逗号分隔的多个标的代码",
+    )
+    group.add_argument("--all", action="store_true", help="分析全部启用标的")
+
+
 def _symbols(args: argparse.Namespace, settings: Settings) -> list[str]:
     if getattr(args, "all", False):
         return [item.symbol for item in settings.enabled_instruments]
@@ -71,6 +104,31 @@ def _symbols(args: argparse.Namespace, settings: Settings) -> list[str]:
     return [settings.enabled_instruments[0].symbol]
 
 
+def _analysis_symbols(
+    args: argparse.Namespace,
+    settings: Settings,
+) -> tuple[str, ...]:
+    if getattr(args, "all", False):
+        symbols = tuple(item.symbol for item in settings.enabled_instruments)
+    elif getattr(args, "symbols", None):
+        symbols = tuple(
+            dict.fromkeys(
+                item.strip()
+                for item in str(args.symbols).split(",")
+                if item.strip()
+            )
+        )
+    elif getattr(args, "symbol", None):
+        symbols = (str(args.symbol),)
+    elif settings.enabled_instruments:
+        symbols = (settings.enabled_instruments[0].symbol,)
+    else:
+        symbols = ()
+    if not symbols:
+        raise ValueError("分析目标不能为空")
+    return symbols
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = ChineseArgumentParser(
         description="个人投资行情监控与分析内核",
@@ -80,6 +138,11 @@ def _parser() -> argparse.ArgumentParser:
 
     prepare_parser = subparsers.add_parser("prepare", help="采集并准备研究数据")
     _add_target_options(prepare_parser)
+    prepare_parser.add_argument(
+        "--analysis-request",
+        type=Path,
+        help="标准分析请求 JSON，用于动态注入周期和因子",
+    )
 
     report_parser = subparsers.add_parser(
         "base-report",
@@ -128,6 +191,41 @@ def _parser() -> argparse.ArgumentParser:
         help="覆盖配置但不发送报告",
     )
 
+    analyze_parser = subparsers.add_parser(
+        "analyze",
+        help="按标的范围、周期和因子执行标准分析作业",
+    )
+    _add_analysis_target_options(analyze_parser)
+    analyze_parser.add_argument(
+        "--cycle",
+        action="append",
+        choices=tuple(item.value for item in AnalysisCycle),
+        help="可重复指定 daily、monthly、yearly、moving_average",
+    )
+    analyze_parser.add_argument(
+        "--factors",
+        help="逗号分隔的因子 ID；省略时按周期使用默认因子",
+    )
+    analyze_parser.add_argument(
+        "--mode",
+        choices=("base", "traecli"),
+        help="覆盖自动化模式",
+    )
+    analyze_send = analyze_parser.add_mutually_exclusive_group()
+    analyze_send.add_argument(
+        "--send",
+        dest="send",
+        action="store_true",
+        default=None,
+        help="按标的通知策略发送",
+    )
+    analyze_send.add_argument(
+        "--no-send",
+        dest="send",
+        action="store_false",
+        help="只生成报告和网页",
+    )
+
     send_parser = subparsers.add_parser(
         "send-report",
         help="发送已有 Markdown 报告",
@@ -157,7 +255,7 @@ def _parser() -> argparse.ArgumentParser:
     )
     subparsers.add_parser(
         "site",
-        help="刷新根路径研究工作台和静态投资看板",
+        help="刷新五模块工作台、投资看板和全局导航",
     )
 
     listen_parser = subparsers.add_parser(
@@ -171,6 +269,23 @@ def _parser() -> argparse.ArgumentParser:
     )
 
     subparsers.add_parser("instruments", help="列出已配置标的和策略")
+    strategies_parser = subparsers.add_parser(
+        "strategies",
+        help="查看版本化策略及当前生效状态",
+    )
+    strategies_parser.add_argument("--symbol", help="只查看指定标的")
+    backtest_parser = subparsers.add_parser(
+        "backtest",
+        help="使用本地 SQLite 历史库回测一个策略版本",
+    )
+    backtest_parser.add_argument(
+        "--strategy-record",
+        required=True,
+        help="策略目录 record_id",
+    )
+    backtest_parser.add_argument("--symbol", help="覆盖策略记录中的首个标的")
+    backtest_parser.add_argument("--start", type=date.fromisoformat)
+    backtest_parser.add_argument("--end", type=date.fromisoformat)
     history_parser = subparsers.add_parser(
         "history",
         help="查看本地 SQLite 历史行情覆盖情况",
@@ -200,6 +315,7 @@ def _build_service(
     repository: FileResearchRepository,
     history_repository: SQLiteMarketHistoryRepository,
     strategies: StrategyRegistry,
+    strategy_catalog: StrategyCatalog,
 ) -> MonitoringService:
     return MonitoringService(
         settings=settings,
@@ -207,6 +323,7 @@ def _build_service(
         history_repository=history_repository,
         repository=repository,
         strategies=strategies,
+        strategy_catalog=strategy_catalog,
     )
 
 
@@ -255,6 +372,9 @@ def _write_site(
     root: Path,
     settings: Settings,
     repository: FileResearchRepository,
+    strategy_catalog: StrategyCatalog,
+    control_repository: SQLiteControlPlaneRepository,
+    factors: FactorRegistry,
     *,
     dashboard_output: Path | None = None,
 ) -> tuple[Path, Path]:
@@ -265,7 +385,15 @@ def _write_site(
         dashboard_path,
         repository.list_latest_packets(),
     )
+    write_platform_pages(
+        root,
+        settings,
+        strategy_catalog,
+        control_repository,
+        factors,
+    )
     portal = write_portal(root / "index.html", root)
+    refresh_site_navigation(root)
     return dashboard, portal
 
 
@@ -274,6 +402,9 @@ def _doctor(
     settings: Settings,
     strategies: StrategyRegistry,
     history_repository: SQLiteMarketHistoryRepository,
+    strategy_catalog: StrategyCatalog,
+    control_repository: SQLiteControlPlaneRepository,
+    factors: FactorRegistry,
 ) -> None:
     for profile in settings.strategy_profiles.values():
         strategies.get(profile.strategy_id).validate_parameters(
@@ -296,12 +427,25 @@ def _doctor(
         load_selection_universe(path)
         for path in sorted((root / "research" / "universes").glob("*.toml"))
     ]
+    strategy_catalog.validate_settings(settings)
     build_notification_channels(settings)
     print(f"项目目录：{root}")
     print(f"Python：{sys.version.split()[0]}")
     print(f"配置：正常（{len(settings.instruments)} 个标的）")
     print(f"策略：正常（{', '.join(strategies.ids)}）")
     print(f"策略画像：正常（{len(settings.strategy_profiles)} 个）")
+    active_strategy_count = sum(
+        item.lifecycle.value == "active"
+        for item in strategy_catalog.records
+    )
+    print(
+        f"策略版本：正常（{len(strategy_catalog.records)} 个，"
+        f"{active_strategy_count} 个启用）"
+    )
+    print(
+        f"分析因子：正常（{len(factors.all)} 个，"
+        f"{sum(item.availability == 'available' for item in factors.all)} 个可用）"
+    )
     print(
         "产品类型："
         + "、".join(item.value for item in sorted(settings.product_types, key=str))
@@ -339,6 +483,11 @@ def _doctor(
         f"v{history_repository.schema_version}，"
         f"{history_repository.database_path}）"
     )
+    print(
+        "控制面数据库：正常（SQLite schema "
+        f"v{control_repository.schema_version}，"
+        f"{control_repository.database_path}）"
+    )
     event_source = LarkCliEventSource(settings.remote)
     print(
         f"飞书远程命令：{'启用' if settings.remote.enabled else '停用'}"
@@ -355,10 +504,26 @@ def main() -> int:
         history_repository = SQLiteMarketHistoryRepository(
             settings.data_dir / "history" / "market.sqlite3"
         )
+        control_repository = SQLiteControlPlaneRepository(
+            settings.data_dir / "control" / "research.sqlite3"
+        )
         strategies = StrategyRegistry.default()
+        strategy_catalog = load_strategy_catalog(
+            root / "research" / "strategies" / "catalog.toml"
+        )
+        strategy_catalog.validate_settings(settings)
+        factors = FactorRegistry.default()
 
         if args.command == "doctor":
-            _doctor(root, settings, strategies, history_repository)
+            _doctor(
+                root,
+                settings,
+                strategies,
+                history_repository,
+                strategy_catalog,
+                control_repository,
+                factors,
+            )
             return 0
 
         if args.command == "instruments":
@@ -370,6 +535,19 @@ def main() -> int:
                     f"{item.notification_policy_id}\t"
                     f"{'启用' if item.enabled else '停用'}\t"
                     f"{item.name}"
+                )
+            return 0
+
+        if args.command == "strategies":
+            for record in strategy_catalog.records:
+                if args.symbol and not record.applies_to(args.symbol):
+                    continue
+                print(
+                    f"{record.record_id}\t{record.version}\t"
+                    f"{record.lifecycle.value}\t"
+                    f"{record.validation_state.value}\t"
+                    f"{record.horizon.value}\t"
+                    f"{','.join(record.symbols)}\t{record.name}"
                 )
             return 0
 
@@ -387,6 +565,90 @@ def main() -> int:
                     f"{symbol}\t{summary.bar_count} 根\t{coverage}\t"
                     f"最近来源：{source}"
                 )
+            return 0
+
+        if args.command == "backtest":
+            record = strategy_catalog.record(args.strategy_record)
+            symbol = args.symbol or record.symbols[0]
+            instrument = settings.instrument_for(symbol)
+            summary = history_repository.summarize(symbol)
+            start_date = args.start or summary.first_date
+            end_date = args.end or summary.last_date
+            if start_date is None or end_date is None:
+                raise ValueError(f"标的 {symbol} 没有可回测的历史数据")
+            run_id = (
+                f"{datetime.now().astimezone():%Y%m%dT%H%M%S}-"
+                f"{uuid4().hex[:8]}"
+            )
+            result_dir = settings.data_dir / "backtests" / symbol
+            result_path = result_dir / f"{run_id}.json"
+            report_path = result_dir / f"{run_id}.html"
+            started_at = datetime.now().astimezone().replace(microsecond=0)
+            pending = BacktestRunRecord(
+                run_id=run_id,
+                strategy_record_id=record.record_id,
+                symbol=symbol,
+                started_at=started_at,
+                completed_at=None,
+                status="running",
+                result_path=str(report_path.relative_to(root)),
+            )
+            control_repository.save_backtest(pending)
+            try:
+                result = BacktestService(
+                    history_repository,
+                    strategies,
+                    strategy_catalog,
+                ).run(
+                    instrument,
+                    settings.strategy_profiles[record.profile_id].parameters,
+                    BacktestSpecification(
+                        symbol=symbol,
+                        model_id=record.backtest_model_id,
+                        model_version=record.backtest_model_version,
+                        parameters_fingerprint=record.parameters_fingerprint,
+                        start_date=start_date,
+                        end_date=end_date,
+                    ),
+                    strategy_record_id=record.record_id,
+                )
+                save_backtest_result(result_path, result)
+                write_backtest_report(report_path, result, record)
+            except (OSError, RuntimeError, ValueError) as error:
+                control_repository.save_backtest(
+                    replace(
+                        pending,
+                        completed_at=datetime.now().astimezone(),
+                        status="failed",
+                        error=str(error),
+                    )
+                )
+                raise
+            control_repository.save_backtest(
+                BacktestRunRecord(
+                    run_id=run_id,
+                    strategy_record_id=record.record_id,
+                    symbol=symbol,
+                    started_at=started_at,
+                    completed_at=datetime.now().astimezone(),
+                    status="completed",
+                    result_path=str(report_path.relative_to(root)),
+                    total_return=result.metrics.total_return,
+                    max_drawdown=result.metrics.max_drawdown,
+                    trade_count=result.metrics.trade_count,
+                )
+            )
+            _, portal_path = _write_site(
+                root,
+                settings,
+                repository,
+                strategy_catalog,
+                control_repository,
+                factors,
+            )
+            print(f"回测数据：{result_path}")
+            print(f"回测报告：{report_path}")
+            print(f"研究工作台：{portal_path}")
             return 0
 
         if args.command == "select":
@@ -412,7 +674,32 @@ def main() -> int:
             if not output.is_absolute():
                 output = root / output
             report_path = write_selection_report(output, packet)
-            portal_path = write_portal(root / "index.html", root)
+            requested_at = datetime.fromisoformat(str(packet["as_of"]))
+            control_repository.save_selection(
+                SelectionRunRecord(
+                    run_id=(
+                        f"{universe.universe_id}:"
+                        f"{requested_at:%Y%m%dT%H%M%S}"
+                    ),
+                    universe_id=universe.universe_id,
+                    horizon=universe.horizon,
+                    theme=universe.theme,
+                    requested_at=requested_at,
+                    status="completed",
+                    candidate_count=packet["summary"]["candidate_count"],
+                    shortlist_count=packet["summary"]["eligible"],
+                    packet_path=str(packet_path.relative_to(root)),
+                    report_path=str(report_path.relative_to(root)),
+                )
+            )
+            _, portal_path = _write_site(
+                root,
+                settings,
+                repository,
+                strategy_catalog,
+                control_repository,
+                factors,
+            )
             print(f"数据包：{packet_path}")
             print(f"初筛报告：{report_path}")
             print(f"研究工作台：{portal_path}")
@@ -431,6 +718,9 @@ def main() -> int:
                 root,
                 settings,
                 repository,
+                strategy_catalog,
+                control_repository,
+                factors,
                 dashboard_output=output,
             )
             print(f"投资看板：{dashboard_path}")
@@ -442,12 +732,31 @@ def main() -> int:
             repository,
             history_repository,
             strategies,
+            strategy_catalog,
         )
         automation = _build_automation_service(
             settings,
             monitoring,
             repository,
         )
+        analysis = AnalysisService(
+            settings,
+            automation,
+            repository,
+            control_repository,
+            strategy_catalog,
+            factors,
+        )
+
+        def refresh_site() -> None:
+            _write_site(
+                root,
+                settings,
+                repository,
+                strategy_catalog,
+                control_repository,
+                factors,
+            )
 
         if args.command == "automate":
             if not settings.automation.enabled and not args.force:
@@ -455,12 +764,22 @@ def main() -> int:
                     "自动化未启用；请配置 automation.enabled=true"
                     " 或使用 --force"
                 )
-            for symbol in _symbols(args, settings):
-                result = automation.run(
-                    symbol,
-                    mode=args.mode,
-                    send=args.send,
-                )
+            request = analysis.create_request(
+                symbols=tuple(_symbols(args, settings)),
+                cycles=(
+                    AnalysisCycle.DAILY,
+                    AnalysisCycle.MOVING_AVERAGE,
+                ),
+                trigger=AnalysisTrigger.SCHEDULED,
+                mode=args.mode or settings.automation.mode,
+                send=(
+                    settings.automation.send
+                    if args.send is None
+                    else args.send
+                ),
+            )
+            execution = analysis.run(request)
+            for result in execution.results:
                 fallback = "（已降级）" if result.fallback_used else ""
                 channels = (
                     f"；通道：{', '.join(result.sent_channels)}"
@@ -468,17 +787,66 @@ def main() -> int:
                     else ""
                 )
                 print(
-                    f"{symbol}：{result.mode}{fallback}；"
+                    f"{result.symbol}：{result.mode}{fallback}；"
                     f"报告：{result.report_path}{channels}"
                 )
+            for error in execution.errors:
+                print(f"失败：{error}", file=sys.stderr)
             dashboard_path, portal_path = _write_site(
                 root,
                 settings,
                 repository,
+                strategy_catalog,
+                control_repository,
+                factors,
             )
             print(f"投资看板：{dashboard_path}")
             print(f"研究工作台：{portal_path}")
-            return 0
+            return 1 if execution.errors and not execution.results else 0
+
+        if args.command == "analyze":
+            cycles = tuple(
+                AnalysisCycle.parse(item)
+                for item in (
+                    args.cycle
+                    or ("daily", "moving_average")
+                )
+            )
+            factor_ids = tuple(
+                item.strip()
+                for item in str(args.factors or "").split(",")
+                if item.strip()
+            )
+            request = analysis.create_request(
+                symbols=_analysis_symbols(args, settings),
+                cycles=cycles,
+                factor_ids=factor_ids,
+                trigger=AnalysisTrigger.MANUAL,
+                mode=args.mode or settings.automation.mode,
+                send=(
+                    settings.automation.send
+                    if args.send is None
+                    else args.send
+                ),
+            )
+            execution = analysis.run(request)
+            print(f"分析任务：{execution.request.request_id}")
+            print(f"请求文件：{execution.request_path}")
+            for result in execution.results:
+                print(f"{result.symbol}：{result.report_path}")
+            for error in execution.errors:
+                print(f"失败：{error}", file=sys.stderr)
+            dashboard_path, portal_path = _write_site(
+                root,
+                settings,
+                repository,
+                strategy_catalog,
+                control_repository,
+                factors,
+            )
+            print(f"投资看板：{dashboard_path}")
+            print(f"研究工作台：{portal_path}")
+            return 1 if execution.errors and not execution.results else 0
 
         if args.command == "listen":
             source = LarkCliEventSource(settings.remote)
@@ -495,6 +863,9 @@ def main() -> int:
                 monitoring,
                 automation,
                 repository,
+                analysis,
+                strategy_catalog,
+                refresh_site,
             )
             try:
                 listen_remote_commands(
@@ -523,7 +894,20 @@ def main() -> int:
 
         for symbol in _symbols(args, settings):
             if args.command == "prepare":
-                path, _ = monitoring.prepare(symbol)
+                analysis_request = None
+                if args.analysis_request:
+                    request_path = (
+                        args.analysis_request
+                        if args.analysis_request.is_absolute()
+                        else root / args.analysis_request
+                    )
+                    values = json.loads(
+                        request_path.read_text(encoding="utf-8")
+                    )
+                    if not isinstance(values, dict):
+                        raise ValueError("分析请求 JSON 必须是对象")
+                    analysis_request = AnalysisRequest.from_packet(values)
+                path, _ = monitoring.prepare(symbol, analysis_request)
                 print(path)
                 continue
 
@@ -554,6 +938,9 @@ def main() -> int:
                 root,
                 settings,
                 repository,
+                strategy_catalog,
+                control_repository,
+                factors,
             )
             print(f"投资看板：{dashboard_path}")
             print(f"研究工作台：{portal_path}")

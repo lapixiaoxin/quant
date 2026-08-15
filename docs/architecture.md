@@ -13,8 +13,9 @@ flowchart LR
     X --> A
     A --> F[文件与 SQLite 仓储]
     A --> N[自动化与通知路由]
-    F --> P[data/latest schema v3]
+    F --> P[data/latest schema v4]
     F --> H[data/history 日线历史库]
+    F --> C[data/control 运行索引]
     P --> R[TRAE / TraeCode CLI]
     R --> O[个性化研究报告]
     O --> K[research 研究知识库]
@@ -24,6 +25,32 @@ flowchart LR
 ```
 
 依赖只能从外向内。领域层不知道 HTTP、TOML、文件路径、飞书或 TRAE 的存在。
+
+## 平台业务架构
+
+平台不是按文件类型组织，而是按用户完成一次投资研究的五个阶段组织：
+
+```mermaid
+flowchart LR
+    S[1 标的选择] --> T[2 策略与回测]
+    T --> A[3 分析作业]
+    A --> R[4 报告中心]
+    R --> N[5 渠道与通知]
+    C[(控制面 SQLite)] --- S
+    C --- T
+    C --- A
+    C --- R
+    C --- N
+```
+
+- **标的选择**：短期或长期候选池、证据缺口、筛选历史和短名单。
+- **策略与回测**：策略版本、生命周期、配置指纹、验证状态和回测结果。
+- **分析作业**：人工、定时和飞书共用一个标准请求。
+- **报告中心**：按标的、策略、周期、因子、时间和发布状态归档。
+- **渠道与通知**：网页负责可浏览资产，飞书负责固定命令和报告发送。
+
+`data/control/research.sqlite3` 只保存运行事实和文件索引；配置、策略定义、
+历史行情和报告正文仍由各自事实源管理，避免建立重复真相。
 
 ## 行为配置模型
 
@@ -59,6 +86,21 @@ flowchart TD
 `strategy_profiles.<id>` 绑定代码中的稳定 `strategy_id` 和少量业务阈值。产品大类或标的引用画像，因此同一算法可以有不同参数组合；评分结构等稳定实现仍留在代码和测试中。
 
 一个标的可以引用多个策略画像。程序独立输出多个 assessment，不对冲突评分做没有依据的平均。
+
+### 策略版本事实源
+
+`config/config.toml` 保存标的最终引用和算法参数，
+`research/strategies/catalog.toml` 保存策略版本生命周期。启用策略通过
+`parameters_fingerprint` 绑定两者；指纹不一致、缺少启用版本或同标的同画像
+存在多个启用版本时，分析、回测和页面刷新都会拒绝继续。
+
+```text
+draft -> active -> retired
+          |
+          +-> pending / passed / failed（验证状态）
+```
+
+单次回测不会自动修改验证状态。启用和验证是两个正交维度，历史版本不覆盖写。
 
 ### 研究画像
 
@@ -100,39 +142,47 @@ flowchart LR
 - 数据源缺字段记为证据缺口；只有已知值违反门槛时才淘汰。
 - 最终短名单仍需人工确认，系统不自动修改正式标的配置或执行交易。
 
-## 一次研究任务的数据流
+## 一次标准分析作业的数据流
 
 ```mermaid
 sequenceDiagram
-    participant C as CLI/定时任务
-    participant S as Settings
-    participant A as MonitoringService
+    participant C as CLI/定时/飞书
+    participant J as AnalysisService
+    participant Q as 控制面 SQLite
+    participant A as AutomationService
+    participant M as MonitoringService
     participant P as 行情适配器
-    participant G as 策略注册表
     participant H as SQLite 历史仓储
     participant R as 文件仓储
     participant T as TRAE Skill
     participant N as NotificationService
 
-    C->>S: 解析产品默认值与标的覆盖
-    C->>A: prepare(symbol)
-    A->>P: fetch(instrument, history_days)
-    P-->>A: MarketBundle
-    A->>H: 幂等保存标准化日线
-    A->>A: 计算通用指标
-    loop 每个策略画像
-        A->>G: evaluate(strategy, parameters)
-        G-->>A: StrategyAssessment
+    C->>J: 创建 AnalysisRequest
+    J->>R: 保存请求 JSON 与快照
+    J->>Q: 登记 running
+    loop 每个标的
+        J->>A: run(symbol, request)
+        A->>M: prepare(symbol, request)
+        M->>P: 全量或 40 根重叠增量
+        P-->>M: MarketBundle
+        M->>H: 幂等更新并修复近期缺口
+        M->>R: 保存 schema v4 数据包
+        opt TraeCode 模式
+            A->>T: 注入策略、周期、因子和研究计划
+            T-->>A: 策略化报告
+        end
+        opt 需要发送
+            A->>N: 尝试全部配置通道
+            N-->>A: 成功通道与失败原因
+        end
+        J->>Q: 登记报告与发布状态
     end
-    A->>R: 保存 schema v3 数据包与提示
-    T->>R: 读取 research_plan 和 assessments
-    T->>R: 保存个性化报告
-    opt 用户明确要求推送
-        C->>N: send(symbol, agent_report)
-        N->>S: 读取 notification_policy
-        N-->>C: 路由到配置通道
-    end
+    J->>Q: completed / partial / failed
 ```
+
+报告生成与渠道发布分别记账。飞书失败不会抹掉已经生成的报告；多通道发送会继续
+尝试剩余通道，并在报告中心显示 `sent`、`partial`、`failed` 或
+`not_requested`。
 
 ## 无人值守自动化
 
@@ -140,7 +190,7 @@ sequenceDiagram
 
 - `base`：直接调用 `MonitoringService`、基础报告渲染和通知服务。
 - `traecli`：使用 TraeCode CLI 官方非交互 `-p` 模式执行项目命令
-  `/instrument-daily <symbol> [push]`。
+  `/instrument-analyze <symbol> <analysis-request-path>`。
 
 当 `traecli` 二进制不存在且 `fallback_to_base = true` 时，任务降级为
 `base`。如果 Agent 已经启动但返回失败，不再自动发送基础报告，避免一次任务产生重复消息。
@@ -163,14 +213,17 @@ LaunchAgent 只访问该目录；重新安装负责同步新版本，运行数�
 4. 调用监控或自动化应用服务。
 5. 通过 lark-cli 回复原消息。
 
-支持的命令固定为 `status`、`analyze`、`base`、`prepare`、
-`dashboard` 和 `help`。远程文本不会进入 Shell。
+支持的命令固定为 `status`、`strategies`、`analyze`、`base`、`prepare`、
+`dashboard` 和 `help`。`analyze` 支持单个或全部标的及日、月、年、均线周期。
+飞书不提供耗时的标的选择入口，远程文本不会进入 Shell。
 
-## schema v3 数据契约
+## schema v4 数据契约
 
 ```text
 as_of              带时区采集时间
 instrument         身份和最终解析后的画像引用
+strategy_plan      当前启用策略版本、状态、指纹和回测绑定
+analysis_plan      请求 ID、触发入口、周期、因子、模式和发送要求
 quote              当前行情快照
 metrics            与策略无关的确定性指标
 assessments        各策略画像独立给出的基线判断
@@ -180,27 +233,32 @@ portfolio          可选持仓上下文
 data_quality       来源、样本量、时间戳和限制
 ```
 
-`data/latest` 是最终执行计划的运行产物，不是配置源。修改行为应编辑 TOML 配置并重新运行 `prepare`，不要手改 JSON。
+新数据只生成 v4；基础报告读取端兼容 v3。`data/latest` 是最终执行计划的运行
+产物，不是配置源。修改行为应编辑 TOML 配置或策略目录并重新运行，不要手改
+JSON。
 
 ## 历史数据与回测边界
 
 每次行情采集成功后，`MonitoringService` 通过 `MarketHistoryRepository`
 把标准化日线写入 `data/history/market.sqlite3`。SQLite 负责日期范围查询、
-去重和事务；schema v3 JSON 快照继续负责还原单次研究任务，两者职责不同。
+去重和事务；schema v4 JSON 快照继续负责还原单次研究任务，两者职责不同。
 
-历史库当前固定保存前复权日线、来源和采集时间。按“标的代码 + 交易日”幂等更新；
-降级源缺少成交额或换手率时，不用零值覆盖已有的非零字段。安装脚本不会删除
-运行目录中的历史库。
+历史库固定保存前复权日线、来源和采集时间。首次、条数不足或陈旧超过 12 天时
+请求完整窗口；正常任务只请求最多 40 根重叠日线，既补充新交易日，也修复近期
+缺口。按“标的代码 + 交易日”幂等更新；降级源缺少成交额或换手率时，不用零值
+覆盖已有非零字段。
 
-回测代码位于 `domain/backtesting/`，当前交付的是领域契约而不是完整引擎：
+回测领域模型位于 `domain/backtesting/`，应用执行器位于
+`application/backtesting.py`：
 
 - `BacktestSpecification` 冻结模型版本、参数指纹、区间、成本、滑点和基准。
-- `BacktestSignalModel` 只使用当日及以前的数据生成长线目标仓位。
+- `AttentionScoreAllocationModel` 把关注度显式映射为仅供验证的目标仓位。
 - `BacktestResult` 约束权益曲线、指标和限制说明。
-- 当前 `AnalysisStrategy` 只表达研究关注度，不可直接作为买卖信号回测。
+- 每个交易日只使用前一交易日及更早数据生成信号，在下一交易日开盘执行。
+- 结果包含佣金、滑点、基准、超额收益、回撤、波动、换手和交易次数。
 
-未来撮合、参数优化和样本外评估由应用层编排，数据从历史仓储协议读取，
-领域层不得直接导入 `sqlite3`。
+当前没有参数优化、严格样本外评估、涨跌停、停牌、分红再投资和申赎冲击模型。
+`AnalysisStrategy` 仍只表达研究关注度，目标仓位映射不进入线上自动交易。
 
 ## 研究知识库
 
@@ -211,6 +269,7 @@ data_quality       来源、样本量、时间戳和限制
 - `research/methods/`：数据、策略和回测方法的 HTML 报告。
 - `research/universes/`：候选池、硬门槛、低频事实和来源日期。
 - `research/selections/`：候选筛选入口与深度选择报告。
+- `research/strategies/`：策略生命周期、参数指纹和回测模型绑定。
 
 研究记录必须区分事实和推断，并包含数据时间、来源、反例、风险和失效条件。
 
@@ -221,18 +280,20 @@ HTTP 根路径 `index.html` 是稳定的一级工作台，`docs/`、`research/` 
 HTML、研究 Markdown 和候选池 TOML，生成最近产物和分组目录；原始 JSON 快照、
 SQLite、日志、配置和凭证不进入目录。
 
-`./quant site` 同时刷新根工作台和投资看板。`dashboard`、`select`、自动化研究
-和飞书看板命令也会刷新入口；Agent 直接生成新报告时，项目 Skill 必须在完成前
-运行 `./quant site`。因此页面数量增长不会要求用户记忆文件路径，也不会把底层
-数据目录直接暴露为产品导航。
+`./quant site` 刷新根工作台、五个业务模块、投资看板，并重写全部可浏览页面的
+统一导航、当前位置和静态资源版本。页面目录使用浏览器端筛选，不引入 Web
+服务器或第二份业务状态。Agent 直接生成新报告时，项目 Skill 必须在完成前运行
+`./quant site`。
 
 ## TRAE 与 TraeCode CLI
 
 - `.trae/skills/instrument-analyst` 是产品无关的研究执行器。
+- `.trae/commands/instrument-analyze.md` 是标准分析作业入口。
 - `.trae/commands/instrument-daily.md` 是 TRAE 项目命令入口。
-- `.traecli/commands/instrument-daily.md` 是 TraeCode CLI 的同语义适配器。
+- `.traecli/commands/instrument-analyze.md` 是 TraeCode CLI 的同语义适配器。
 
-命令和 Skill 不再硬编码 ETF 内容。它们以 `research_plan.skill`、`sections`、`focus`、`source_priorities` 和 `instructions` 为准；通知以 `notification_plan` 为准。
+命令和 Skill 不再硬编码 ETF 内容。它们以 `strategy_plan`、`analysis_plan`、
+`research_plan` 和 `notification_plan` 为准。
 
 ## 核心边界
 
@@ -243,10 +304,10 @@ SQLite、日志、配置和凭证不进入目录。
 | 候选选择 | TOML 候选池 + 硬门槛 + Skill 补证 | 扩展候选数据源和产品方法 |
 | 通用指标 | 收益、均线、回撤、波动、流动性 | 新增纯计算模块 |
 | 策略 | `strategies/etf|stock|index` 产品子包 | 新增独立模块并注册 `AnalysisStrategy` |
-| 回测 | 版本化输入、信号与结果契约 | 实现 `BacktestSignalModel` 和应用层执行器 |
+| 回测 | 冻结输入、目标仓位执行、成本、基准与 HTML | 新增模型和严格样本外评估 |
 | 研究 | schema 驱动的通用 Skill | 新增研究画像或专用 Skill |
 | 通知 | 事件策略 + 飞书通道 | 实现 `NotificationChannel` |
-| 存储 | 原子文件 + SQLite 日线仓储 | 实现对应仓储协议 |
+| 存储 | 原子文件 + 日线 SQLite + 控制面 SQLite | 实现对应仓储协议 |
 | Agent | TraeCode CLI 非交互模式 | 实现 `ResearchAgentRunner` |
 | 入口 | CLI、launchd、TRAE、飞书 | 调用应用用例，禁止复制业务 |
 

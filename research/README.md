@@ -13,6 +13,7 @@ instruments/               标的档案的组织说明
 library/                   可提交、可复用、已脱敏的方法与经验
 methods/                   数据、策略和回测方法说明
 selections/                候选筛选工作台和深度选择报告
+strategies/                策略版本、生命周期、参数指纹和回测绑定
 templates/                 HTML 研究报告模板
 private/                   私有仓库内同步的标的讨论与个人语境
 universes/                 候选池、硬门槛、低频事实和来源日期
@@ -57,3 +58,16 @@ http://127.0.0.1:8765/
 
 根路径工作台会链接最近报告、候选筛选和研究中心。新增报告后运行
 `./quant site`，不得要求用户通过文件目录或 JSON 快照寻找内容。
+
+## 策略归档规则
+
+`strategies/catalog.toml` 是策略生命周期事实源，运行参数仍来自配置中的
+`strategy_profiles`。两者通过参数指纹绑定：
+
+- `draft`：尚未启用，不得影响线上分析。
+- `active`：当前分析必须注入的版本；同标的同画像只能有一个。
+- `retired`：保留历史启用和弃用时间，不再参与新分析。
+- `validation_state`：独立记录 `pending`、`passed` 或 `failed`。
+
+不要手工修改生成的策略管理页面。修改目录或配置后运行 `./quant doctor` 和
+`./quant site`；指纹漂移时系统必须拒绝继续。

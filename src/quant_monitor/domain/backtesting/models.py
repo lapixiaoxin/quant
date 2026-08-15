@@ -73,6 +73,8 @@ class BacktestMetrics:
     sharpe_ratio: float | None
     turnover: float
     trade_count: int
+    benchmark_return: float | None = None
+    excess_return: float | None = None
 
 
 @dataclass(frozen=True)

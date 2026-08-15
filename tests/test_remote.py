@@ -2,10 +2,16 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
 
 from quant_monitor.config import load_settings
+from quant_monitor.domain.control_plane import (
+    AnalysisCycle,
+    AnalysisRequest,
+    AnalysisTrigger,
+)
 from quant_monitor.interfaces.remote import RemoteCommandRouter
 
 CONFIG = """
@@ -84,6 +90,45 @@ class FakeRepository:
         return []
 
 
+class FakeAnalysis:
+    def __init__(self) -> None:
+        self.requests: list[AnalysisRequest] = []
+
+    def create_request(
+        self,
+        *,
+        symbols: tuple[str, ...],
+        cycles: tuple[AnalysisCycle, ...],
+        trigger: AnalysisTrigger,
+        mode: str,
+        send: bool,
+    ) -> AnalysisRequest:
+        request = AnalysisRequest(
+            request_id="remote-analysis",
+            requested_at=datetime(2026, 8, 15, tzinfo=timezone.utc),
+            trigger=trigger,
+            mode=mode,
+            symbols=symbols,
+            cycles=cycles,
+            factor_ids=("market_snapshot", "strategy"),
+            send=send,
+        )
+        self.requests.append(request)
+        return request
+
+    def run(self, request: AnalysisRequest):
+        return SimpleNamespace(
+            request=request,
+            errors=(),
+            results=(
+                SimpleNamespace(
+                    symbol=request.symbols[0],
+                    report_path=Path("data/reports/test.md"),
+                ),
+            ),
+        )
+
+
 class RemoteTest(unittest.TestCase):
     def _router(self):
         temporary = tempfile.TemporaryDirectory()
@@ -144,6 +189,41 @@ class RemoteTest(unittest.TestCase):
         _, router, _, _ = self._router()
 
         self.assertIsNone(router.handle("你好"))
+
+    def test_standard_analysis_supports_cycles_and_refreshes_site(self) -> None:
+        settings, _, monitoring, automation = self._router()
+        analysis = FakeAnalysis()
+        refreshes: list[bool] = []
+        router = RemoteCommandRouter(
+            settings,
+            monitoring,
+            automation,
+            FakeRepository(),
+            analysis=analysis,
+            site_refresher=lambda: refreshes.append(True),
+        )
+
+        response = router.handle("/quant analyze all daily,monthly")
+
+        self.assertIn("周期：daily,monthly", response or "")
+        self.assertEqual(
+            analysis.requests[0].trigger,
+            AnalysisTrigger.REMOTE,
+        )
+        self.assertEqual(
+            analysis.requests[0].symbols,
+            ("515100",),
+        )
+        self.assertEqual(refreshes, [True])
+
+    def test_help_keeps_selection_out_of_feishu_commands(self) -> None:
+        _, router, _, _ = self._router()
+
+        help_text = router.help_text()
+
+        self.assertIn("/quant strategies", help_text)
+        self.assertIn("/quant analyze", help_text)
+        self.assertNotIn("/quant select", help_text)
 
 
 if __name__ == "__main__":

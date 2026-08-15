@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .reporting import assessments_view, instrument_view
+from .site_navigation import ASSET_VERSION, build_site_header
 
 
 def _text(value: Any) -> str:
@@ -132,7 +133,8 @@ def build_dashboard(packets: list[dict[str, Any]]) -> str:
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>投资观察台</title>
-  <link rel="stylesheet" href="../../docs/assets/docs.css?v=0.7.0">
+  <link rel="stylesheet"
+    href="../../docs/assets/docs.css?v={ASSET_VERSION}">
   <style>
     :root {{
       color-scheme: light;
@@ -233,66 +235,7 @@ def build_dashboard(packets: list[dict[str, Any]]) -> str:
   </style>
 </head>
 <body>
-  <header class="site-header">
-    <div class="header-inner">
-      <a class="brand" href="../../index.html">Quant Monitor</a>
-      <nav class="site-nav" aria-label="全局导航">
-        <a href="../../index.html">工作台</a>
-        <details class="nav-dropdown">
-          <summary>使用指南</summary>
-          <div class="nav-menu">
-            <a href="../../docs/index.html">
-              <strong>文档总览</strong><small>能力、入口与阅读路径</small>
-            </a>
-            <a href="../../docs/install.html">
-              <strong>安装部署</strong><small>新设备、凭证与常驻服务</small>
-            </a>
-            <a href="../../docs/operations.html">
-              <strong>运行运维</strong><small>命令、日志与故障处理</small>
-            </a>
-          </div>
-        </details>
-        <details class="nav-dropdown">
-          <summary>系统设计</summary>
-          <div class="nav-menu">
-            <a href="../../docs/capabilities.html">
-              <strong>能力边界</strong><small>已支持、条件支持与明确限制</small>
-            </a>
-            <a href="../../docs/architecture.html">
-              <strong>架构设计</strong><small>模块、数据流与扩展契约</small>
-            </a>
-            <a href="../../docs/refactor-report.html">
-              <strong>升级报告</strong><small>工程演进过程与验证证据</small>
-            </a>
-          </div>
-        </details>
-        <details class="nav-dropdown align-right">
-          <summary>研究中心</summary>
-          <div class="nav-menu">
-            <a href="../../research/index.html">
-              <strong>研究总览</strong><small>研究资产与隐私分层入口</small>
-            </a>
-            <a href="../../research/selections/index.html">
-              <strong>候选筛选</strong><small>发现同类标的并形成短名单</small>
-            </a>
-            <a href="../../research/instruments/index.html">
-              <strong>标的档案</strong><small>按代码沉淀讨论与判断</small>
-            </a>
-            <a href="../../research/library/index.html">
-              <strong>通用经验</strong><small>复核并脱敏的跨标的方法</small>
-            </a>
-            <a href="../../research/methods/storage-backtesting.html">
-              <strong>数据与回测</strong><small>历史存储与验证纪律</small>
-            </a>
-            <a href="../../research/templates/discussion-report.html">
-              <strong>讨论模板</strong><small>统一事实、结论与失效条件</small>
-            </a>
-          </div>
-        </details>
-        <a href="index.html" aria-current="page">投资看板</a>
-      </nav>
-    </div>
-  </header>
+{build_site_header("../../", "dashboard")}
   <main class="dashboard-page">
     <div class="overview">
       <div><p class="eyebrow">Market Dashboard</p><h1>投资观察台</h1></div>
@@ -300,7 +243,8 @@ def build_dashboard(packets: list[dict[str, Any]]) -> str:
     </div>{error_html}
     <div class="instruments">{body}</div>
   </main>
-  <script src="../../docs/assets/navigation.js?v=0.7.0"></script>
+  <script
+    src="../../docs/assets/navigation.js?v={ASSET_VERSION}"></script>
 </body>
 </html>
 """

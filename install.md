@@ -14,7 +14,7 @@
 自动化有两个等级：
 
 - `base`：完全本地、确定性分析，无需大模型，适合作为可靠降级。
-- `traecli`：TraeCode CLI 非交互运行 `/instrument-daily`，执行联网研究并按通知策略推送。
+- `traecli`：TraeCode CLI 非交互运行 `/instrument-analyze`，按标准请求执行联网研究并按通知策略推送。
 
 ## 2. 系统前置条件
 
@@ -120,7 +120,7 @@ allowed_tools = ["Bash", "Read", "Write", "WebSearch"]
 运行机制：
 
 ```text
-traecli -p "/instrument-daily <代码> push"
+traecli -p "/instrument-analyze <代码> <分析请求 JSON 路径>"
 ```
 
 若设备找不到 `traecli` 且 `fallback_to_base = true`，任务会降级为确定性基础分析并继续按策略推送。Agent 自身执行失败时不会再次发送基础报告，避免重复消息。
@@ -199,7 +199,9 @@ allowed_channel_targets = ["feishu_primary"]
 
 ```text
 /quant status
-/quant analyze 515100
+/quant strategies 515100
+/quant analyze 515100 daily,moving_average
+/quant analyze all daily
 /quant base 515100
 /quant prepare 515100
 /quant dashboard
@@ -250,6 +252,8 @@ Agent 必须逐项执行：
 ./quant doctor
 ./quant prepare --symbol 515100
 ./quant history --symbol 515100
+./quant strategies --symbol 515100
+./quant backtest --strategy-record 515100-dividend-low-vol-v1
 ./quant base-report --symbol 515100
 ./quant dashboard
 ./quant site
@@ -275,9 +279,10 @@ python3 -m http.server 8765 --bind 127.0.0.1
 确认以下事实：
 
 - 测试与 Ruff 全部通过。
-- 最新数据包是 schema v3。
+- 最新数据包是 schema v4，并包含 `strategy_plan` 与 `analysis_plan`。
 - SQLite 历史库包含当前标的日线，日期范围与行情源一致。
-- `index.html` 已生成，访问 HTTP 根路径可以进入看板、候选筛选、报告和文档。
+- 控制面 SQLite 完整性为 `ok`，分析、回测和报告状态可查询。
+- `index.html` 已生成，根路径可以进入五个业务模块、看板和文档。
 - 本机配置和凭证未进入 Git。
 - `daily` 服务已运行或已安装。
 - `remote` 仅在白名单和长连接就绪时运行。
@@ -292,9 +297,9 @@ git pull --ff-only origin main
 ```
 
 不要覆盖 `config/config.toml`。安装脚本只会在文件不存在时从模板创建。
-每次重装都会同步源码和本机配置。私有仓库中的 `data/` 与
-`research/private/` 只用于补齐运行目录缺失文件，不覆盖目标设备已经产生的新
-数据库、快照、报告或私有研究。
+每次重装都会同步源码和本机配置。私有仓库中的历史行情、控制面、分析请求、
+回测、报告、看板和 `research/private/` 只用于补齐运行目录缺失文件，不覆盖
+目标设备已经产生的新数据库、快照、报告或私有研究。
 
 常驻服务产生的数据位于运行副本。由当前主写设备导出到私有仓库：
 
@@ -311,8 +316,8 @@ git push origin main
 
 SQLite 不通过 Git 自动合并，同一时刻只能有一台主写设备。其他设备可以
 `git pull` 后直接浏览仓库中的报告和看板，但不得同时导出并提交各自的
-`market.sqlite3`。主写设备交接顺序为：旧设备停止写入、导出、检查、提交并
-推送；新设备再拉取并显式用仓库数据接管运行副本：
+`market.sqlite3` 或 `research.sqlite3`。主写设备交接顺序为：旧设备停止写入、
+导出、检查、提交并推送；新设备再拉取并显式用仓库数据接管运行副本：
 
 ```bash
 git pull --ff-only origin main

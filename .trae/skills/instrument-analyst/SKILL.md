@@ -1,6 +1,6 @@
 ---
 name: "instrument-analyst"
-description: "按本地 schema v3 数据包中的策略组合、研究画像和通知计划，分析 ETF、股票或指数并生成个性化中文研究简报。"
+description: "按本地 schema v4 数据包中的生效策略、分析周期、因子计划、研究画像和通知计划，分析 ETF、股票或指数并生成个性化中文研究简报。"
 ---
 
 # 标的研究代理
@@ -20,9 +20,8 @@ description: "按本地 schema v3 数据包中的策略组合、研究画像和�
 
 ### 1. 准备数据
 
-```bash
-./quant prepare --symbol <标的代码>
-```
+优先通过 `./quant analyze` 或 `/instrument-analyze` 创建标准分析请求。仅执行
+临时基础研究时才直接运行 `./quant prepare --symbol <标的代码>`。
 
 读取：
 
@@ -33,8 +32,10 @@ data/latest/<标的代码>.prompt.txt
 
 必须检查：
 
-- `schema_version` 为 `3`。
+- `schema_version` 为 `4`；旧的 v3 数据只允许读取，不再生成。
 - `instrument.type`、`instrument.strategy_profiles` 与目标一致。
+- `strategy_plan` 与 `instrument.strategy_profiles` 一一对应，且策略状态为启用。
+- `analysis_plan.cycles` 和 `factor_ids` 与用户请求一致。
 - `as_of`、`metrics.latest_trading_date` 和行情时间戳是否新鲜。
 - `data_quality.quote_available` 是否为 `true`。
 - `assessments` 是否覆盖配置中的全部策略。
@@ -62,14 +63,23 @@ data/latest/<标的代码>.prompt.txt
 
 ### 3. 综合多个策略
 
-`assessments` 中每项都是独立策略基线：
+`strategy_plan` 是版本化策略事实，`assessments` 是本次行情下的确定性判断：
 
-1. 先复述对结论有贡献的确定性证据。
-2. 再结合联网事实判断是否支持该策略基线。
-3. 多策略结论冲突时保留冲突，解释适用周期和条件。
-4. 不将多个评分简单平均成新的伪精确分数。
+1. 先说明当前启用的策略名称、版本、期限和适用标的。
+2. 再复述对结论有贡献的确定性证据。
+3. 结合联网事实判断是否支持当前策略论点。
+4. 多策略结论冲突时保留冲突，解释适用周期和条件。
+5. 不将多个评分简单平均成新的伪精确分数。
 
-### 4. 形成报告
+### 4. 按分析计划组织因子
+
+- `analysis_plan.cycles` 决定日、月、年或均线维度。
+- `analysis_plan.factor_ids` 决定本次需要消费的因子。
+- `available` 确定性因子直接使用数据包，不重复手算。
+- `reserved` 外部因子只有获得带日期和来源的证据时才可写入；否则明确缺口。
+- 因子只提供证据，不绕过 `strategy_plan` 直接生成买卖结论。
+
+### 5. 形成报告
 
 除 `research_plan.sections` 外，报告还必须包含：
 
@@ -82,7 +92,7 @@ data/latest/<标的代码>.prompt.txt
 
 报告使用自然中文，结论优先，避免堆砌无关指标。
 
-### 5. 保存与通知
+### 6. 保存与通知
 
 完整报告保存到：
 
@@ -99,3 +109,5 @@ data/reports/YYYY-MM-DD/<标的代码>-research.md
 ```
 
 CLI 会按 `notification_plan` 校验事件并路由通道。策略禁用、事件未订阅或通道失败时保留报告，并返回原始错误；不要绕过配置改用其他发送方式。
+
+保存后运行 `./quant site`，确认报告已进入网页报告中心。

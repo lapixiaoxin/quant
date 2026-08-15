@@ -10,5 +10,8 @@ config/config.toml
 data/history/*.sqlite3-shm
 data/history/*.sqlite3-wal
 data/history/*.sqlite3-journal
+data/**/*.sqlite3-shm
+data/**/*.sqlite3-wal
+data/**/*.sqlite3-journal
 logs/*
 !logs/.gitkeep

@@ -245,6 +245,7 @@ exchange = "SH"
 
             _, packet = service.prepare(universe)
 
+            self.assertEqual(packet["selection_schema_version"], 2)
             self.assertEqual(history.saved, ["515100"])
             self.assertEqual(packet["summary"]["candidate_count"], 2)
             self.assertEqual(packet["summary"]["data_error"], 1)

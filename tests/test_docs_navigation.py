@@ -7,43 +7,28 @@ from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 PAGES = sorted(
-    [
+    {
         ROOT / "index.html",
         *ROOT.joinpath("docs").glob("*.html"),
-        ROOT / "research" / "index.html",
-        ROOT / "research" / "instruments" / "index.html",
-        ROOT / "research" / "library" / "index.html",
-        ROOT / "research" / "library" / "instrument-selection-open-source-review.html",
-        ROOT / "research" / "methods" / "storage-backtesting.html",
-        ROOT / "research" / "selections" / "index.html",
-        ROOT
-        / "research"
-        / "selections"
-        / "dividend-low-vol-100-etf"
-        / "2026-08-15-selection.html",
-        ROOT / "research" / "templates" / "discussion-report.html",
-        ROOT / "data" / "dashboard" / "index.html",
-        ROOT
-        / "data"
-        / "selections"
-        / "latest"
-        / "dividend-low-vol-100-etf.html",
-    ]
+        *ROOT.joinpath("research").rglob("*.html"),
+        *ROOT.joinpath("data", "dashboard").rglob("*.html"),
+        *ROOT.joinpath("data", "selections").rglob("*.html"),
+        *ROOT.joinpath("data", "backtests").rglob("*.html"),
+    }
 )
 EXPECTED_DESTINATIONS = {
     ROOT / "index.html",
-    ROOT / "docs" / "index.html",
-    ROOT / "docs" / "install.html",
-    ROOT / "docs" / "operations.html",
-    ROOT / "docs" / "capabilities.html",
-    ROOT / "docs" / "architecture.html",
-    ROOT / "docs" / "refactor-report.html",
-    ROOT / "research" / "index.html",
     ROOT / "research" / "selections" / "index.html",
+    ROOT / "research" / "strategies" / "index.html",
+    ROOT / "research" / "analysis" / "index.html",
+    ROOT / "research" / "reports" / "index.html",
+    ROOT / "research" / "index.html",
     ROOT / "research" / "instruments" / "index.html",
     ROOT / "research" / "library" / "index.html",
-    ROOT / "research" / "methods" / "storage-backtesting.html",
-    ROOT / "research" / "templates" / "discussion-report.html",
+    ROOT / "research" / "channels" / "index.html",
+    ROOT / "docs" / "index.html",
+    ROOT / "docs" / "capabilities.html",
+    ROOT / "docs" / "architecture.html",
     ROOT / "data" / "dashboard" / "index.html",
 }
 
@@ -114,7 +99,7 @@ class NavigationParser(HTMLParser):
 
 class DocumentationNavigationTest(unittest.TestCase):
     def test_all_pages_share_one_predictable_global_navigation(self) -> None:
-        self.assertEqual(len(PAGES), 17)
+        self.assertGreaterEqual(len(PAGES), 20)
         for page in PAGES:
             with self.subTest(page=page.relative_to(ROOT)):
                 parser = NavigationParser()
@@ -128,23 +113,10 @@ class DocumentationNavigationTest(unittest.TestCase):
                 self.assertEqual(parser.navigation_count, 1)
                 self.assertEqual(
                     parser.summaries,
-                    ["使用指南", "系统设计", "研究中心"],
+                    ["研究流程", "资产与渠道", "系统"],
                 )
                 self.assertEqual(destinations, EXPECTED_DESTINATIONS)
-                report_pages = {
-                    ROOT
-                    / "research"
-                    / "selections"
-                    / "dividend-low-vol-100-etf"
-                    / "2026-08-15-selection.html",
-                    ROOT
-                    / "data"
-                    / "selections"
-                    / "latest"
-                    / "dividend-low-vol-100-etf.html",
-                }
-                expected_links = 0 if page in report_pages else 1
-                self.assertEqual(parser.current_links, expected_links)
+                self.assertEqual(parser.current_links, 1)
                 ungrouped_pages = {
                     ROOT / "index.html",
                     ROOT / "data" / "dashboard" / "index.html",
@@ -152,9 +124,16 @@ class DocumentationNavigationTest(unittest.TestCase):
                 expected_groups = 0 if page in ungrouped_pages else 1
                 self.assertEqual(parser.current_groups, expected_groups)
                 self.assertEqual(len(parser.stylesheets), 1)
-                self.assertIn("docs.css?v=0.7.0", parser.stylesheets[0])
-                self.assertEqual(len(parser.scripts), 1)
-                self.assertIn("navigation.js?v=0.7.0", parser.scripts[0])
+                self.assertIn("docs.css?v=0.8.0", parser.stylesheets[0])
+                navigation_scripts = [
+                    item for item in parser.scripts
+                    if "navigation.js" in item
+                ]
+                self.assertEqual(len(navigation_scripts), 1)
+                self.assertIn(
+                    "navigation.js?v=0.8.0",
+                    navigation_scripts[0],
+                )
 
     def test_all_local_page_links_resolve(self) -> None:
         for page in PAGES:

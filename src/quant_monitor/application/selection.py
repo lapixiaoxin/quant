@@ -83,7 +83,7 @@ class SelectionService:
             for status in ("eligible", "needs_research", "excluded", "data_error")
         }
         packet: dict[str, Any] = {
-            "selection_schema_version": 1,
+            "selection_schema_version": 2,
             "as_of": now.isoformat(),
             "universe": universe.to_packet(),
             "candidates": [item.to_packet() for item in ranked],

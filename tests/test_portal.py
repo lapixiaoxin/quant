@@ -74,7 +74,10 @@ class PortalTest(unittest.TestCase):
             self.assertIn('href="research/selections/index.html"', content)
             self.assertIn('href="research/index.html"', content)
             self.assertIn('href="docs/index.html"', content)
-            self.assertIn('aria-current="page">工作台</a>', content)
+            self.assertIn(
+                'href="index.html" aria-current="page"',
+                content,
+            )
 
 
 if __name__ == "__main__":

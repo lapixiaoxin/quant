@@ -11,6 +11,7 @@ try:
 except ModuleNotFoundError:  # pragma: no cover - Python 3.9
     import tomli as tomllib
 
+from ..domain.control_plane import InvestmentHorizon
 from ..domain.models import InstrumentType
 from ..domain.selection import (
     CandidateMetadata,
@@ -50,9 +51,9 @@ def load_selection_universe(path: Path) -> SelectionUniverse:
     with path.open("rb") as handle:
         raw = tomllib.load(handle)
     schema_version = int(raw.get("schema_version", 0))
-    if schema_version != 1:
+    if schema_version not in {1, 2}:
         raise ValueError(
-            f"候选池 schema_version 必须为 1，实际为 {schema_version}"
+            f"候选池 schema_version 必须为 1 或 2，实际为 {schema_version}"
         )
     instrument_type = InstrumentType.parse(str(raw.get("instrument_type", "")))
     rule_values = raw.get("rules", {})
@@ -135,4 +136,9 @@ def load_selection_universe(path: Path) -> SelectionUniverse:
         shortlist_size=int(raw.get("shortlist_size", 3)),
         rules=rules,
         candidates=tuple(candidates),
+        horizon=InvestmentHorizon.parse(
+            str(raw.get("horizon", "long"))
+        ),
+        theme=str(raw.get("theme", "general")).strip(),
+        created_at=_optional_date(raw, "created_at"),
     )

@@ -4,45 +4,72 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>运行运维 · Quant Monitor</title>
-  <link rel="stylesheet" href="assets/docs.css?v=0.7.0">
+  <link rel="stylesheet" href="assets/docs.css?v=0.8.0">
 </head>
 <body>
   <header class="site-header">
     <div class="header-inner">
       <a class="brand" href="../index.html">Quant Monitor</a>
       <nav class="site-nav" aria-label="全局导航">
-        <a href="../index.html">工作台</a>
-        <details class="nav-dropdown is-current">
-          <summary aria-current="true">使用指南</summary>
+        <a href="../index.html">
+          工作台
+        </a>
+        <details class="nav-dropdown">
+          <summary>研究流程</summary>
           <div class="nav-menu">
-            <a href="index.html"><strong>文档总览</strong><small>能力、入口与阅读路径</small></a>
-            <a href="install.html"><strong>安装部署</strong><small>新设备、凭证与常驻服务</small></a>
-            <a href="operations.html" aria-current="page"><strong>运行运维</strong><small>命令、日志与故障处理</small></a>
+            <a href="../research/selections/index.html">
+              <strong>标的选择</strong><small>候选池、筛选历史与短名单</small>
+            </a>
+            <a href="../research/strategies/index.html">
+              <strong>策略与回测</strong><small>版本、状态、配置与验证</small>
+            </a>
+            <a href="../research/analysis/index.html">
+              <strong>分析作业</strong><small>触发、周期、因子与运行状态</small>
+            </a>
+            <a href="../research/reports/index.html">
+              <strong>报告中心</strong><small>分类、时间和发布状态</small>
+            </a>
           </div>
         </details>
         <details class="nav-dropdown">
-          <summary>系统设计</summary>
+          <summary>资产与渠道</summary>
           <div class="nav-menu">
-            <a href="capabilities.html"><strong>能力边界</strong><small>已支持、条件支持与明确限制</small></a>
-            <a href="architecture.html"><strong>架构设计</strong><small>模块、数据流与扩展契约</small></a>
-            <a href="refactor-report.html"><strong>升级报告</strong><small>工程演进过程与验证证据</small></a>
+            <a href="../research/index.html">
+              <strong>研究中心</strong><small>标的档案、经验与方法入口</small>
+            </a>
+            <a href="../research/instruments/index.html">
+              <strong>标的档案</strong><small>按代码沉淀讨论和判断</small>
+            </a>
+            <a href="../research/library/index.html">
+              <strong>研究经验</strong><small>复核并脱敏的方法</small>
+            </a>
+            <a href="../research/channels/index.html">
+              <strong>渠道与通知</strong><small>策略、事件和发送通道</small>
+            </a>
           </div>
         </details>
-        <details class="nav-dropdown align-right">
-          <summary>研究中心</summary>
+        <details class="nav-dropdown align-right is-current">
+          <summary aria-current="true">系统</summary>
           <div class="nav-menu">
-            <a href="../research/index.html"><strong>研究总览</strong><small>研究资产与隐私分层入口</small></a>
-            <a href="../research/selections/index.html"><strong>候选筛选</strong><small>发现同类标的并形成短名单</small></a>
-            <a href="../research/instruments/index.html"><strong>标的档案</strong><small>按代码沉淀讨论与判断</small></a>
-            <a href="../research/library/index.html"><strong>通用经验</strong><small>复核并脱敏的跨标的方法</small></a>
-            <a href="../research/methods/storage-backtesting.html"><strong>数据与回测</strong><small>历史存储与验证纪律</small></a>
-            <a href="../research/templates/discussion-report.html"><strong>讨论模板</strong><small>统一事实、结论与失效条件</small></a>
+            <a href="../docs/index.html" aria-current="page">
+              <strong>文档中心</strong><small>能力、部署和运维入口</small>
+            </a>
+            <a href="../docs/capabilities.html">
+              <strong>能力边界</strong><small>当前支持和明确限制</small>
+            </a>
+            <a href="../docs/architecture.html">
+              <strong>架构设计</strong><small>数据流、契约和扩展方式</small>
+            </a>
           </div>
         </details>
-        <a href="../data/dashboard/index.html">投资看板</a>
+        <a href="../data/dashboard/index.html">
+          投资看板
+        </a>
       </nav>
     </div>
   </header>
+
+
 
   <main class="page">
     <section class="hero">
@@ -73,13 +100,16 @@
         <article class="command"><code>./quant doctor</code><p>检查配置引用、策略、Skill 和外部 CLI。</p></article>
         <article class="command"><code>./quant instruments</code><p>列出标的、策略画像、研究画像和通知策略。</p></article>
         <article class="command"><code>./quant history --all</code><p>查看 SQLite 日线条数、日期范围和最近来源。</p></article>
+        <article class="command"><code>./quant strategies --symbol 515100</code><p>查看策略版本、生命周期和验证状态。</p></article>
         <article class="command"><code>./quant select --universe ...</code><p>对版本化候选池执行硬门槛和市场指标初筛。</p></article>
-        <article class="command"><code>./quant prepare --symbol 515100</code><p>采集并生成 schema v3 数据包。</p></article>
+        <article class="command"><code>./quant backtest --strategy-record ...</code><p>使用本地历史回测冻结策略版本。</p></article>
+        <article class="command"><code>./quant analyze --symbol 515100 --no-send</code><p>运行标准周期与因子分析作业。</p></article>
+        <article class="command"><code>./quant prepare --symbol 515100</code><p>增量采集并生成 schema v4 数据包。</p></article>
         <article class="command"><code>./quant daily --symbol 515100</code><p>生成确定性基础报告，不默认发送。</p></article>
         <article class="command"><code>./quant automate --all</code><p>按 automation 配置运行 Agent 或基础降级。</p></article>
         <article class="command"><code>./quant automate --all --no-send</code><p>不发送消息的完整链路验收。</p></article>
         <article class="command"><code>./quant dashboard</code><p>刷新投资看板和根路径工作台。</p></article>
-        <article class="command"><code>./quant site</code><p>重新扫描可阅读资产并刷新统一入口。</p></article>
+        <article class="command"><code>./quant site</code><p>刷新五模块页面、内容目录和全局导航。</p></article>
         <article class="command"><code>./quant listen --check</code><p>检查远程白名单配置和 lark-cli。</p></article>
         <article class="command"><code>./scripts/sync_runtime_data.sh</code><p>暂停服务并把主写运行副本导出到私有仓库。</p></article>
       </div>
@@ -109,7 +139,9 @@
       </div>
       <div class="command-list">
         <article class="command"><code>/quant status</code><p>查看标的和自动化模式。</p></article>
-        <article class="command"><code>/quant analyze 515100</code><p>执行配置模式，要求发送报告。</p></article>
+        <article class="command"><code>/quant strategies 515100</code><p>查看当前启用策略与验证状态。</p></article>
+        <article class="command"><code>/quant analyze 515100 daily,moving_average</code><p>执行标准分析并发送报告。</p></article>
+        <article class="command"><code>/quant analyze all daily</code><p>分析全部启用标的。</p></article>
         <article class="command"><code>/quant base 515100</code><p>强制基础分析并发送。</p></article>
         <article class="command"><code>/quant prepare 515100</code><p>只刷新数据包。</p></article>
         <article class="command"><code>/quant dashboard</code><p>重新生成看板和根路径工作台。</p></article>
@@ -159,6 +191,6 @@
       <span><a href="install.html">返回部署说明</a></span>
     </div>
   </footer>
-  <script src="assets/navigation.js?v=0.7.0"></script>
+  <script src="assets/navigation.js?v=0.8.0"></script>
 </body>
 </html>

@@ -11,6 +11,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
+from .site_navigation import ASSET_VERSION, build_site_header
+
 try:
     import tomllib
 except ModuleNotFoundError:  # pragma: no cover - Python 3.9
@@ -20,6 +22,7 @@ _DATE_PATTERN = re.compile(r"20\d{2}-\d{2}-\d{2}")
 _CATEGORY_ORDER = (
     "选择报告",
     "候选初筛",
+    "回测报告",
     "标的研究",
     "候选定义",
     "方法与经验",
@@ -92,6 +95,8 @@ def _category_for(relative: Path) -> str | None:
             return None
         if parts[:3] == ("data", "selections", "latest"):
             return "候选初筛"
+        if parts[:2] == ("data", "backtests"):
+            return "回测报告"
         if parts[:2] == ("research", "selections") and relative.name != "index.html":
             return "选择报告"
         if parts[:2] == ("research", "private"):
@@ -137,6 +142,7 @@ def discover_portal_entries(root: Path) -> tuple[PortalEntry, ...]:
         *root.joinpath("research").rglob("*.html"),
         *root.joinpath("research", "universes").glob("*.toml"),
         *root.joinpath("data", "reports").rglob("*.md"),
+        *root.joinpath("data", "backtests").rglob("*.html"),
         *root.joinpath("data", "selections", "latest").glob("*.html"),
     ]
     entries = [
@@ -162,7 +168,9 @@ def discover_portal_entries(root: Path) -> tuple[PortalEntry, ...]:
 
 def _resource_row(entry: PortalEntry) -> str:
     return f"""
-        <a class="resource-row" href="{escape(entry.href, quote=True)}">
+        <a class="resource-row" href="{escape(entry.href, quote=True)}"
+          data-catalog-row data-category="{escape(entry.category)}"
+          data-date="{escape(entry.published)}">
           <span class="resource-main">
             <small>{escape(entry.category)}</small>
             <strong>{escape(entry.title)}</strong>
@@ -218,7 +226,12 @@ def build_portal(
     reports = [
         item
         for item in entries
-        if item.category in {"选择报告", "候选初筛", "标的研究"}
+        if item.category in {
+            "选择报告",
+            "候选初筛",
+            "回测报告",
+            "标的研究",
+        }
     ]
     recent = sorted(
         reports,
@@ -228,6 +241,7 @@ def build_portal(
             {
                 "候选初筛": 3,
                 "选择报告": 2,
+                "回测报告": 2,
                 "标的研究": 1,
             }[item.category],
             item.title,
@@ -243,69 +257,10 @@ def build_portal(
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>研究工作台 · Quant Monitor</title>
-  <link rel="stylesheet" href="docs/assets/docs.css?v=0.7.0">
+  <link rel="stylesheet" href="docs/assets/docs.css?v={ASSET_VERSION}">
 </head>
 <body>
-  <header class="site-header">
-    <div class="header-inner">
-      <a class="brand" href="index.html">Quant Monitor</a>
-      <nav class="site-nav" aria-label="全局导航">
-        <a href="index.html" aria-current="page">工作台</a>
-        <details class="nav-dropdown">
-          <summary>使用指南</summary>
-          <div class="nav-menu">
-            <a href="docs/index.html">
-              <strong>文档总览</strong><small>能力、入口与阅读路径</small>
-            </a>
-            <a href="docs/install.html">
-              <strong>安装部署</strong><small>新设备、凭证与常驻服务</small>
-            </a>
-            <a href="docs/operations.html">
-              <strong>运行运维</strong><small>命令、日志与故障处理</small>
-            </a>
-          </div>
-        </details>
-        <details class="nav-dropdown">
-          <summary>系统设计</summary>
-          <div class="nav-menu">
-            <a href="docs/capabilities.html">
-              <strong>能力边界</strong><small>已支持、条件支持与明确限制</small>
-            </a>
-            <a href="docs/architecture.html">
-              <strong>架构设计</strong><small>模块、数据流与扩展契约</small>
-            </a>
-            <a href="docs/refactor-report.html">
-              <strong>升级报告</strong><small>工程演进过程与验证证据</small>
-            </a>
-          </div>
-        </details>
-        <details class="nav-dropdown align-right">
-          <summary>研究中心</summary>
-          <div class="nav-menu">
-            <a href="research/index.html">
-              <strong>研究总览</strong><small>研究资产与隐私分层入口</small>
-            </a>
-            <a href="research/selections/index.html">
-              <strong>候选筛选</strong><small>发现同类标的并形成短名单</small>
-            </a>
-            <a href="research/instruments/index.html">
-              <strong>标的档案</strong><small>按代码沉淀讨论与判断</small>
-            </a>
-            <a href="research/library/index.html">
-              <strong>通用经验</strong><small>复核并脱敏的跨标的方法</small>
-            </a>
-            <a href="research/methods/storage-backtesting.html">
-              <strong>数据与回测</strong><small>历史存储与验证纪律</small>
-            </a>
-            <a href="research/templates/discussion-report.html">
-              <strong>讨论模板</strong><small>统一事实、结论与失效条件</small>
-            </a>
-          </div>
-        </details>
-        <a href="data/dashboard/index.html">投资看板</a>
-      </nav>
-    </div>
-  </header>
+{build_site_header("", "workspace")}
 
   <main class="page workspace-page">
     <section class="workspace-intro">
@@ -313,8 +268,8 @@ def build_portal(
         <p class="eyebrow">Research Workspace</p>
         <h1>研究工作台</h1>
         <p>
-          从这里进入投资看板、候选筛选、研究报告和系统文档。
-          新增可阅读资产会在刷新工作台后自动进入下方目录。
+          从标的选择开始，经过策略与回测、分析作业、报告生成和渠道发布。
+          每个模块读取同一份配置或控制面数据。
         </p>
       </div>
       <dl class="workspace-summary">
@@ -332,18 +287,24 @@ def build_portal(
           <p class="section-intro">稳定入口不会随报告数量增长而改变。</p>
         </div>
       </div>
-      <div class="workspace-actions">
-        <a href="data/dashboard/index.html">
-          <strong>投资看板</strong><span>查看最新标的、指标与策略状态</span>
-        </a>
+      <div class="workspace-actions platform-actions">
         <a href="research/selections/index.html">
-          <strong>候选筛选</strong><span>从同类产品进入初筛和深度报告</span>
+          <strong>1. 标的选择</strong><span>短期/长期候选与筛选历史</span>
         </a>
-        <a href="research/index.html">
-          <strong>研究中心</strong><span>浏览标的档案、方法与讨论沉淀</span>
+        <a href="research/strategies/index.html">
+          <strong>2. 策略与回测</strong><span>版本、启停、参数一致性和验证</span>
         </a>
-        <a href="docs/index.html">
-          <strong>文档中心</strong><span>查看能力、部署、运维和架构</span>
+        <a href="research/analysis/index.html">
+          <strong>3. 分析作业</strong><span>标的范围、周期、因子和触发入口</span>
+        </a>
+        <a href="research/reports/index.html">
+          <strong>4. 报告中心</strong><span>策略化报告与历史归档</span>
+        </a>
+        <a href="research/channels/index.html">
+          <strong>5. 渠道与通知</strong><span>网页、飞书和发布状态</span>
+        </a>
+        <a href="data/dashboard/index.html">
+          <strong>投资看板</strong><span>当前标的趋势与策略判断</span>
         </a>
       </div>
     </section>
@@ -372,7 +333,28 @@ def build_portal(
         </div>
       </div>
       <div class="resource-groups">
+        <form class="catalog-filters" data-catalog-filters="portal-assets">
+          <label class="catalog-search">
+            <span>搜索全部内容</span>
+            <input type="search" data-field="text"
+              placeholder="标的、报告、模块或路径">
+          </label>
+          <label>
+            <span>分类</span>
+            <select data-field="category">
+              <option value="">全部</option>
+              {"".join(
+                  f'<option value="{escape(item)}">{escape(item)}</option>'
+                  for item in _CATEGORY_ORDER
+              )}
+            </select>
+          </label>
+          <button type="reset">重置</button>
+          <output data-catalog-count="portal-assets"></output>
+        </form>
+        <div data-catalog="portal-assets">
 {catalog}
+        </div>
       </div>
     </section>
   </main>
@@ -383,7 +365,8 @@ def build_portal(
       <span>研究材料不构成投资建议或自动交易指令。</span>
     </div>
   </footer>
-  <script src="docs/assets/navigation.js?v=0.7.0"></script>
+  <script src="docs/assets/navigation.js?v={ASSET_VERSION}"></script>
+  <script src="docs/assets/catalog.js?v={ASSET_VERSION}"></script>
 </body>
 </html>
 """

@@ -38,13 +38,25 @@ class TraeCliResearchRunner:
     def is_available(self) -> bool:
         return self._executable() is not None
 
-    def run(self, symbol: str, *, send: bool) -> Path:
+    def run(
+        self,
+        symbol: str,
+        *,
+        send: bool,
+        analysis_request_path: Path | None = None,
+    ) -> Path:
         executable = self._executable()
         if not executable:
             raise RuntimeError("未找到 TraeCode CLI")
         reports_dir = self._root / "data" / "reports"
         started_at = time.time()
-        command = f"/instrument-daily {symbol}"
+        if analysis_request_path is not None:
+            request_path = analysis_request_path.resolve().relative_to(
+                self._root
+            )
+            command = f"/instrument-analyze {symbol} {request_path}"
+        else:
+            command = f"/instrument-daily {symbol}"
         if send:
             command += " push"
         subprocess.run(

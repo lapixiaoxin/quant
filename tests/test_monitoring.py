@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import sqlite3
 import tempfile
 import unittest
 from datetime import date, datetime, timedelta, timezone
@@ -18,61 +19,7 @@ from quant_monitor.domain.strategies import StrategyRegistry
 from quant_monitor.infrastructure.history import SQLiteMarketHistoryRepository
 from quant_monitor.infrastructure.storage import FileResearchRepository
 
-
-class FakeMarketData:
-    def __init__(self, bundle: MarketBundle) -> None:
-        self.bundle = bundle
-        self.calls: list[tuple[str, int]] = []
-
-    def fetch(self, instrument: Instrument, limit: int) -> MarketBundle:
-        self.calls.append((instrument.symbol, limit))
-        return self.bundle
-
-
-def market_bundle() -> MarketBundle:
-    last_day = date(2026, 8, 15)
-    bars = tuple(
-        DailyBar(
-            trading_date=last_day - timedelta(days=29 - index),
-            open=1 + index * 0.01,
-            close=1 + index * 0.01,
-            high=1.01 + index * 0.01,
-            low=0.99 + index * 0.01,
-            volume=1_000_000,
-            amount=0 if index == 29 else 10_000_000,
-            amplitude_pct=2.0,
-            change_pct=0.5,
-            turnover_pct=1.0,
-        )
-        for index in range(30)
-    )
-    quote = MarketQuote(
-        symbol="515100",
-        name="测试 ETF",
-        price=1.29,
-        high=1.30,
-        low=1.28,
-        open=1.285,
-        previous_close=1.28,
-        volume=2_000_000,
-        amount=23_000_000,
-        total_market_value=1_000_000_000,
-        circulating_market_value=1_000_000_000,
-        change_pct=0.01,
-        amplitude_pct=0.02,
-        price_precision=3,
-        quote_time="2026-08-15 14:00:00",
-    )
-    return MarketBundle(quote=quote, bars=bars, source="测试行情源")
-
-
-class MonitoringTest(unittest.TestCase):
-    def test_prepares_schema_v3_and_persists_atomically(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            config_path = root / "config.toml"
-            config_path.write_text(
-                """
+CONFIG = """
 [app]
 data_dir = "data"
 log_dir = "logs"
@@ -106,9 +53,76 @@ name = "测试 ETF"
 type = "etf"
 research_focus = ["标的个性关注"]
 research_instructions = ["标的个性指令"]
-""",
-                encoding="utf-8",
-            )
+"""
+
+
+class FakeMarketData:
+    def __init__(self, bundle: MarketBundle) -> None:
+        self.bundle = bundle
+        self.calls: list[tuple[str, int]] = []
+
+    def fetch(self, instrument: Instrument, limit: int) -> MarketBundle:
+        self.calls.append((instrument.symbol, limit))
+        return self.bundle
+
+
+class WindowedMarketData:
+    def __init__(self, bundle: MarketBundle) -> None:
+        self.bundle = bundle
+        self.calls: list[tuple[str, int]] = []
+
+    def fetch(self, instrument: Instrument, limit: int) -> MarketBundle:
+        self.calls.append((instrument.symbol, limit))
+        return MarketBundle(
+            quote=self.bundle.quote,
+            bars=self.bundle.bars[-limit:],
+            source=self.bundle.source,
+        )
+
+
+def market_bundle(count: int = 30) -> MarketBundle:
+    last_day = date(2026, 8, 15)
+    bars = tuple(
+        DailyBar(
+            trading_date=last_day - timedelta(days=count - 1 - index),
+            open=1 + index * 0.01,
+            close=1 + index * 0.01,
+            high=1.01 + index * 0.01,
+            low=0.99 + index * 0.01,
+            volume=1_000_000,
+            amount=0 if index == count - 1 else 10_000_000,
+            amplitude_pct=2.0,
+            change_pct=0.5,
+            turnover_pct=1.0,
+        )
+        for index in range(count)
+    )
+    quote = MarketQuote(
+        symbol="515100",
+        name="测试 ETF",
+        price=bars[-1].close,
+        high=bars[-1].high,
+        low=bars[-1].low,
+        open=bars[-1].open,
+        previous_close=bars[-2].close,
+        volume=2_000_000,
+        amount=23_000_000,
+        total_market_value=1_000_000_000,
+        circulating_market_value=1_000_000_000,
+        change_pct=0.01,
+        amplitude_pct=0.02,
+        price_precision=3,
+        quote_time="2026-08-15 14:00:00",
+    )
+    return MarketBundle(quote=quote, bars=bars, source="测试行情源")
+
+
+class MonitoringTest(unittest.TestCase):
+    def test_prepares_schema_v4_and_persists_atomically(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            config_path = root / "config.toml"
+            config_path.write_text(CONFIG, encoding="utf-8")
             settings = load_settings(root, config_path)
             provider = FakeMarketData(market_bundle())
             repository = FileResearchRepository(settings.data_dir)
@@ -135,7 +149,16 @@ research_instructions = ["标的个性指令"]
             persisted = json.loads(latest_path.read_text(encoding="utf-8"))
 
             self.assertEqual(provider.calls, [("515100", 300)])
-            self.assertEqual(packet["schema_version"], 3)
+            self.assertEqual(packet["schema_version"], 4)
+            self.assertEqual(
+                packet["strategy_plan"][0]["profile_id"],
+                "dividend_default",
+            )
+            self.assertEqual(
+                packet["analysis_plan"]["cycles"],
+                ["daily", "moving_average"],
+            )
+            self.assertEqual(packet["data_quality"]["sync_mode"], "full")
             self.assertEqual(packet["instrument"]["type"], "etf")
             self.assertEqual(
                 packet["instrument"]["strategy_profiles"],
@@ -170,6 +193,79 @@ research_instructions = ["标的个性指令"]
             self.assertTrue(
                 (root / "data" / "latest" / "515100.prompt.txt").exists()
             )
+
+    def test_uses_incremental_overlap_and_repairs_recent_gap(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            config_path = root / "config.toml"
+            config_path.write_text(CONFIG, encoding="utf-8")
+            settings = load_settings(root, config_path)
+            source_bundle = market_bundle(301)
+            provider = WindowedMarketData(source_bundle)
+            repository = FileResearchRepository(settings.data_dir)
+            history_repository = SQLiteMarketHistoryRepository(
+                settings.data_dir / "history" / "market.sqlite3"
+            )
+            now = datetime(
+                2026,
+                8,
+                15,
+                14,
+                0,
+                tzinfo=timezone(timedelta(hours=8)),
+            )
+            service = MonitoringService(
+                settings=settings,
+                market_data=provider,
+                history_repository=history_repository,
+                repository=repository,
+                strategies=StrategyRegistry.default(),
+                clock=lambda: now,
+            )
+
+            _, first_packet = service.prepare("515100")
+            missing_date = source_bundle.bars[-10].trading_date
+            with sqlite3.connect(history_repository.database_path) as connection:
+                connection.execute(
+                    """
+                    DELETE FROM daily_bars
+                    WHERE symbol = ? AND trading_date = ?
+                    """,
+                    ("515100", missing_date.isoformat()),
+                )
+            history_repository.save_bundle(
+                settings.instrument_for("515100"),
+                MarketBundle(
+                    quote=source_bundle.quote,
+                    bars=(source_bundle.bars[0],),
+                    source=source_bundle.source,
+                ),
+                now,
+            )
+
+            _, second_packet = service.prepare("515100")
+            stored_dates = {
+                item.trading_date
+                for item in history_repository.load_bars(
+                    "515100",
+                    limit=300,
+                )
+            }
+
+            self.assertEqual(first_packet["data_quality"]["sync_mode"], "full")
+            self.assertEqual(
+                provider.calls,
+                [("515100", 300), ("515100", 40)],
+            )
+            self.assertEqual(
+                second_packet["data_quality"]["sync_mode"],
+                "incremental",
+            )
+            self.assertEqual(
+                second_packet["data_quality"]["repaired_history_dates"],
+                [missing_date.isoformat()],
+            )
+            self.assertIn(missing_date, stored_dates)
 
 
 if __name__ == "__main__":

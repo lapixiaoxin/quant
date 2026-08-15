@@ -23,6 +23,9 @@ class SelectionArtifactTest(unittest.TestCase):
         universe = load_selection_universe(UNIVERSE_PATH)
         report = REPORT_PATH.read_text(encoding="utf-8")
 
+        self.assertEqual(universe.horizon.value, "long")
+        self.assertEqual(universe.theme, "dividend-low-vol")
+        self.assertEqual(universe.created_at.isoformat(), "2026-08-15")
         self.assertIn("显性持续费率", report)
         self.assertNotIn("年综合费率", report)
         self.assertNotIn("低费率产品可能在复制精度上做了取舍", report)

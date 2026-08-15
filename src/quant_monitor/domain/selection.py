@@ -7,6 +7,7 @@ from dataclasses import dataclass, replace
 from datetime import date
 from typing import Any
 
+from .control_plane import InvestmentHorizon
 from .metrics import calculate_metrics
 from .models import InstrumentType, MarketBundle
 
@@ -165,6 +166,9 @@ class SelectionUniverse:
     shortlist_size: int
     rules: SelectionRules
     candidates: tuple[SelectionCandidate, ...]
+    horizon: InvestmentHorizon = InvestmentHorizon.LONG
+    theme: str = "general"
+    created_at: date | None = None
 
     def __post_init__(self) -> None:
         if not self.universe_id or not self.name or not self.objective:
@@ -175,6 +179,8 @@ class SelectionUniverse:
             raise ValueError("候选池短名单数量必须大于 0")
         if len(self.candidates) < 2:
             raise ValueError("候选池至少需要两个标的")
+        if not self.theme.strip():
+            raise ValueError("候选池主题不能为空")
         symbols = [item.symbol for item in self.candidates]
         if len(symbols) != len(set(symbols)):
             raise ValueError("候选池不能包含重复标的代码")
@@ -192,6 +198,11 @@ class SelectionUniverse:
             "instrument_type": self.instrument_type.value,
             "history_days": self.history_days,
             "shortlist_size": self.shortlist_size,
+            "horizon": self.horizon.value,
+            "theme": self.theme,
+            "created_at": (
+                self.created_at.isoformat() if self.created_at else None
+            ),
             "rules": self.rules.to_packet(),
         }
 

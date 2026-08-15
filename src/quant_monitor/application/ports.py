@@ -6,6 +6,12 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Protocol
 
+from ..domain.control_plane import (
+    AnalysisRequest,
+    BacktestRunRecord,
+    ReportRecord,
+    SelectionRunRecord,
+)
 from ..domain.models import DailyBar, HistorySummary, Instrument, MarketBundle
 
 
@@ -68,6 +74,44 @@ class ResearchRepository(Protocol):
     ) -> Path:
         """保存候选池最新结果和带时间戳的不可变快照。"""
 
+    def save_analysis_request(
+        self,
+        request_id: str,
+        packet: dict[str, Any],
+    ) -> Path:
+        """保存分析请求文件，供 CLI 和外部 Agent 共享。"""
+
+
+class ControlPlaneRepository(Protocol):
+    """选择、分析、回测、报告和发布状态的统一运行索引。"""
+
+    def save_analysis_request(
+        self,
+        request: AnalysisRequest,
+        *,
+        status: str = "pending",
+    ) -> None:
+        """登记分析请求。"""
+
+    def complete_analysis(
+        self,
+        request_id: str,
+        *,
+        completed_at: datetime,
+        status: str,
+        error: str = "",
+    ) -> None:
+        """完成或失败一个分析请求。"""
+
+    def save_report(self, record: ReportRecord) -> None:
+        """登记报告及发布状态。"""
+
+    def save_selection(self, record: SelectionRunRecord) -> None:
+        """登记候选筛选运行。"""
+
+    def save_backtest(self, record: BacktestRunRecord) -> None:
+        """登记回测运行。"""
+
 
 class NotificationChannel(Protocol):
     """报告发送通道。"""
@@ -84,5 +128,11 @@ class ResearchAgentRunner(Protocol):
     def is_available(self) -> bool:
         """目标设备是否已具备运行条件。"""
 
-    def run(self, symbol: str, *, send: bool) -> Path:
+    def run(
+        self,
+        symbol: str,
+        *,
+        send: bool,
+        analysis_request_path: Path | None = None,
+    ) -> Path:
         """运行一个标的的完整研究命令并返回报告路径。"""
