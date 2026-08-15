@@ -12,7 +12,7 @@ _HEADER_PATTERN = re.compile(
 _ASSET_VERSION_PATTERN = re.compile(
     r"(?P<asset>docs\.css|navigation\.js)\?v=[0-9.]+"
 )
-ASSET_VERSION = "0.8.0"
+ASSET_VERSION = "0.8.1"
 
 
 def _link_current(current: str, value: str) -> str:

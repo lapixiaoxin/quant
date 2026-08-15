@@ -124,14 +124,14 @@ class DocumentationNavigationTest(unittest.TestCase):
                 expected_groups = 0 if page in ungrouped_pages else 1
                 self.assertEqual(parser.current_groups, expected_groups)
                 self.assertEqual(len(parser.stylesheets), 1)
-                self.assertIn("docs.css?v=0.8.0", parser.stylesheets[0])
+                self.assertIn("docs.css?v=0.8.1", parser.stylesheets[0])
                 navigation_scripts = [
                     item for item in parser.scripts
                     if "navigation.js" in item
                 ]
                 self.assertEqual(len(navigation_scripts), 1)
                 self.assertIn(
-                    "navigation.js?v=0.8.0",
+                    "navigation.js?v=0.8.1",
                     navigation_scripts[0],
                 )
 
