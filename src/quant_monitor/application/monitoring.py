@@ -12,7 +12,11 @@ from ..config import Settings
 from ..domain.metrics import calculate_metrics
 from ..domain.models import MarketBundle
 from ..domain.strategies import StrategyRegistry
-from .ports import MarketDataProvider, ResearchRepository
+from .ports import (
+    MarketDataProvider,
+    MarketHistoryRepository,
+    ResearchRepository,
+)
 
 
 class MonitoringService:
@@ -22,12 +26,14 @@ class MonitoringService:
         self,
         settings: Settings,
         market_data: MarketDataProvider,
+        history_repository: MarketHistoryRepository,
         repository: ResearchRepository,
         strategies: StrategyRegistry,
         clock: Callable[[], datetime] | None = None,
     ) -> None:
         self._settings = settings
         self._market_data = market_data
+        self._history_repository = history_repository
         self._repository = repository
         self._strategies = strategies
         self._clock = clock or self._system_now
@@ -61,6 +67,7 @@ class MonitoringService:
             instrument.history_days,
         )
         bundle = self._repair_intraday_amount(bundle, now)
+        self._history_repository.save_bundle(instrument, bundle, now)
         metrics = calculate_metrics(bundle.bars)
         assessments = []
         for profile_id in instrument.strategy_profile_ids:

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>讨论报告模板 · Quant Monitor</title>
+  <link rel="stylesheet" href="../../docs/assets/docs.css?v=0.4.1">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="../index.html">研究知识库</a>
+      <nav class="site-nav" aria-label="研究导航">
+        <a href="../index.html">总览</a>
+        <a href="../instruments/index.html">标的</a>
+        <a href="../library/index.html">经验</a>
+        <a href="discussion-report.html" aria-current="page">模板</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Discussion Record</p>
+        <h1>{{标的代码}} {{讨论主题}}</h1>
+        <p class="hero-copy">{{用一段话说明本次讨论的问题、结论范围和仍未解决的事项。}}</p>
+      </div>
+      <aside class="hero-meta">
+        <dl>
+          <div><dt>讨论日期</dt><dd>{{YYYY-MM-DD}}</dd></div>
+          <div><dt>数据时点</dt><dd>{{交易日与时区}}</dd></div>
+          <div><dt>标的类型</dt><dd>{{股票 / ETF / 指数}}</dd></div>
+        </dl>
+      </aside>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><p class="section-label">问题</p><div><h2>讨论目标与边界</h2></div></div>
+      <p>{{本次希望回答什么；哪些问题明确不在本次范围内。}}</p>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><p class="section-label">证据</p><div><h2>已确认事实与来源</h2></div></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>事实</th><th>时间</th><th>来源</th><th>质量限制</th></tr></thead>
+          <tbody><tr><td>{{事实}}</td><td>{{时间}}</td><td>{{链接或本地数据}}</td><td>{{限制}}</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><p class="section-label">判断</p><div><h2>假设、结论与分歧</h2></div></div>
+      <div class="capability-grid">
+        <article class="capability"><h3>核心假设</h3><p>{{尚需验证的前提。}}</p></article>
+        <article class="capability"><h3>当前结论</h3><p>{{基于哪些证据形成了什么判断。}}</p></article>
+        <article class="capability"><h3>反例与分歧</h3><p>{{哪些证据不支持当前结论。}}</p></article>
+        <article class="capability"><h3>适用范围</h3><p>{{结论对哪些时期、产品和条件有效。}}</p></article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><p class="section-label">风险</p><div><h2>失效条件与下一步</h2></div></div>
+      <div class="notice">{{出现哪些数据变化时必须推翻或重做本次判断。}}</div>
+      <ol class="steps">
+        <li><h3>{{验证事项一}}</h3><p>{{数据、负责人或复查日期。}}</p></li>
+        <li><h3>{{验证事项二}}</h3><p>{{数据、负责人或复查日期。}}</p></li>
+      </ol>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>本报告是研究记录，不构成自动交易指令</span>
+      <span><a href="../README.md">查看归档规范</a></span>
+    </div>
+  </footer>
+</body>
+</html>

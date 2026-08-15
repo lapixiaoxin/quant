@@ -16,6 +16,7 @@
         <a href="capabilities.html">能力</a>
         <a href="operations.html">运维</a>
         <a href="architecture.html" aria-current="page">架构</a>
+        <a href="../research/index.html">研究库</a>
         <a href="refactor-report.html">升级报告</a>
       </nav>
     </div>
@@ -38,6 +39,35 @@
           <div><dt>外层</dt><dd>适配器与入口</dd></div>
         </dl>
       </aside>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="section-label">数据底座</p>
+        <div><h2>历史查询、审计与回测分层</h2></div>
+      </div>
+      <div class="capability-grid">
+        <article class="capability">
+          <div class="capability-head"><h3>SQLite</h3><span class="status ok">历史主存储</span></div>
+          <p>标准化日线、幂等更新、范围查询和同步来源，不需要独立数据库服务。</p>
+        </article>
+        <article class="capability">
+          <div class="capability-head"><h3>JSON</h3><span class="status ok">审计快照</span></div>
+          <p>保留单次 schema v3 研究上下文，不承担跨年查询。</p>
+        </article>
+        <article class="capability">
+          <div class="capability-head"><h3>回测契约</h3><span class="status conditional">基础已就绪</span></div>
+          <p>冻结模型版本、成本、滑点和信号；撮合与样本外执行器尚未交付。</p>
+        </article>
+        <article class="capability">
+          <div class="capability-head"><h3>研究知识库</h3><span class="status ok">HTML</span></div>
+          <p>私有标的讨论与脱敏通用经验分层保存，不混入运行数据。</p>
+        </article>
+      </div>
+      <div class="notice">
+        完整数据与回测方法见
+        <a href="../research/methods/storage-backtesting.html">历史数据与回测方法</a>。
+      </div>
     </section>
 
     <section class="section">

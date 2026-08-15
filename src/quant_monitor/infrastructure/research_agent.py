@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import time
@@ -20,8 +21,19 @@ class TraeCliResearchRunner:
     def _executable(self) -> str | None:
         configured = Path(self._config.traecli_path).expanduser()
         if configured.is_absolute():
-            return str(configured) if configured.is_file() else None
-        return shutil.which(self._config.traecli_path)
+            return (
+                str(configured)
+                if configured.is_file() and os.access(configured, os.X_OK)
+                else None
+            )
+        discovered = shutil.which(self._config.traecli_path)
+        if discovered:
+            return discovered
+        if configured.parent == Path("."):
+            official_path = Path.home() / ".local" / "bin" / configured.name
+            if official_path.is_file() and os.access(official_path, os.X_OK):
+                return str(official_path)
+        return None
 
     def is_available(self) -> bool:
         return self._executable() is not None

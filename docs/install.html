@@ -16,6 +16,7 @@
         <a href="capabilities.html">能力</a>
         <a href="operations.html">运维</a>
         <a href="architecture.html">架构</a>
+        <a href="../research/index.html">研究库</a>
         <a href="refactor-report.html">升级报告</a>
       </nav>
     </div>
@@ -29,13 +30,13 @@
         <p class="hero-copy">
           以 macOS 为目标，完成项目安装、飞书出站、定时 Agent 研究和白名单远程命令。
           后台运行副本位于 <code>~/.local/share/quant-monitor</code>；
-          需要人工参与的环节只有账号登录、飞书后台授权和白名单确认。
+          引导脚本会自动选择内场或公开版 CLI，人工环节主要是飞书后台和白名单确认。
         </p>
       </div>
       <aside class="hero-meta">
         <dl>
           <div><dt>基础运行</dt><dd><span class="status ok">自动完成</span></dd></div>
-          <div><dt>Agent 登录</dt><dd><span class="status conditional">一次人工授权</span></dd></div>
+          <div><dt>Agent CLI</dt><dd><span class="status ok">自动选渠道</span></dd></div>
           <div><dt>飞书后台</dt><dd><span class="status conditional">一次人工配置</span></dd></div>
         </dl>
       </aside>
@@ -61,10 +62,12 @@ cd "$HOME/Quant"
           <p>在本机配置中设置 App ID 和接收目标；App Secret 存入 Keychain，不进入仓库。</p>
         </li>
         <li>
-          <h3>登录 TraeCode CLI</h3>
+          <h3>验证 TraeCode CLI</h3>
           <pre><code>cd "$HOME/Quant"
-traecli</code></pre>
-          <p>首次交互会打开账号授权。后续定时任务使用非交互 <code>-p</code> 模式。</p>
+~/.local/bin/traecli doctor
+~/.local/bin/traecli models
+~/.local/bin/traecli -p "只回复 OK"</code></pre>
+          <p>内场版复用企业凭据；公开版首次运行可能要求账号授权。定时任务使用非交互 <code>-p</code> 模式。</p>
         </li>
         <li>
           <h3>配置飞书长连接</h3>
@@ -80,6 +83,7 @@ traecli</code></pre>
           <pre><code>./scripts/install_macos.sh
 ./scripts/check.sh
 ./quant doctor
+./quant history --all
 ./quant automate --all --no-send
 ./scripts/service.sh status</code></pre>
         </li>

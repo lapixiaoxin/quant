@@ -11,11 +11,13 @@ flowchart LR
     A --> D[domain 领域模型与策略]
     M[行情源] --> X[infrastructure 适配器]
     X --> A
-    A --> F[文件仓储]
+    A --> F[文件与 SQLite 仓储]
     A --> N[自动化与通知路由]
     F --> P[data/latest schema v3]
+    F --> H[data/history 日线历史库]
     P --> R[TRAE / TraeCode CLI]
     R --> O[个性化研究报告]
+    O --> K[research 研究知识库]
 ```
 
 依赖只能从外向内。领域层不知道 HTTP、TOML、文件路径、飞书或 TRAE 的存在。
@@ -81,6 +83,7 @@ sequenceDiagram
     participant A as MonitoringService
     participant P as 行情适配器
     participant G as 策略注册表
+    participant H as SQLite 历史仓储
     participant R as 文件仓储
     participant T as TRAE Skill
     participant N as NotificationService
@@ -89,6 +92,7 @@ sequenceDiagram
     C->>A: prepare(symbol)
     A->>P: fetch(instrument, history_days)
     P-->>A: MarketBundle
+    A->>H: 幂等保存标准化日线
     A->>A: 计算通用指标
     loop 每个策略画像
         A->>G: evaluate(strategy, parameters)
@@ -152,6 +156,36 @@ data_quality       来源、样本量、时间戳和限制
 
 `data/latest` 是最终执行计划的运行产物，不是配置源。修改行为应编辑 TOML 配置并重新运行 `prepare`，不要手改 JSON。
 
+## 历史数据与回测边界
+
+每次行情采集成功后，`MonitoringService` 通过 `MarketHistoryRepository`
+把标准化日线写入 `data/history/market.sqlite3`。SQLite 负责日期范围查询、
+去重和事务；schema v3 JSON 快照继续负责还原单次研究任务，两者职责不同。
+
+历史库当前固定保存前复权日线、来源和采集时间。按“标的代码 + 交易日”幂等更新；
+降级源缺少成交额或换手率时，不用零值覆盖已有的非零字段。安装脚本不会删除
+运行目录中的历史库。
+
+回测代码位于 `domain/backtesting/`，当前交付的是领域契约而不是完整引擎：
+
+- `BacktestSpecification` 冻结模型版本、参数指纹、区间、成本、滑点和基准。
+- `BacktestSignalModel` 只使用当日及以前的数据生成长线目标仓位。
+- `BacktestResult` 约束权益曲线、指标和限制说明。
+- 当前 `AnalysisStrategy` 只表达研究关注度，不可直接作为买卖信号回测。
+
+未来撮合、参数优化和样本外评估由应用层编排，数据从历史仓储协议读取，
+领域层不得直接导入 `sqlite3`。
+
+## 研究知识库
+
+`research/` 保存人与 Agent 讨论后的整理结果，不复制运行数据：
+
+- `research/private/`：具体标的、持仓和个人计划，默认被 Git 忽略。
+- `research/library/`：经过复核与脱敏的跨标的经验，可随代码版本管理。
+- `research/methods/`：数据、策略和回测方法的 HTML 报告。
+
+研究记录必须区分事实和推断，并包含数据时间、来源、反例、风险和失效条件。
+
 ## TRAE 与 TraeCode CLI
 
 - `.trae/skills/instrument-analyst` 是产品无关的研究执行器。
@@ -167,10 +201,11 @@ data_quality       来源、样本量、时间戳和限制
 | 投资标的 | ETF、股票、指数统一模型 | 扩展 `InstrumentType` |
 | 行情入口 | 东方财富失败后降级腾讯 | 实现 `MarketDataProvider` |
 | 通用指标 | 收益、均线、回撤、波动、流动性 | 新增纯计算模块 |
-| 策略 | 红利低波观察策略 | 实现并注册 `AnalysisStrategy` |
+| 策略 | `strategies/etf|stock|index` 产品子包 | 新增独立模块并注册 `AnalysisStrategy` |
+| 回测 | 版本化输入、信号与结果契约 | 实现 `BacktestSignalModel` 和应用层执行器 |
 | 研究 | schema 驱动的通用 Skill | 新增研究画像或专用 Skill |
 | 通知 | 事件策略 + 飞书通道 | 实现 `NotificationChannel` |
-| 存储 | 原子文件仓储 | 实现仓储协议 |
+| 存储 | 原子文件 + SQLite 日线仓储 | 实现对应仓储协议 |
 | Agent | TraeCode CLI 非交互模式 | 实现 `ResearchAgentRunner` |
 | 入口 | CLI、launchd、TRAE、飞书 | 调用应用用例，禁止复制业务 |
 
@@ -180,9 +215,12 @@ data_quality       来源、样本量、时间戳和限制
 
 当前数据量和并发不足以抵消服务化成本。协议边界允许未来替换行情、存储、通知或入口，而无需重写领域逻辑。
 
-### 文件仓储而非立即引入数据库
+### SQLite 与 JSON 并用
 
-少量日频标的使用 JSON 更透明、可审计、易备份。出现跨年查询、并发写入或大量图表需求后，再按指标评估 SQLite 或时序存储。
+JSON 对单次研究透明、可审计，但不适合跨年范围查询和回测取数。SQLite 是当前
+日线历史主存储：无需服务进程，支持事务、索引和备份，复杂度适合个人中长线研究。
+只有多设备并发写入、多人远程访问或分钟级海量数据出现后，才评估 PostgreSQL
+或专用时序存储。
 
 ### 策略、研究和通知相互独立
 
@@ -194,8 +232,9 @@ data_quality       来源、样本量、时间戳和限制
 
 ## 演进触发条件
 
-- 标的超过约 20 个或需要跨年图表：评估 SQLite。
-- 多进程同时写入：引入事务存储或单写者队列。
+- 标的和跨年数据增长：继续使用 SQLite，增加索引、质量检查和增量同步。
+- 多设备同时写入或多人远程访问：评估 PostgreSQL 与单写者服务。
+- 分钟级海量行情：重新评估分区、列式文件或时序存储。
 - 开放外网访问：先实现认证、授权、审计和限流。
 - 策略影响真实资金动作：增加回测、版本冻结、审批和人工确认。
 - 通知通道增加：拆分 `infrastructure/notifications` 为独立适配器包。

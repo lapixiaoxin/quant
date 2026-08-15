@@ -37,10 +37,21 @@ else
   git clone "$REPOSITORY" "$TARGET"
 fi
 
-if [ "$WITH_TRAECLI" = "1" ] && ! command -v traecli >/dev/null 2>&1; then
+if [ "$WITH_TRAECLI" = "1" ] \
+  && ! command -v traecli >/dev/null 2>&1 \
+  && [ ! -x "$HOME/.local/bin/traecli" ]; then
   INSTALLER=$(mktemp)
   trap 'rm -f "$INSTALLER"' EXIT
-  curl -fsSL https://trae.cn/trae-cli/install.sh -o "$INSTALLER"
+  INTERNAL_INSTALLER="https://code.byted.org/api/tos-proxy/download/adopt_coco.sh"
+  PUBLIC_INSTALLER="https://trae.cn/trae-cli/install.sh"
+  if [ -n "${TRAECLI_INSTALL_URL:-}" ]; then
+    curl -fsSL "$TRAECLI_INSTALL_URL" -o "$INSTALLER"
+  elif curl -fsSL "$INTERNAL_INSTALLER" -o "$INSTALLER"; then
+    printf '%s\n' "检测到内场网络，安装 TraeCode CLI 内部版。"
+  else
+    curl -fsSL "$PUBLIC_INSTALLER" -o "$INSTALLER"
+    printf '%s\n' "安装 TraeCode CLI 公开版。"
+  fi
   sh "$INSTALLER"
   export PATH="$HOME/.local/bin:$PATH"
 fi

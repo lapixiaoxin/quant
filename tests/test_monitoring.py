@@ -15,6 +15,7 @@ from quant_monitor.domain.models import (
     MarketQuote,
 )
 from quant_monitor.domain.strategies import StrategyRegistry
+from quant_monitor.infrastructure.history import SQLiteMarketHistoryRepository
 from quant_monitor.infrastructure.storage import FileResearchRepository
 
 
@@ -111,9 +112,13 @@ research_instructions = ["标的个性指令"]
             settings = load_settings(root, config_path)
             provider = FakeMarketData(market_bundle())
             repository = FileResearchRepository(settings.data_dir)
+            history_repository = SQLiteMarketHistoryRepository(
+                settings.data_dir / "history" / "market.sqlite3"
+            )
             service = MonitoringService(
                 settings=settings,
                 market_data=provider,
+                history_repository=history_repository,
                 repository=repository,
                 strategies=StrategyRegistry.default(),
                 clock=lambda: datetime(
@@ -156,6 +161,9 @@ research_instructions = ["标的个性指令"]
                 packet["metrics"]["liquidity"]["latest_amount"],
                 23_000_000,
             )
+            history = history_repository.load_bars("515100")
+            self.assertEqual(len(history), 30)
+            self.assertEqual(history[-1].amount, 23_000_000)
             self.assertEqual(persisted, packet)
             snapshots = list((root / "data" / "snapshots").rglob("*.json"))
             self.assertEqual(len(snapshots), 1)

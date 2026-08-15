@@ -13,6 +13,7 @@ from ..application.monitoring import MonitoringService
 from ..application.notifications import NotificationService
 from ..config import Settings, load_settings
 from ..domain.strategies import StrategyRegistry
+from ..infrastructure.history import SQLiteMarketHistoryRepository
 from ..infrastructure.lark_events import LarkCliEventSource, LarkCliReplier
 from ..infrastructure.market_data import DataSourceError, FallbackMarketDataProvider
 from ..infrastructure.notifications import (
@@ -162,6 +163,11 @@ def _parser() -> argparse.ArgumentParser:
     )
 
     subparsers.add_parser("instruments", help="列出已配置标的和策略")
+    history_parser = subparsers.add_parser(
+        "history",
+        help="查看本地 SQLite 历史行情覆盖情况",
+    )
+    _add_target_options(history_parser)
     subparsers.add_parser("doctor", help="检查配置、扩展点与本地环境")
     return parser
 
@@ -169,11 +175,13 @@ def _parser() -> argparse.ArgumentParser:
 def _build_service(
     settings: Settings,
     repository: FileResearchRepository,
+    history_repository: SQLiteMarketHistoryRepository,
     strategies: StrategyRegistry,
 ) -> MonitoringService:
     return MonitoringService(
         settings=settings,
         market_data=FallbackMarketDataProvider(),
+        history_repository=history_repository,
         repository=repository,
         strategies=strategies,
     )
@@ -224,6 +232,7 @@ def _doctor(
     root: Path,
     settings: Settings,
     strategies: StrategyRegistry,
+    history_repository: SQLiteMarketHistoryRepository,
 ) -> None:
     for profile in settings.strategy_profiles.values():
         strategies.get(profile.strategy_id).validate_parameters(
@@ -270,6 +279,11 @@ def _doctor(
         "TraeCode CLI："
         f"{'可用' if traecli.is_available() else '未安装或路径无效'}"
     )
+    print(
+        "历史数据库：正常（SQLite schema "
+        f"v{history_repository.schema_version}，"
+        f"{history_repository.database_path}）"
+    )
     event_source = LarkCliEventSource(settings.remote)
     print(
         f"飞书远程命令：{'启用' if settings.remote.enabled else '停用'}"
@@ -283,10 +297,13 @@ def main() -> int:
     try:
         settings = load_settings(root, args.config)
         repository = FileResearchRepository(settings.data_dir)
+        history_repository = SQLiteMarketHistoryRepository(
+            settings.data_dir / "history" / "market.sqlite3"
+        )
         strategies = StrategyRegistry.default()
 
         if args.command == "doctor":
-            _doctor(root, settings, strategies)
+            _doctor(root, settings, strategies, history_repository)
             return 0
 
         if args.command == "instruments":
@@ -301,6 +318,22 @@ def main() -> int:
                 )
             return 0
 
+        if args.command == "history":
+            print(f"数据库：{history_repository.database_path}")
+            for symbol in _symbols(args, settings):
+                summary = history_repository.summarize(symbol)
+                coverage = (
+                    f"{summary.first_date} 至 {summary.last_date}"
+                    if summary.first_date and summary.last_date
+                    else "暂无数据"
+                )
+                source = summary.last_source or "无"
+                print(
+                    f"{symbol}\t{summary.bar_count} 根\t{coverage}\t"
+                    f"最近来源：{source}"
+                )
+            return 0
+
         if args.command == "dashboard":
             output = args.output or settings.data_dir / "dashboard" / "index.html"
             if not output.is_absolute():
@@ -308,7 +341,12 @@ def main() -> int:
             print(write_dashboard(output, repository.list_latest_packets()))
             return 0
 
-        monitoring = _build_service(settings, repository, strategies)
+        monitoring = _build_service(
+            settings,
+            repository,
+            history_repository,
+            strategies,
+        )
         automation = _build_automation_service(
             settings,
             monitoring,

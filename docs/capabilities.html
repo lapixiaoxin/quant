@@ -16,6 +16,7 @@
         <a href="capabilities.html" aria-current="page">能力</a>
         <a href="operations.html">运维</a>
         <a href="architecture.html">架构</a>
+        <a href="../research/index.html">研究库</a>
         <a href="refactor-report.html">升级报告</a>
       </nav>
     </div>
@@ -60,15 +61,15 @@
         </article>
         <article class="capability">
           <div class="capability-head"><h3>联网个性研究</h3><span class="status conditional">条件支持</span></div>
-          <p>需要 TraeCode CLI 已安装并登录，按 schema v3 研究计划执行。</p>
+          <p>需要正确渠道的 TraeCode CLI、可用模型和非交互调用，按 schema v3 研究计划执行。</p>
         </article>
         <article class="capability">
           <div class="capability-head"><h3>股票和指数专属策略</h3><span class="status no">未支持</span></div>
-          <p>领域模型已预留，尚未交付经过验证的专属策略。</p>
+          <p>独立策略模块目录已就绪，尚未交付经过真实标的验证的实现。</p>
         </article>
         <article class="capability">
-          <div class="capability-head"><h3>策略回测</h3><span class="status no">未支持</span></div>
-          <p>当前没有参数优化、样本外评估和发布冻结框架。</p>
+          <div class="capability-head"><h3>回测基础契约</h3><span class="status ok">已支持</span></div>
+          <p>已定义版本、成本、滑点、长线信号和结果；撮合与样本外执行器尚未交付。</p>
         </article>
       </div>
     </section>
@@ -90,7 +91,7 @@
             <tr>
               <td>工作日定时完整 Agent 研究</td>
               <td><span class="status conditional">条件支持</span></td>
-              <td>还需 TraeCode CLI 已安装、登录并可非交互运行。</td>
+              <td>还需 TraeCode CLI 模型可用并可非交互运行。</td>
             </tr>
             <tr>
               <td>飞书出站报告</td>
@@ -132,12 +133,16 @@
           <p>每次采集保留日期与时刻，最新结果另行覆盖。</p>
         </article>
         <article class="capability">
+          <div class="capability-head"><h3>SQLite 日线历史库</h3><span class="status ok">已支持</span></div>
+          <p>每次采集幂等写入，可查询覆盖范围，并保护已有非零质量字段。</p>
+        </article>
+        <article class="capability">
           <div class="capability-head"><h3>静态看板</h3><span class="status ok">已支持</span></div>
           <p>无需 Web 服务，展示最新策略判断和个性关注项。</p>
         </article>
         <article class="capability">
           <div class="capability-head"><h3>历史交互图表</h3><span class="status no">未支持</span></div>
-          <p>尚未引入数据库、历史聚合和图表交互层。</p>
+          <p>SQLite 数据底座已就绪，尚未实现历史聚合和图表交互层。</p>
         </article>
         <article class="capability">
           <div class="capability-head"><h3>外网 Web 服务</h3><span class="status no">未支持</span></div>
@@ -145,7 +150,7 @@
         </article>
         <article class="capability">
           <div class="capability-head"><h3>一站式文档</h3><span class="status ok">已支持</span></div>
-          <p>部署、能力、运维、架构和升级记录分页面维护。</p>
+          <p>部署、能力、运维、架构、研究知识库和升级记录分页面维护。</p>
         </article>
       </div>
       <div class="notice">

@@ -1,62 +1,15 @@
-"""策略契约、注册表与当前红利低波观察策略。"""
+"""红利低波类 ETF 的中长线观察策略。"""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any, Protocol
+from typing import Any
 
-from .models import Instrument
-
-
-@dataclass(frozen=True)
-class StrategyAssessment:
-    """策略对当前环境的结构化判断，不代表交易指令。"""
-
-    profile_id: str
-    strategy_id: str
-    strategy_name: str
-    level: str
-    score: int
-    reasons: tuple[str, ...]
-
-    def to_packet(self) -> dict[str, Any]:
-        return {
-            "profile_id": self.profile_id,
-            "id": self.strategy_id,
-            "name": self.strategy_name,
-            "level": self.level,
-            "score": self.score,
-            "reasons": list(self.reasons),
-        }
-
-
-class AnalysisStrategy(Protocol):
-    """所有分析策略必须实现的最小契约。"""
-
-    strategy_id: str
-    name: str
-
-    def validate_parameters(
-        self,
-        parameters: dict[str, Any],
-        *,
-        profile_id: str,
-    ) -> None:
-        """在执行前校验策略画像参数。"""
-
-    def evaluate(
-        self,
-        instrument: Instrument,
-        metrics: dict[str, Any],
-        *,
-        profile_id: str,
-        parameters: dict[str, Any],
-    ) -> StrategyAssessment:
-        """使用确定性指标评估环境。"""
+from ...models import Instrument
+from ..base import StrategyAssessment
 
 
 class DividendLowVolStrategy:
-    """红利低波类 ETF 的中长线关注度基线。"""
+    """根据回撤、均线和波动率计算红利低波关注度。"""
 
     strategy_id = "dividend_low_vol"
     name = "红利低波中长线观察"
@@ -165,27 +118,3 @@ class DividendLowVolStrategy:
             score=score,
             reasons=tuple(reasons),
         )
-
-
-class StrategyRegistry:
-    """集中管理策略，新增策略无需修改应用编排。"""
-
-    def __init__(self, strategies: tuple[AnalysisStrategy, ...]) -> None:
-        self._strategies = {item.strategy_id: item for item in strategies}
-
-    @classmethod
-    def default(cls) -> StrategyRegistry:
-        return cls((DividendLowVolStrategy(),))
-
-    def get(self, strategy_id: str) -> AnalysisStrategy:
-        try:
-            return self._strategies[strategy_id]
-        except KeyError as error:
-            available = "、".join(sorted(self._strategies))
-            raise ValueError(
-                f"未注册策略 {strategy_id!r}，当前可用策略：{available}"
-            ) from error
-
-    @property
-    def ids(self) -> tuple[str, ...]:
-        return tuple(sorted(self._strategies))

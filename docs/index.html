@@ -16,6 +16,7 @@
         <a href="capabilities.html">能力</a>
         <a href="operations.html">运维</a>
         <a href="architecture.html">架构</a>
+        <a href="../research/index.html">研究库</a>
         <a href="refactor-report.html">升级报告</a>
       </nav>
     </div>
@@ -33,7 +34,7 @@
       </div>
       <aside class="hero-meta" aria-label="系统状态摘要">
         <dl>
-          <div><dt>当前版本</dt><dd>0.4.x</dd></div>
+          <div><dt>当前版本</dt><dd>0.5.x</dd></div>
           <div><dt>数据契约</dt><dd>schema v3</dd></div>
           <div><dt>默认标的</dt><dd>515100</dd></div>
         </dl>
@@ -51,14 +52,14 @@
         </div>
       </div>
       <div class="metric-row">
-        <div class="metric"><strong>已支持</strong><span>行情、指标、基础报告、看板</span></div>
+        <div class="metric"><strong>已支持</strong><span>行情、指标、SQLite 历史库</span></div>
         <div class="metric"><strong>条件支持</strong><span>TraeCode CLI 完整研究</span></div>
         <div class="metric"><strong>条件支持</strong><span>飞书长连接远程命令</span></div>
         <div class="metric"><strong>明确禁止</strong><span>自动交易与任意远程 Shell</span></div>
       </div>
       <div class="notice">
-        当前设备如果没有 TraeCode CLI，定时任务会按配置降级为确定性基础分析；
-        这与包含联网基本面的完整 Agent 研究不是同一能力等级。
+        新设备引导会自动选择内场或公开版 TraeCode CLI，并通过模型列表和非交互请求验收；
+        CLI 不可用时仍按配置降级为确定性基础分析。
       </div>
     </section>
 
@@ -86,6 +87,10 @@
         <article class="link-item">
           <a href="architecture.html">架构设计</a>
           <p>配置继承、策略画像、研究计划、通知路由和依赖方向。</p>
+        </article>
+        <article class="link-item">
+          <a href="../research/index.html">研究知识库</a>
+          <p>保存标的讨论、通用经验、数据存储与回测方法的 HTML 报告。</p>
         </article>
         <article class="link-item">
           <a href="refactor-report.html">升级报告</a>

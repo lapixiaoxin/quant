@@ -28,9 +28,9 @@
 
 ```text
 src/quant_monitor/
-  domain/          领域模型、纯指标、策略契约与实现
+  domain/          领域模型、纯指标、策略包与回测契约
   application/     用例编排和外部能力协议
-  infrastructure/  行情接口、文件仓储、通知通道
+  infrastructure/  行情接口、SQLite/文件仓储、通知通道
   interfaces/      CLI、Markdown 报告、静态看板
 config/            可提交的配置模板；本机配置不入库
 .trae/             TRAE 项目命令与研究 Skill 适配器
@@ -38,12 +38,15 @@ config/            可提交的配置模板；本机配置不入库
 tests/             与 src 分层对应的自动化测试
 scripts/           安装、服务管理和质量检查
 docs/              架构、决策和面向人的可视化报告
+research/library/  可提交、已脱敏、可复用的研究经验
+research/private/  本机标的讨论和个人语境，默认不入库
 install.md         新设备自动化部署的 Agent 权威指南
 capabilities.md    当前已交付能力与边界
 data/latest/       schema v3 最新解析结果与代理提示，可覆盖
 data/snapshots/    带时间戳的原始研究快照，只追加
 data/reports/      人或代理生成的研究报告
 data/dashboard/    本地静态看板产物
+data/history/      SQLite 标准化日线历史库，不入库
 ```
 
 ## 4. 稳定扩展流程
@@ -72,11 +75,32 @@ data/dashboard/    本地静态看板产物
 4. 为参数边界、数据不足和反向场景补单元测试。
 5. 更新配置模板、架构文档和研究 Skill。
 
+股票、ETF、指数的策略实现分别放入 `domain/strategies/stock`、
+`domain/strategies/etf`、`domain/strategies/index`，
+不得重新建立产品专用应用层或 CLI。
+
+### 新增回测模型
+
+1. 回测信号实现 `BacktestSignalModel`，冻结稳定的 `model_id` 和 `model_version`。
+2. 定性 `AnalysisStrategy` 不得直接冒充买卖信号；先定义目标仓位和执行时点。
+3. 数据只通过 `MarketHistoryRepository` 读取，领域模型不得直接访问 SQLite。
+4. 固定复权口径、佣金、滑点、基准、样本区间和参数摘要。
+5. 使用时间顺序划分训练、验证和样本外区间，禁止未来数据泄漏。
+6. 报告收益时同时提供回撤、波动、换手、交易次数、失败区间和限制。
+
 ### 新增研究画像
 
 1. 在 `research_profiles.<id>` 定义 Skill、章节、关注点、来源优先级和个性指令。
 2. 可由产品大类复用，也可为单个标的创建专属画像。
 3. Skill 必须消费数据包 `research_plan`，不得把 ETF、股票或指数流程硬编码到通用入口。
+
+### 沉淀讨论结果
+
+1. 具体标的讨论默认整理为 `research/private/<代码>/<日期>-<主题>.html`。
+2. 只保存整理后的事实、假设、结论、分歧、风险和失效条件，不直接堆积聊天原文。
+3. 跨标的经验经过复核与脱敏后，才可移入 `research/library/` 并提交 Git。
+4. 持仓、成本、个人计划和身份信息不得进入 `research/library/`。
+5. HTML 报告必须标注数据时间、来源、限制和下一步验证事项。
 
 ### 新增通知策略或通道
 
@@ -111,6 +135,7 @@ data/dashboard/    本地静态看板产物
 - Python 最低版本为 3.9；公共函数有类型标注，领域数据优先使用不可变 `dataclass`。
 - 网络调用必须有超时、有限重试和上下文明确的异常，不记录密钥或完整凭证。
 - 数据包契约变更必须递增 `schema_version`；首个稳定基线发布后，读取端至少兼容前一版本。
+- SQLite schema 变更必须新增迁移版本，不得原地修改已有版本的含义。
 - 不修改 `config/config.toml` 中的本机秘密，不把运行数据或构建产物提交到版本库。
 - 注释解释约束和原因，不复述代码。修改行为时同步更新相关注释和文档。
 
@@ -136,6 +161,8 @@ data/dashboard/    本地静态看板产物
 - 纯计算：边界值、空值、方向性和单位测试。
 - 应用编排：使用假行情源与临时仓储，不访问公网。
 - 适配器：覆盖字段缺失、异常响应、重试和降级。
+- SQLite：覆盖迁移、幂等写入、范围读取、质量字段保护和未来版本拒绝。
+- 回测契约：覆盖日期、成本、仓位边界、版本冻结和未来数据隔离。
 - CLI：覆盖返回码、参数校验和错误信息。
 - 看板：至少验证空数据、多标的和当前 schema 数据包渲染。
 - 配置继承：验证类别默认值、标的覆盖和无效引用。
@@ -158,6 +185,8 @@ data/dashboard/    本地静态看板产物
 |---|---|
 | 目录或依赖方向 | `AGENTS.md`、`docs/architecture.md` |
 | CLI、安装或配置 | `README.md`、配置模板、相关脚本 |
+| 历史数据库或回测契约 | `data/README.md`、`capabilities.md`、方法报告、测试 |
+| 研究归档规则 | `research/README.md`、研究库 HTML、隐私检查 |
 | 数据包字段 | `schema_version`、报告渲染、Skill、测试 |
 | 配置继承或策略规则 | 配置模板、策略测试、Skill 的解释边界 |
 | 定时与通知 | `README.md`、运维脚本、安全说明 |

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>研究知识库 · Quant Monitor</title>
+  <link rel="stylesheet" href="../docs/assets/docs.css?v=0.4.1">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="../docs/index.html">Quant Monitor</a>
+      <nav class="site-nav" aria-label="主导航">
+        <a href="../docs/index.html">文档</a>
+        <a href="index.html" aria-current="page">研究库</a>
+        <a href="instruments/index.html">标的</a>
+        <a href="library/index.html">经验</a>
+        <a href="methods/storage-backtesting.html">方法</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Research Knowledge Base</p>
+        <h1>把讨论沉淀为可验证的研究资产</h1>
+        <p class="hero-copy">
+          保存整理后的事实、假设、结论、风险和失效条件。
+          运行数据留在 data，长期认知进入研究库，个人语境默认只保存在本机。
+        </p>
+      </div>
+      <aside class="hero-meta">
+        <dl>
+          <div><dt>默认格式</dt><dd>HTML 报告</dd></div>
+          <div><dt>公开层</dt><dd>脱敏经验</dd></div>
+          <div><dt>私有层</dt><dd>标的讨论</dd></div>
+        </dl>
+      </aside>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="section-label">入口</p>
+        <div>
+          <h2>按研究对象进入</h2>
+          <p class="section-intro">归档结论，不堆积无法复用的聊天原文。</p>
+        </div>
+      </div>
+      <div class="link-grid">
+        <article class="link-item">
+          <a href="instruments/index.html">标的档案</a>
+          <p>按股票、ETF、指数和代码组织讨论记录、当前判断与失效条件。</p>
+        </article>
+        <article class="link-item">
+          <a href="library/index.html">通用经验</a>
+          <p>保存跨标的可复用且已脱敏的数据、策略、研究和风险经验。</p>
+        </article>
+        <article class="link-item">
+          <a href="methods/storage-backtesting.html">数据与回测方法</a>
+          <p>说明 SQLite、JSON 快照、策略版本和样本外验证的职责边界。</p>
+        </article>
+        <article class="link-item">
+          <a href="templates/discussion-report.html">讨论报告模板</a>
+          <p>统一记录数据时点、来源、结论、反例、风险和下一步验证。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="section-label">分层</p>
+        <div><h2>隐私与复用分开</h2></div>
+      </div>
+      <div class="capability-grid">
+        <article class="capability">
+          <div class="capability-head"><h3>private</h3><span class="status conditional">本机</span></div>
+          <p>具体持仓、成本、个人计划和未脱敏标的讨论；默认不进入 Git。</p>
+        </article>
+        <article class="capability">
+          <div class="capability-head"><h3>library</h3><span class="status ok">可复用</span></div>
+          <p>经过复核与脱敏的方法、经验和决策原则；可随代码版本管理。</p>
+        </article>
+        <article class="capability">
+          <div class="capability-head"><h3>data</h3><span class="status ok">证据</span></div>
+          <p>行情、指标、SQLite 历史库、快照和自动生成报告；不作为人工结论源。</p>
+        </article>
+      </div>
+      <div class="notice">
+        私有研究暂不通过 Git 跨设备同步。需要同步时应使用加密备份，并继续排除凭证与个人敏感数据。
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>研究结论必须保留数据时间、来源和失效条件</span>
+      <span><a href="../docs/capabilities.html">查看系统能力</a></span>
+    </div>
+  </footer>
+</body>
+</html>

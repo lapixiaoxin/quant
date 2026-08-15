@@ -11,7 +11,11 @@ data/latest/*
 data/snapshots/
 data/reports/*
 data/dashboard/
+data/history/*
 logs/*
+research/private/*
 !data/latest/.gitkeep
 !data/reports/.gitkeep
+!data/history/.gitkeep
 !logs/.gitkeep
+!research/private/.gitkeep

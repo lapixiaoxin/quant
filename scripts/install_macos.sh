@@ -36,7 +36,9 @@ rsync -a --delete \
   --exclude 'data/latest/*.txt' \
   --exclude 'data/reports/*/' \
   --exclude 'data/snapshots/' \
+  --exclude 'data/history/' \
   --exclude 'logs/*.log' \
+  --exclude 'research/private/' \
   "$SOURCE_ROOT/" "$RUNTIME_ROOT/"
 
 cp "$SOURCE_ROOT/config/config.toml" "$RUNTIME_ROOT/config/config.toml"

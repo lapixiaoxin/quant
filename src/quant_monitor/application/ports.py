@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Protocol
 
-from ..domain.models import Instrument, MarketBundle
+from ..domain.models import DailyBar, HistorySummary, Instrument, MarketBundle
 
 
 class MarketDataProvider(Protocol):
@@ -13,6 +14,31 @@ class MarketDataProvider(Protocol):
 
     def fetch(self, instrument: Instrument, limit: int) -> MarketBundle:
         """采集一个标的的行情快照与历史日线。"""
+
+
+class MarketHistoryRepository(Protocol):
+    """标准化日线行情的本地查询与持久化契约。"""
+
+    def save_bundle(
+        self,
+        instrument: Instrument,
+        bundle: MarketBundle,
+        fetched_at: datetime,
+    ) -> None:
+        """以幂等方式保存一次行情采集中的历史日线。"""
+
+    def load_bars(
+        self,
+        symbol: str,
+        *,
+        start_date: date | None = None,
+        end_date: date | None = None,
+        limit: int | None = None,
+    ) -> tuple[DailyBar, ...]:
+        """按时间升序读取日线，供指标和未来回测使用。"""
+
+    def summarize(self, symbol: str) -> HistorySummary:
+        """返回一个标的在本地历史库中的覆盖情况。"""
 
 
 class ResearchRepository(Protocol):

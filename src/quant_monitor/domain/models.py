@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from datetime import date
+from datetime import date, datetime
 from enum import Enum
 from typing import Any
 
@@ -113,3 +113,15 @@ class MarketBundle:
     quote: MarketQuote
     bars: tuple[DailyBar, ...]
     source: str
+
+
+@dataclass(frozen=True)
+class HistorySummary:
+    """本地历史行情库中一个标的的覆盖情况。"""
+
+    symbol: str
+    bar_count: int
+    first_date: date | None
+    last_date: date | None
+    last_source: str | None
+    updated_at: datetime | None

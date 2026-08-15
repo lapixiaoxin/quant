@@ -8,7 +8,8 @@
 - 产品大类默认值与单标的个性化覆盖。
 - 可配置的多策略画像、研究画像、通知策略和通知通道。
 - 东方财富行情采集，失败后自动降级腾讯。
-- JSON 快照、Markdown 基础报告、飞书路由和静态本地看板。
+- SQLite 日线历史库、JSON 审计快照、Markdown 报告和静态本地看板。
+- 可版本化的策略目录、回测领域契约和 HTML 研究知识库。
 - schema v3 将最终研究与通知计划交给 TRAE，避免代理入口硬编码 ETF。
 - TraeCode CLI 非交互定时研究，并在 CLI 不可用时按配置降级。
 - 基于 lark-cli WebSocket 的飞书白名单远程命令。
@@ -17,6 +18,7 @@
 [docs/architecture.md](docs/architecture.md)。
 
 一站式文档入口：[docs/index.html](docs/index.html)。
+研究知识库入口：[research/index.html](research/index.html)。
 
 - 新设备部署：[install.md](install.md)
 - 当前能力与边界：[capabilities.md](capabilities.md)
@@ -123,6 +125,7 @@ export FEISHU_RECEIVE_ID="<群聊 chat_id>"
 ```bash
 ./quant doctor
 ./quant instruments
+./quant history --all
 ./quant prepare --symbol 515100
 ./quant daily --symbol 515100
 ./quant daily --all
@@ -177,6 +180,24 @@ TraeCode CLI 的同语义命令位于
 `.traecli/commands/instrument-daily.md`。两种入口都读取 schema v3
 `research_plan`，因此新增产品类型或标的画像时不需要复制 ETF 专用命令。
 
+引导脚本在字节内场网络优先安装内部版 TraeCode CLI，其他环境回退公开版。
+项目还会识别官方默认路径 `~/.local/bin/traecli`，不依赖交互式 shell 的 PATH。
+
+## 研究知识库
+
+人与 Agent 讨论后的整理结果放在 `research/`：
+
+```text
+research/library/   可提交、经过脱敏的通用经验
+research/private/   具体标的、持仓语境和个人计划，默认不提交 Git
+research/methods/   数据、策略与回测方法说明
+research/templates/ HTML 讨论报告模板
+```
+
+具体标的讨论默认保存为
+`research/private/<标的代码>/<YYYY-MM-DD>-<主题>.html`。报告记录事实、
+来源、假设、结论、反例和失效条件，不直接保存冗长聊天原文。
+
 ## 飞书远程命令
 
 启用 `[remote]` 并完成 lark-cli 长连接配置后，支持：
@@ -200,9 +221,16 @@ data/latest/                 最新 schema v3 数据包、提示和基础报告
 data/snapshots/YYYY-MM-DD/   带采集时刻的不可变快照
 data/reports/YYYY-MM-DD/     基础报告和研究代理报告
 data/dashboard/              静态本地看板
+data/history/market.sqlite3  标准化日线历史库
 ```
 
-`data/latest` 是配置解析后的运行产物，不应手工修改。盘中快照不是最终收盘价；研究前必须检查 `as_of`、交易日和 `data_quality`。
+`data/latest` 是配置解析后的运行产物，不应手工修改。每次成功采集会把日线
+幂等写入 SQLite；JSON 快照继续保留单次任务的审计上下文。盘中快照不是最终
+收盘价；研究前必须检查 `as_of`、交易日和 `data_quality`。
+
+当前 SQLite 适合单机、日线和中长线研究，无需部署数据库服务。回测输入契约
+已经建立，但撮合、参数优化和样本外评估引擎尚未交付，不能把当前关注度策略
+当作已验证的买卖信号。
 
 ## GitHub 协作
 

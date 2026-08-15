@@ -30,6 +30,10 @@ TraeCode CLI 官方安装与非交互模式文档：
 - <https://docs.trae.cn/cli_get-started-with-trae-cli>
 - <https://docs.trae.cn/cli_use-cases>
 
+字节内场设备必须使用内部版。`bootstrap_macos.sh --with-traecli` 会先尝试
+内部安装器，内场不可达时再回退公开版；也可用 `TRAECLI_INSTALL_URL`
+显式覆盖安装地址。
+
 ## 3. 快速安装
 
 ```bash
@@ -86,12 +90,19 @@ unset FEISHU_SECRET
 
 ## 5. 配置完整 Agent 自动研究
 
-首次安装 TraeCode CLI 后，在项目目录运行一次交互命令并完成账号登录：
+安装后先验证版本、模型和非交互调用：
 
 ```bash
 cd "$HOME/Quant"
-traecli
+~/.local/bin/traecli --version
+~/.local/bin/traecli doctor
+~/.local/bin/traecli models
+~/.local/bin/traecli -p "只回复 OK"
 ```
+
+内场版默认使用本机 Git/企业凭据，不需要单独登录。公开版首次运行
+`traecli` 时可能打开账号授权。若模型列表为空，应先确认内场设备没有误装
+公开版。项目会主动识别 `~/.local/bin/traecli`，LaunchAgent 不依赖 `.zshrc`。
 
 配置：
 
@@ -238,6 +249,7 @@ Agent 必须逐项执行：
 ./scripts/check.sh
 ./quant doctor
 ./quant prepare --symbol 515100
+./quant history --symbol 515100
 ./quant base-report --symbol 515100
 ./quant dashboard
 ./quant automate --symbol 515100 --no-send
@@ -254,6 +266,7 @@ Agent 必须逐项执行：
 
 - 测试与 Ruff 全部通过。
 - 最新数据包是 schema v3。
+- SQLite 历史库包含当前标的日线，日期范围与行情源一致。
 - 本机配置和凭证未进入 Git。
 - `daily` 服务已运行或已安装。
 - `remote` 仅在白名单和长连接就绪时运行。
@@ -268,4 +281,6 @@ git pull --ff-only origin main
 ```
 
 不要覆盖 `config/config.toml`。安装脚本只会在文件不存在时从模板创建。
-每次重装都会把源码和本机配置同步到运行目录，但不会复制 Git、缓存和历史运行数据。
+每次重装都会把源码和本机配置同步到运行目录，但不会复制 Git、缓存和开发目录的
+运行数据，也不会删除运行目录已有的 `data/history`、快照和报告。
+`research/private` 同样保留，不会被源码同步覆盖。
