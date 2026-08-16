@@ -64,8 +64,8 @@ class RemoteCommandRouter:
                 f"{prefix} help",
                 "",
                 "示例：",
-                f"{prefix} strategies 515100",
-                f"{prefix} analyze 515100 daily,moving_average",
+                f"{prefix} strategies <标的代码>",
+                f"{prefix} analyze <标的代码> daily,moving_average",
                 f"{prefix} analyze all daily",
             ]
         )

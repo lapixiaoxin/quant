@@ -44,7 +44,7 @@ channels = []
 events = []
 
 [[instruments]]
-symbol = "515100"
+symbol = "510300"
 name = "测试 ETF"
 type = "etf"
 """
@@ -56,7 +56,7 @@ def record(fingerprint: str, *, record_id: str = "record-v1") -> StrategyRecord:
         profile_id="default",
         version="1.0.0",
         name="测试策略",
-        symbols=("515100",),
+        symbols=("510300",),
         horizon=InvestmentHorizon.LONG,
         lifecycle=StrategyLifecycle.ACTIVE,
         validation_state=ValidationState.PENDING,
@@ -90,7 +90,7 @@ class StrategyCatalogTest(unittest.TestCase):
         catalog.validate_settings(settings)
 
         self.assertEqual(
-            catalog.active_for("515100", ("default",))[0].record_id,
+            catalog.active_for("510300", ("default",))[0].record_id,
             "record-v1",
         )
 

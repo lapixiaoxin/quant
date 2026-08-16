@@ -73,7 +73,7 @@ channels = []
 events = []
 
 [[instruments]]
-symbol = "515100"
+symbol = "510300"
 name = "测试 ETF"
 type = "etf"
 """,
@@ -89,12 +89,12 @@ class NotificationTest(unittest.TestCase):
         channel = FakeChannel()
         service = NotificationService(settings, {"primary": channel})
 
-        sent = service.send("515100", "agent_report", "报告正文")
+        sent = service.send("510300", "agent_report", "报告正文")
 
         self.assertEqual(sent, ("primary",))
         self.assertEqual(
             channel.messages,
-            [("515100 测试 ETF 决策简报", "报告正文")],
+            [("510300 测试 ETF 决策简报", "报告正文")],
         )
 
     def test_rejects_unsubscribed_event(self) -> None:
@@ -103,7 +103,7 @@ class NotificationTest(unittest.TestCase):
         service = NotificationService(settings, {"primary": FakeChannel()})
 
         with self.assertRaisesRegex(ValueError, "不接收事件"):
-            service.send("515100", "base_report", "报告正文")
+            service.send("510300", "base_report", "报告正文")
 
     def test_instrument_can_inherit_silent_policy(self) -> None:
         temporary, settings = settings_for("silent")
@@ -111,7 +111,7 @@ class NotificationTest(unittest.TestCase):
         service = NotificationService(settings, {"primary": FakeChannel()})
 
         with self.assertRaisesRegex(ValueError, "未启用"):
-            service.send("515100", "agent_report", "报告正文")
+            service.send("510300", "agent_report", "报告正文")
 
     def test_attempts_all_channels_and_preserves_partial_success(self) -> None:
         temporary, settings = settings_for(
@@ -129,7 +129,7 @@ class NotificationTest(unittest.TestCase):
         )
 
         with self.assertRaises(NotificationDeliveryError) as raised:
-            service.send("515100", "agent_report", "报告正文")
+            service.send("510300", "agent_report", "报告正文")
 
         self.assertEqual(raised.exception.sent_channels, ("secondary",))
         self.assertIn("primary：测试发送失败", raised.exception.failures)

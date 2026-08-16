@@ -56,7 +56,7 @@ mode = "base"
 send = false
 
 [[instruments]]
-symbol = "515100"
+symbol = "510300"
 name = "测试 ETF"
 type = "etf"
 """
@@ -108,7 +108,7 @@ class AnalysisServiceTest(unittest.TestCase):
                         profile_id="default",
                         version="1.0.0",
                         name="测试策略",
-                        symbols=("515100",),
+                        symbols=("510300",),
                         horizon=InvestmentHorizon.LONG,
                         lifecycle=StrategyLifecycle.ACTIVE,
                         validation_state=ValidationState.PASSED,
@@ -161,7 +161,7 @@ class AnalysisServiceTest(unittest.TestCase):
             )
 
             request = service.create_request(
-                symbols=("515100",),
+                symbols=("510300",),
                 cycles=(
                     AnalysisCycle.DAILY,
                     AnalysisCycle.MOVING_AVERAGE,

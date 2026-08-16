@@ -31,7 +31,7 @@ class ControlRepositoryTest(unittest.TestCase):
                 requested_at=now,
                 trigger=AnalysisTrigger.MANUAL,
                 mode="base",
-                symbols=("515100",),
+                symbols=("510300",),
                 cycles=(
                     AnalysisCycle.DAILY,
                     AnalysisCycle.MOVING_AVERAGE,
@@ -50,7 +50,7 @@ class ControlRepositoryTest(unittest.TestCase):
                 ReportRecord(
                     report_id="report-1",
                     analysis_request_id=request.request_id,
-                    symbol="515100",
+                    symbol="510300",
                     report_type="base_report",
                     title="测试报告",
                     path="data/reports/test.md",
@@ -80,7 +80,7 @@ class ControlRepositoryTest(unittest.TestCase):
                 BacktestRunRecord(
                     run_id="backtest-1",
                     strategy_record_id="strategy-v1",
-                    symbol="515100",
+                    symbol="510300",
                     started_at=now,
                     completed_at=now,
                     status="completed",

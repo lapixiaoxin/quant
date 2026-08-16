@@ -48,7 +48,7 @@ channels = []
 events = []
 
 [[instruments]]
-symbol = "515100"
+symbol = "510300"
 name = "测试 ETF"
 type = "etf"
 research_focus = ["标的个性关注"]
@@ -98,7 +98,7 @@ def market_bundle(count: int = 30) -> MarketBundle:
         for index in range(count)
     )
     quote = MarketQuote(
-        symbol="515100",
+        symbol="510300",
         name="测试 ETF",
         price=bars[-1].close,
         high=bars[-1].high,
@@ -145,10 +145,10 @@ class MonitoringTest(unittest.TestCase):
                 ),
             )
 
-            latest_path, packet = service.prepare("515100")
+            latest_path, packet = service.prepare("510300")
             persisted = json.loads(latest_path.read_text(encoding="utf-8"))
 
-            self.assertEqual(provider.calls, [("515100", 300)])
+            self.assertEqual(provider.calls, [("510300", 300)])
             self.assertEqual(packet["schema_version"], 4)
             self.assertEqual(
                 packet["strategy_plan"][0]["profile_id"],
@@ -184,14 +184,14 @@ class MonitoringTest(unittest.TestCase):
                 packet["metrics"]["liquidity"]["latest_amount"],
                 23_000_000,
             )
-            history = history_repository.load_bars("515100")
+            history = history_repository.load_bars("510300")
             self.assertEqual(len(history), 30)
             self.assertEqual(history[-1].amount, 23_000_000)
             self.assertEqual(persisted, packet)
             snapshots = list((root / "data" / "snapshots").rglob("*.json"))
             self.assertEqual(len(snapshots), 1)
             self.assertTrue(
-                (root / "data" / "latest" / "515100.prompt.txt").exists()
+                (root / "data" / "latest" / "510300.prompt.txt").exists()
             )
 
     def test_uses_incremental_overlap_and_repairs_recent_gap(self) -> None:
@@ -223,7 +223,7 @@ class MonitoringTest(unittest.TestCase):
                 clock=lambda: now,
             )
 
-            _, first_packet = service.prepare("515100")
+            _, first_packet = service.prepare("510300")
             missing_date = source_bundle.bars[-10].trading_date
             with sqlite3.connect(history_repository.database_path) as connection:
                 connection.execute(
@@ -231,10 +231,10 @@ class MonitoringTest(unittest.TestCase):
                     DELETE FROM daily_bars
                     WHERE symbol = ? AND trading_date = ?
                     """,
-                    ("515100", missing_date.isoformat()),
+                    ("510300", missing_date.isoformat()),
                 )
             history_repository.save_bundle(
-                settings.instrument_for("515100"),
+                settings.instrument_for("510300"),
                 MarketBundle(
                     quote=source_bundle.quote,
                     bars=(source_bundle.bars[0],),
@@ -243,11 +243,11 @@ class MonitoringTest(unittest.TestCase):
                 now,
             )
 
-            _, second_packet = service.prepare("515100")
+            _, second_packet = service.prepare("510300")
             stored_dates = {
                 item.trading_date
                 for item in history_repository.load_bars(
-                    "515100",
+                    "510300",
                     limit=300,
                 )
             }
@@ -255,7 +255,7 @@ class MonitoringTest(unittest.TestCase):
             self.assertEqual(first_packet["data_quality"]["sync_mode"], "full")
             self.assertEqual(
                 provider.calls,
-                [("515100", 300), ("515100", 40)],
+                [("510300", 300), ("510300", 40)],
             )
             self.assertEqual(
                 second_packet["data_quality"]["sync_mode"],

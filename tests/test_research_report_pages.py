@@ -20,23 +20,23 @@ class ResearchReportPagesTest(unittest.TestCase):
                 / "data"
                 / "reports"
                 / "2026-08-16"
-                / "515100-research.md"
+                / "510300-research.md"
             )
             source.parent.mkdir(parents=True)
-            source.write_text("# 515100 研究报告\n", encoding="utf-8")
+            source.write_text("# 510300 研究报告\n", encoding="utf-8")
 
             pages = write_research_report_pages(root)
             output = report_html_path(source)
             content = output.read_text(encoding="utf-8")
 
             self.assertEqual(pages, (output,))
-            self.assertIn("<title>515100 研究报告", content)
+            self.assertIn("<title>510300 研究报告", content)
             self.assertIn(
-                'data-markdown-source="515100-research.md"',
+                'data-markdown-source="510300-research.md"',
                 content,
             )
             self.assertIn('id="report-visuals"', content)
-            self.assertIn('data-report-symbol="515100"', content)
+            self.assertIn('data-report-symbol="510300"', content)
 
     def test_report_page_uses_local_renderer(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

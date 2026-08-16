@@ -56,7 +56,7 @@ class MetricsTest(unittest.TestCase):
         closes.extend([closes[-1] * (1 - index * 0.01) for index in range(1, 10)])
         metrics = calculate_metrics(bars_from_closes(closes))
         instrument = Instrument(
-            symbol="515100",
+            symbol="510300",
             name="测试 ETF",
             exchange="SH",
             instrument_type=InstrumentType.ETF,
@@ -80,7 +80,7 @@ class MetricsTest(unittest.TestCase):
         closes.extend([closes[-1] * (1 - index * 0.01) for index in range(1, 10)])
         metrics = calculate_metrics(bars_from_closes(closes))
         instrument = Instrument(
-            symbol="515100",
+            symbol="510300",
             name="测试 ETF",
             exchange="SH",
             instrument_type=InstrumentType.ETF,

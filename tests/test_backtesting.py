@@ -52,7 +52,7 @@ def flat_bars() -> tuple[DailyBar, ...]:
 
 def instrument() -> Instrument:
     return Instrument(
-        symbol="515100",
+        symbol="510300",
         name="测试 ETF",
         exchange="SH",
         instrument_type=InstrumentType.ETF,
@@ -66,7 +66,7 @@ def instrument() -> Instrument:
 class BacktestingContractTest(unittest.TestCase):
     def test_specification_freezes_model_version_and_costs(self) -> None:
         specification = BacktestSpecification(
-            symbol="515100",
+            symbol="510300",
             model_id="dividend_rotation",
             model_version="1.0.0",
             parameters_fingerprint="sha256:test-parameters",
@@ -82,7 +82,7 @@ class BacktestingContractTest(unittest.TestCase):
     def test_specification_rejects_invalid_date_range(self) -> None:
         with self.assertRaisesRegex(ValueError, "开始日期"):
             BacktestSpecification(
-                symbol="515100",
+                symbol="510300",
                 model_id="model",
                 model_version="1.0.0",
                 parameters_fingerprint="sha256:test-parameters",
@@ -93,7 +93,7 @@ class BacktestingContractTest(unittest.TestCase):
     def test_specification_requires_parameters_fingerprint(self) -> None:
         with self.assertRaisesRegex(ValueError, "参数指纹"):
             BacktestSpecification(
-                symbol="515100",
+                symbol="510300",
                 model_id="model",
                 model_version="1.0.0",
                 parameters_fingerprint="",
@@ -113,7 +113,7 @@ class BacktestingContractTest(unittest.TestCase):
         bars = flat_bars()
         model = TrackingModel()
         specification = BacktestSpecification(
-            symbol="515100",
+            symbol="510300",
             model_id="tracking",
             model_version="1.0.0",
             parameters_fingerprint="sha256:test",

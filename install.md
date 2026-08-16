@@ -200,11 +200,11 @@ allowed_channel_targets = ["feishu_primary"]
 
 ```text
 /quant status
-/quant strategies 515100
-/quant analyze 515100 daily,moving_average
+/quant strategies <标的代码>
+/quant analyze <标的代码> daily,moving_average
 /quant analyze all daily
-/quant base 515100
-/quant prepare 515100
+/quant base <标的代码>
+/quant prepare <标的代码>
 /quant dashboard
 /quant help
 ```
@@ -251,16 +251,14 @@ Agent 必须逐项执行：
 ```bash
 ./scripts/check.sh
 ./quant doctor
-./quant prepare --symbol 515100
-./quant history --symbol 515100
-./quant strategies --symbol 515100
-./quant backtest --strategy-record 515100-dividend-low-vol-v1
-./quant base-report --symbol 515100
+./quant instruments
 ./quant dashboard
 ./quant site
-./quant automate --symbol 515100 --no-send
 ./scripts/service.sh status
 ```
+
+配置真实标的后，再对该代码执行 `prepare`、`history`、`strategies`、
+`base-report` 和 `automate --no-send` 验收。模板不预置示例标的。
 
 如果启用了远程命令：
 

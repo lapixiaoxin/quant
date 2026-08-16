@@ -93,13 +93,17 @@ prefix = "/quant"
 allowed_sender_ids = []
 allowed_chat_ids = []
 allowed_channel_targets = []
+```
 
+模板默认不预置标的。新增标的时再添加 `[[instruments]]`，例如：
+
+```toml
 [[instruments]]
-symbol = "515100"
-name = "红利低波100ETF景顺"
+symbol = "<标的代码>"
+name = "<标的名称>"
 exchange = "SH"
 type = "etf"
-research_focus = ["红利风格相对强弱", "分红与股息可持续性"]
+research_focus = ["分红与股息可持续性"]
 ```
 
 单个标的可覆盖 `strategy_profiles`、`research_profile`、
@@ -132,23 +136,21 @@ export FEISHU_RECEIVE_ID="<群聊 chat_id>"
 ./quant doctor
 ./quant instruments
 ./quant history --all
-./quant strategies --symbol 515100
+./quant strategies
 ./quant select \
-  --universe research/universes/dividend-low-vol-100-etf.toml
-./quant backtest \
-  --strategy-record 515100-dividend-low-vol-v1
-./quant analyze --symbol 515100 \
+  --universe research/universes/china-dividend-low-vol-monthly-etf.toml
+./quant analyze --symbol <标的代码> \
   --cycle daily --cycle moving_average --no-send
-./quant prepare --symbol 515100
-./quant daily --symbol 515100
+./quant prepare --symbol <标的代码>
+./quant daily --symbol <标的代码>
 ./quant daily --all
 ./quant automate --all --no-send
-./quant base-report --symbol 515100
+./quant base-report --symbol <标的代码>
 ./quant dashboard
 ./quant site
 ./quant listen --check
-./quant send-report data/reports/YYYY-MM-DD/515100-research.md \
-  --symbol 515100 \
+./quant send-report data/reports/YYYY-MM-DD/<标的代码>-research.md \
+  --symbol <标的代码> \
   --event agent_report
 ```
 
@@ -198,10 +200,10 @@ python3 -m http.server 8765 --bind 127.0.0.1
 项目命令：
 
 ```text
-/instrument-daily 515100
-/instrument-daily 515100 push
-/instrument-analyze 515100 data/analysis/latest/<请求 ID>.json
-/instrument-select dividend-low-vol-100-etf
+/instrument-daily <标的代码>
+/instrument-daily <标的代码> push
+/instrument-analyze <标的代码> data/analysis/latest/<请求 ID>.json
+/instrument-select china-dividend-low-vol-monthly-etf
 ```
 
 TraeCode CLI 的同语义命令位于
@@ -236,11 +238,11 @@ research/strategies/策略生命周期、参数指纹和回测模型绑定
 
 ```text
 /quant status
-/quant strategies 515100
-/quant analyze 515100 daily,moving_average
+/quant strategies <标的代码>
+/quant analyze <标的代码> daily,moving_average
 /quant analyze all daily
-/quant base 515100
-/quant prepare 515100
+/quant base <标的代码>
+/quant prepare <标的代码>
 /quant dashboard
 /quant help
 ```

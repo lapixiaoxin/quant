@@ -1,29 +1,6 @@
 schema_version = 1
 
 [[strategies]]
-record_id = "515100-dividend-low-vol-v1"
-profile_id = "dividend_low_vol_default"
-version = "1.0.0"
-name = "515100 红利低波中长线策略"
-symbols = ["515100"]
-horizon = "long"
-lifecycle = "active"
-validation_state = "pending"
-created_at = 2026-08-14T20:00:00+08:00
-enabled_at = 2026-08-15T00:00:00+08:00
-thesis = "以中长期回撤、60/120日均线和近期波动率识别研究关注区间；线上只输出研究判断，不自动下单。"
-parameters_fingerprint = "f5ded45ee47832360d2a9960c0425a4b28ab07d42f11c9ed4bfbc86b529cfb32"
-backtest_model_id = "attention_score_allocation"
-backtest_model_version = "1.0.0"
-
-[strategies.backtest_parameters]
-strategy_id = "dividend_low_vol"
-full_score = 68
-watch_score = 52
-full_weight = 1.0
-watch_weight = 0.5
-
-[[strategies]]
 record_id = "dividend-yield-dynamic-v1"
 profile_id = "dividend_yield_dynamic_v1"
 version = "1.0.0"

@@ -1,1 +1,0 @@
-请使用 instrument-analyst Skill 分析红利低波100ETF景顺（515100）。数据包位于 data/latest/515100.json。严格按 research_plan 执行，报告至少覆盖：数据可靠性、价格位置与趋势、估值与基本面、风险与失效条件、后续情景。

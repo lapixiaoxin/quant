@@ -95,11 +95,11 @@ required_metadata = [
 ]
 
 [[candidates]]
-symbol = "515100"
-name = "红利低波100ETF景顺"
+symbol = "510300"
+name = "沪深300ETF样例"
 exchange = "SH"
-tracking_index = "中证红利低波动100指数"
-tracking_index_code = "930955"
+tracking_index = "沪深300指数"
+tracking_index_code = "000300"
 management_fee_pct = 0.5
 custody_fee_pct = 0.1
 fund_size_cny = 5525339709.50

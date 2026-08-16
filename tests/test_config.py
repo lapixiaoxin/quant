@@ -70,11 +70,17 @@ class ConfigTest(unittest.TestCase):
         path.write_text(BASE_CONFIG + instrument_config, encoding="utf-8")
         return load_settings(root, path)
 
+    def test_allows_configuration_without_preloaded_instruments(self) -> None:
+        settings = self._load("")
+
+        self.assertEqual(settings.instruments, ())
+        self.assertEqual(settings.enabled_instruments, ())
+
     def test_inherits_product_type_defaults(self) -> None:
         settings = self._load(
             """
 [[instruments]]
-symbol = "515100"
+symbol = "510300"
 name = "测试 ETF"
 type = "etf"
 research_focus = ["标的关注"]
@@ -82,8 +88,8 @@ research_instructions = ["标的指令"]
 """
         )
 
-        instrument = settings.instrument_for("515100")
-        plan = settings.research_plan_for("515100")
+        instrument = settings.instrument_for("510300")
+        plan = settings.research_plan_for("510300")
         self.assertEqual(instrument.instrument_type, InstrumentType.ETF)
         self.assertEqual(
             instrument.strategy_profile_ids,
@@ -98,7 +104,7 @@ research_instructions = ["标的指令"]
         settings = self._load(
             """
 [[instruments]]
-symbol = "515100"
+symbol = "510300"
 name = "测试 ETF"
 type = "etf"
 strategy_profiles = ["dividend_default", "custom"]
@@ -108,7 +114,7 @@ history_days = 260
 """
         )
 
-        instrument = settings.instrument_for("515100")
+        instrument = settings.instrument_for("510300")
         self.assertEqual(
             instrument.strategy_profile_ids,
             ("dividend_default", "custom"),
@@ -133,7 +139,7 @@ type = "stock"
             self._load(
                 """
 [[instruments]]
-symbol = "515100"
+symbol = "510300"
 name = "测试 ETF"
 type = "etf"
 research_profile = "missing"
@@ -152,7 +158,7 @@ research_profile = "missing"
                 broken
                 + """
 [[instruments]]
-symbol = "515100"
+symbol = "510300"
 name = "测试 ETF"
 type = "etf"
 """,
@@ -173,7 +179,7 @@ type = "etf"
                 broken
                 + """
 [[instruments]]
-symbol = "515100"
+symbol = "510300"
 name = "测试 ETF"
 type = "etf"
 """,
@@ -186,7 +192,7 @@ type = "etf"
         settings = self._load(
             """
 [[instruments]]
-symbol = "515100"
+symbol = "510300"
 name = "测试 ETF"
 type = "etf"
 """
@@ -204,7 +210,7 @@ type = "etf"
 enabled = true
 
 [[instruments]]
-symbol = "515100"
+symbol = "510300"
 name = "测试 ETF"
 type = "etf"
 """
@@ -218,7 +224,7 @@ enabled = true
 allowed_channel_targets = ["primary"]
 
 [[instruments]]
-symbol = "515100"
+symbol = "510300"
 name = "测试 ETF"
 type = "etf"
 """

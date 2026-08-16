@@ -43,8 +43,8 @@ class PortalTest(unittest.TestCase):
                 "<title>测试候选 &amp; 报告</title>",
                 encoding="utf-8",
             )
-            (reports / "515100-research.md").write_text(
-                "# 515100 研究简报\n",
+            (reports / "510300-research.md").write_text(
+                "# 510300 研究简报\n",
                 encoding="utf-8",
             )
             (library / "method.html").write_text(
@@ -75,14 +75,14 @@ class PortalTest(unittest.TestCase):
 
             self.assertEqual(len(entries), 3)
             self.assertIn("测试候选 &amp; 报告", content)
-            self.assertIn("515100 研究简报", content)
+            self.assertIn("510300 研究简报", content)
             self.assertIn("测试研究经验", content)
             self.assertIn(
-                'href="data/reports/2026-08-15/515100-research.html"',
+                'href="data/reports/2026-08-15/510300-research.html"',
                 content,
             )
             self.assertNotIn(
-                'href="data/reports/2026-08-15/515100-research.md"',
+                'href="data/reports/2026-08-15/510300-research.md"',
                 content,
             )
             self.assertNotIn("测试候选池", content)

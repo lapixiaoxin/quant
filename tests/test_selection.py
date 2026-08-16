@@ -142,8 +142,8 @@ class SelectionTest(unittest.TestCase):
         )
 
         result = evaluate_candidate(
-            candidate("515100", complete=False),
-            market_bundle("515100"),
+            candidate("510300", complete=False),
+            market_bundle("510300"),
             rules,
         )
 
@@ -163,8 +163,8 @@ class SelectionTest(unittest.TestCase):
 
     def test_missing_liquidity_is_evidence_gap_not_product_failure(self) -> None:
         result = evaluate_candidate(
-            candidate("515100"),
-            market_bundle("515100", amount=0),
+            candidate("510300"),
+            market_bundle("510300", amount=0),
             SelectionRules(min_average_amount_cny=10_000_000),
         )
 
@@ -190,7 +190,7 @@ min_history_bars = 120
 required_metadata = ["total_fee_pct"]
 
 [[candidates]]
-symbol = "515100"
+symbol = "510300"
 name = "候选一"
 exchange = "SH"
 management_fee_pct = 0.5
@@ -228,7 +228,7 @@ exchange = "SH"
                 history_days=250,
                 shortlist_size=1,
                 rules=SelectionRules(),
-                candidates=(candidate("515100"), candidate("FAIL")),
+                candidates=(candidate("510300"), candidate("FAIL")),
             )
             service = SelectionService(
                 settings=SimpleNamespace(timezone="Asia/Shanghai"),
@@ -246,7 +246,7 @@ exchange = "SH"
             _, packet = service.prepare(universe)
 
             self.assertEqual(packet["selection_schema_version"], 2)
-            self.assertEqual(history.saved, ["515100"])
+            self.assertEqual(history.saved, ["510300"])
             self.assertEqual(packet["summary"]["candidate_count"], 2)
             self.assertEqual(packet["summary"]["data_error"], 1)
             failed = next(
@@ -269,7 +269,7 @@ exchange = "SH"
             },
             "candidates": [
                 {
-                    "symbol": "515100",
+                    "symbol": "510300",
                     "name": "<script>alert(1)</script>",
                     "status": "needs_research",
                     "metadata": {"as_of": "2026-06-29"},

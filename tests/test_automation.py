@@ -40,7 +40,7 @@ send = true
 fallback_to_base = true
 
 [[instruments]]
-symbol = "515100"
+symbol = "510300"
 name = "测试 ETF"
 type = "etf"
 """
@@ -83,7 +83,7 @@ class FakeNotifications:
 class FakeRunner:
     def __init__(self, root: Path, available: bool) -> None:
         self.available = available
-        self.path = root / "515100-research.md"
+        self.path = root / "510300-research.md"
         self.calls: list[tuple[str, bool, Path | None]] = []
 
     def is_available(self) -> bool:
@@ -130,14 +130,14 @@ class AutomationTest(unittest.TestCase):
             runner = FakeRunner(root, available=True)
             service, monitoring, notifications = self._service(root, runner)
 
-            result = service.run("515100")
+            result = service.run("510300")
 
             self.assertEqual(result.mode, "traecli")
-            self.assertEqual(runner.calls, [("515100", False, None)])
+            self.assertEqual(runner.calls, [("510300", False, None)])
             self.assertEqual(monitoring.calls, [])
             self.assertEqual(
                 notifications.calls[0][:2],
-                ("515100", "scheduled_report"),
+                ("510300", "scheduled_report"),
             )
             self.assertEqual(result.sent_channels, ("primary",))
 
@@ -147,12 +147,12 @@ class AutomationTest(unittest.TestCase):
             runner = FakeRunner(root, available=False)
             service, monitoring, notifications = self._service(root, runner)
 
-            result = service.run("515100")
+            result = service.run("510300")
 
             self.assertEqual(result.mode, "base")
             self.assertTrue(result.fallback_used)
-            self.assertEqual(monitoring.calls, ["515100"])
-            self.assertEqual(notifications.calls[0][:2], ("515100", "scheduled_report"))
+            self.assertEqual(monitoring.calls, ["510300"])
+            self.assertEqual(notifications.calls[0][:2], ("510300", "scheduled_report"))
 
     def test_send_override_disables_notification(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -160,7 +160,7 @@ class AutomationTest(unittest.TestCase):
             runner = FakeRunner(root, available=False)
             service, _, notifications = self._service(root, runner)
 
-            result = service.run("515100", mode="base", send=False)
+            result = service.run("510300", mode="base", send=False)
 
             self.assertEqual(result.sent_channels, ())
             self.assertEqual(notifications.calls, [])
@@ -172,7 +172,7 @@ class AutomationTest(unittest.TestCase):
             service, _, notifications = self._service(root, runner)
 
             service.run(
-                "515100",
+                "510300",
                 mode="base",
                 send=True,
                 event="base_report",
@@ -193,7 +193,7 @@ class AutomationTest(unittest.TestCase):
                 notification_failure=True,
             )
 
-            result = service.run("515100", mode="base", send=True)
+            result = service.run("510300", mode="base", send=True)
 
             self.assertTrue(result.report_path.exists())
             self.assertEqual(result.sent_channels, ())
@@ -210,17 +210,17 @@ class AutomationTest(unittest.TestCase):
             request_path = root / "data" / "analysis" / "request.json"
 
             result = service.run(
-                "515100",
+                "510300",
                 analysis_request_path=request_path,
             )
 
             self.assertEqual(
                 runner.calls,
-                [("515100", False, request_path)],
+                [("510300", False, request_path)],
             )
             self.assertEqual(
                 notifications.calls[0][:2],
-                ("515100", "scheduled_report"),
+                ("510300", "scheduled_report"),
             )
             self.assertEqual(result.sent_channels, ("primary",))
 

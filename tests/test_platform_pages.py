@@ -43,7 +43,7 @@ history_days = 120
 shortlist_size = 1
 
 [[candidates]]
-symbol = "515100"
+symbol = "510300"
 name = "候选一"
 exchange = "SH"
 
@@ -107,7 +107,7 @@ history_days = 120
 shortlist_size = 1
 
 [[candidates]]
-symbol = "515100"
+symbol = "510300"
 name = "候选一"
 exchange = "SH"
 
@@ -234,7 +234,7 @@ channels = []
 events = []
 
 [[instruments]]
-symbol = "515100"
+symbol = "510300"
 name = "测试 ETF"
 type = "etf"
 """.strip(),
@@ -308,7 +308,7 @@ channels = []
 events = []
 
 [[instruments]]
-symbol = "515100"
+symbol = "510300"
 name = "测试 ETF"
 type = "etf"
 """.strip(),
@@ -322,7 +322,7 @@ type = "etf"
                 profile_id="default",
                 version="1.0.0",
                 name="<测试策略>",
-                symbols=("515100",),
+                symbols=("510300",),
                 horizon=InvestmentHorizon.LONG,
                 lifecycle=StrategyLifecycle.ACTIVE,
                 validation_state=ValidationState.PENDING,

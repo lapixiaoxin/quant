@@ -48,12 +48,12 @@
         <article class="command"><code>./quant doctor</code><p>检查配置引用、策略、Skill 和外部 CLI。</p></article>
         <article class="command"><code>./quant instruments</code><p>列出标的、策略画像、研究画像和通知策略。</p></article>
         <article class="command"><code>./quant history --all</code><p>查看 SQLite 日线条数、日期范围和最近来源。</p></article>
-        <article class="command"><code>./quant strategies --symbol 515100</code><p>查看策略版本、生命周期和验证状态。</p></article>
+        <article class="command"><code>./quant strategies --symbol &lt;标的代码&gt;</code><p>查看策略版本、生命周期和验证状态。</p></article>
         <article class="command"><code>./quant select --universe ...</code><p>对版本化候选池执行硬门槛和市场指标初筛。</p></article>
         <article class="command"><code>./quant backtest --strategy-record ...</code><p>使用本地历史回测冻结策略版本。</p></article>
-        <article class="command"><code>./quant analyze --symbol 515100 --no-send</code><p>运行标准周期与因子分析作业。</p></article>
-        <article class="command"><code>./quant prepare --symbol 515100</code><p>增量采集并生成 schema v4 数据包。</p></article>
-        <article class="command"><code>./quant daily --symbol 515100</code><p>生成确定性基础报告，不默认发送。</p></article>
+        <article class="command"><code>./quant analyze --symbol &lt;标的代码&gt; --no-send</code><p>运行标准周期与因子分析作业。</p></article>
+        <article class="command"><code>./quant prepare --symbol &lt;标的代码&gt;</code><p>增量采集并生成 schema v4 数据包。</p></article>
+        <article class="command"><code>./quant daily --symbol &lt;标的代码&gt;</code><p>生成确定性基础报告，不默认发送。</p></article>
         <article class="command"><code>./quant automate --all</code><p>按 automation 配置运行 Agent 或基础降级。</p></article>
         <article class="command"><code>./quant automate --all --no-send</code><p>不发送消息的完整链路验收。</p></article>
         <article class="command"><code>./quant dashboard</code><p>刷新投资看板和根路径工作台。</p></article>
@@ -87,11 +87,11 @@
       </div>
       <div class="command-list">
         <article class="command"><code>/quant status</code><p>查看标的和自动化模式。</p></article>
-        <article class="command"><code>/quant strategies 515100</code><p>查看当前启用策略与验证状态。</p></article>
-        <article class="command"><code>/quant analyze 515100 daily,moving_average</code><p>执行标准分析并发送报告。</p></article>
+        <article class="command"><code>/quant strategies &lt;标的代码&gt;</code><p>查看当前启用策略与验证状态。</p></article>
+        <article class="command"><code>/quant analyze &lt;标的代码&gt; daily,moving_average</code><p>执行标准分析并发送报告。</p></article>
         <article class="command"><code>/quant analyze all daily</code><p>分析全部启用标的。</p></article>
-        <article class="command"><code>/quant base 515100</code><p>强制基础分析并发送。</p></article>
-        <article class="command"><code>/quant prepare 515100</code><p>只刷新数据包。</p></article>
+        <article class="command"><code>/quant base &lt;标的代码&gt;</code><p>强制基础分析并发送。</p></article>
+        <article class="command"><code>/quant prepare &lt;标的代码&gt;</code><p>只刷新数据包。</p></article>
         <article class="command"><code>/quant dashboard</code><p>重新生成看板和根路径工作台。</p></article>
         <article class="command"><code>/quant help</code><p>返回可用命令列表。</p></article>
       </div>
@@ -125,7 +125,7 @@
       </div>
       <ol class="steps">
         <li><h3>运行 <code>./quant doctor</code></h3><p>确认配置、Skill 和 CLI 是否就绪。</p></li>
-        <li><h3>运行不发送验收</h3><p><code>./quant automate --symbol 515100 --no-send</code></p></li>
+        <li><h3>运行不发送验收</h3><p><code>./quant automate --symbol &lt;标的代码&gt; --no-send</code></p></li>
         <li><h3>检查对应错误日志</h3><p>区分行情失败、Agent 未登录、飞书权限或长连接问题。</p></li>
         <li><h3>重新安装服务</h3><p>配置发生变化时运行 <code>./scripts/install_macos.sh</code>。</p></li>
         <li><h3>只重启故障服务</h3><p>使用 daily 或 remote 目标，不扩大影响范围。</p></li>

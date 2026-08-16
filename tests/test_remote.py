@@ -48,7 +48,7 @@ allowed_sender_ids = ["ou_allowed"]
 allowed_chat_ids = ["oc_allowed"]
 
 [[instruments]]
-symbol = "515100"
+symbol = "510300"
 name = "测试 ETF"
 type = "etf"
 """
@@ -157,12 +157,12 @@ class RemoteTest(unittest.TestCase):
     def test_analyze_uses_configured_automation(self) -> None:
         _, router, _, automation = self._router()
 
-        response = router.handle("/quant analyze 515100")
+        response = router.handle("/quant analyze 510300")
 
         self.assertIn("分析完成", response or "")
         self.assertEqual(
             automation.calls,
-            [("515100", None, True, "agent_report")],
+            [("510300", None, True, "agent_report")],
         )
 
     def test_base_forces_deterministic_mode(self) -> None:
@@ -173,7 +173,7 @@ class RemoteTest(unittest.TestCase):
         self.assertIn("基础分析完成", response or "")
         self.assertEqual(
             automation.calls,
-            [("515100", "base", True, "base_report")],
+            [("510300", "base", True, "base_report")],
         )
 
     def test_unknown_command_never_becomes_shell(self) -> None:
@@ -212,7 +212,7 @@ class RemoteTest(unittest.TestCase):
         )
         self.assertEqual(
             analysis.requests[0].symbols,
-            ("515100",),
+            ("510300",),
         )
         self.assertEqual(refreshes, [True])
 

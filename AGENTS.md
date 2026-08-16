@@ -233,8 +233,8 @@ data/selections/   候选池程序筛选 JSON 与不可变快照
 涉及真实行情时再执行：
 
 ```bash
-./quant prepare --symbol 515100
-./quant base-report --symbol 515100
+./quant prepare --symbol <标的代码>
+./quant base-report --symbol <标的代码>
 ./quant dashboard
 ```
 

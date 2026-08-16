@@ -551,8 +551,6 @@ def _load_instruments(
                 tracking_index_code=str(item.get("tracking_index_code", "")),
             )
         )
-    if not instruments:
-        raise ValueError("至少需要一个 [[instruments]] 配置")
     symbols = [item.symbol for item in instruments]
     duplicates = sorted({symbol for symbol in symbols if symbols.count(symbol) > 1})
     if duplicates:

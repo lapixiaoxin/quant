@@ -63,7 +63,7 @@ def packet(version: int = 4) -> dict:
         },
     }
     instrument = {
-        "symbol": "515100",
+        "symbol": "510300",
         "name": "红利<测试>",
         "exchange": "SH",
         "type": "etf",
