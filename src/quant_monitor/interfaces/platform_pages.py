@@ -329,6 +329,20 @@ def _strategy_parameter_list(parameters: dict[str, Any]) -> str:
         "watch_score": "观察分数",
         "full_weight": "高关注回测仓位",
         "watch_weight": "观察回测仓位",
+        "minimum_history_observations": "最少估值观察数",
+        "expensive_percentile": "偏贵分位上限",
+        "first_add_percentile": "第一增配分位",
+        "second_add_percentile": "第二增配分位",
+        "full_add_percentile": "充分增配分位",
+        "minimum_weight": "最低研究仓位",
+        "base_weight": "核心研究仓位",
+        "first_add_weight": "第一增配仓位",
+        "second_add_weight": "第二增配仓位",
+        "first_add_drawdown": "第一回撤确认",
+        "second_add_drawdown": "第二回撤确认",
+        "full_add_drawdown": "充分回撤确认",
+        "dividend_cut_limit": "分红削减失效线",
+        "rebalance_interval_days": "最短再平衡交易日",
     }
     percentage_keys = {
         "deep_drawdown",
@@ -338,6 +352,18 @@ def _strategy_parameter_list(parameters: dict[str, Any]) -> str:
         "high_volatility",
         "full_weight",
         "watch_weight",
+        "expensive_percentile",
+        "first_add_percentile",
+        "second_add_percentile",
+        "full_add_percentile",
+        "minimum_weight",
+        "base_weight",
+        "first_add_weight",
+        "second_add_weight",
+        "first_add_drawdown",
+        "second_add_drawdown",
+        "full_add_drawdown",
+        "dividend_cut_limit",
     }
     rows = []
     for key, value in parameters.items():
@@ -371,14 +397,22 @@ def _strategy_record(
     profile: StrategyProfileConfig,
     *,
     bound: bool,
+    configured: bool = True,
 ) -> str:
     backtest_model = (
         f"{item.backtest_model_id} v{item.backtest_model_version}"
         if item.backtest_model_id
         else "未绑定"
     )
-    configuration_status = "配置一致" if bound else "配置不一致"
-    configuration_class = "ok" if bound else "no"
+    if bound:
+        configuration_status = "配置一致"
+        configuration_class = "ok"
+    elif configured:
+        configuration_status = "尚未绑定"
+        configuration_class = "conditional"
+    else:
+        configuration_status = "草案未配置"
+        configuration_class = "conditional"
     return f"""
         <details class="strategy-record" data-catalog-row
           data-lifecycle="{item.lifecycle.value}"
@@ -456,11 +490,28 @@ def _strategy_page(
     control: dict[str, Any],
 ) -> str:
     rows = []
+    instruments = {
+        instrument.symbol: instrument
+        for instrument in settings.instruments
+    }
     for item in catalog.records:
-        profile = settings.strategy_profiles[item.profile_id]
-        bound = all(
-            item.profile_id
-            in settings.instrument_for(symbol).strategy_profile_ids
+        configured_profile = settings.strategy_profiles.get(item.profile_id)
+        strategy_parameters = item.backtest_parameters.get(
+            "strategy_parameters",
+            {},
+        )
+        if not isinstance(strategy_parameters, dict):
+            strategy_parameters = {}
+        profile = configured_profile or StrategyProfileConfig(
+            profile_id=item.profile_id,
+            strategy_id=str(
+                item.backtest_parameters.get("strategy_id", "未配置")
+            ),
+            parameters=dict(strategy_parameters),
+        )
+        bound = configured_profile is not None and all(
+            symbol in instruments
+            and item.profile_id in instruments[symbol].strategy_profile_ids
             for symbol in item.symbols
         )
         rows.append(
@@ -468,6 +519,7 @@ def _strategy_page(
                 item,
                 profile,
                 bound=bound,
+                configured=configured_profile is not None,
             )
         )
     backtests = "".join(

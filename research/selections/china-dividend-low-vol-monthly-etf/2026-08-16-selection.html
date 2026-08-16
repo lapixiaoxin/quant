@@ -305,6 +305,56 @@
 
     <section class="section">
       <div class="section-head">
+        <p class="section-label">策略复评</p>
+        <div>
+          <h2>动态股息率策略改变了选择优先级</h2>
+          <p class="section-intro">
+            产品适合作为策略载体，不等于当前估值已经进入增配区。
+            当前分位使用同一第三方市值加权口径。
+          </p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="selection-table">
+          <thead>
+            <tr>
+              <th>产品</th><th>当前股息率</th><th>历史分位</th>
+              <th>可用估值窗口</th><th>242 日回撤</th><th>策略判断</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>512890</strong></td><td>4.39%</td><td>26.76%</td>
+              <td>10 年</td><td>-7.08%</td><td>核心观察，不增配</td>
+            </tr>
+            <tr>
+              <td><strong>510720</strong></td><td>4.33%</td><td>11.57%</td>
+              <td>10 年</td><td>-1.14%</td><td>估值偏贵，不新增</td>
+            </tr>
+            <tr>
+              <td><strong>159581</strong></td><td>4.30%</td><td>8.95%</td>
+              <td>10 年</td><td>-5.04%</td><td>估值偏贵，不新增</td>
+            </tr>
+            <tr>
+              <td><strong>159209</strong></td><td>3.63%</td><td>11.15%</td>
+              <td>1 年</td><td>-12.37%</td><td>估值历史不足，拒绝信号</td>
+            </tr>
+            <tr>
+              <td><strong>513530</strong></td><td>5.09%</td><td>7.46%</td>
+              <td>5 年</td><td>-8.58%</td><td>估值偏贵，不新增</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ul>
+        <li><strong>若“红利低波动态交易”是第一目标</strong>：512890 是更纯粹的策略载体，具备显式低波、分红增长与支付率约束、长估值历史和最高流动性；ETF 本身不现金分红，但这不影响用底层指数股息率做估值锚。</li>
+        <li><strong>若“月度现金到账 + 更高波动”仍是硬约束</strong>：510720 是四只短名单中最匹配的载体；但当前股息率仅处历史 11.57% 分位，按策略应等待，而不是现在增配。</li>
+      </ul>
+      <p><a href="../../methods/dividend-yield-dynamic-v1.html">查看红利股息率动态配置策略 v1.0.0</a></p>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
         <p class="section-label">短名单</p>
         <div>
           <h2>四只条件化研究候选</h2>

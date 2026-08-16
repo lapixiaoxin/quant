@@ -124,6 +124,72 @@
                 <dd><code>f5ded45ee47832360d2a9960c0425a4b28ab07d42f11c9ed4bfbc86b529cfb32</code></dd></div>
             </dl>
           </div>
+        </details><details class="strategy-record" data-catalog-row
+          data-lifecycle="draft"
+          data-validation="pending"
+          data-horizon="long">
+          <summary>
+            <span class="strategy-record-title">
+              <strong>红利股息率动态配置策略</strong>
+              <small>dividend-yield-dynamic-v1</small>
+            </span>
+            <span class="strategy-record-facts">
+              <span><small>标的</small>
+                <strong>512890、510720、159581、159209、513530</strong></span>
+              <span><small>版本</small>
+                <strong>1.0.0</strong></span>
+              <span><small>期限</small>
+                <strong>长期</strong></span>
+            </span>
+            <span class="strategy-record-state">
+              <span class="status conditional">
+                草稿
+              </span>
+              <span
+                class="status conditional">
+                待验证
+              </span>
+              <span class="status conditional">
+                草案未配置
+              </span>
+              <span class="strategy-expand">详情</span>
+            </span>
+          </summary>
+          <div class="strategy-record-body">
+            <section class="strategy-thesis">
+              <h3>策略逻辑</h3>
+              <p>以可回放的股息率历史分位决定研究目标仓位，以242日回撤确认增配，并以分红削减和基本面状态阻断越跌越买；缺少估值历史时拒绝方向性结论。</p>
+            </section>
+            <div class="strategy-detail-columns">
+              <section>
+                <h3>线上判断参数</h3>
+                <dl class="strategy-parameters"><div><dt>最少估值观察数</dt><dd>726</dd></div><div><dt>偏贵分位上限</dt><dd>20.00%</dd></div><div><dt>第一增配分位</dt><dd>70.00%</dd></div><div><dt>第二增配分位</dt><dd>85.00%</dd></div><div><dt>充分增配分位</dt><dd>95.00%</dd></div><div><dt>最低研究仓位</dt><dd>20.00%</dd></div><div><dt>核心研究仓位</dt><dd>30.00%</dd></div><div><dt>第一增配仓位</dt><dd>50.00%</dd></div><div><dt>第二增配仓位</dt><dd>75.00%</dd></div><div><dt>高关注回测仓位</dt><dd>100.00%</dd></div><div><dt>第一回撤确认</dt><dd>-5.00%</dd></div><div><dt>第二回撤确认</dt><dd>-10.00%</dd></div><div><dt>充分回撤确认</dt><dd>-15.00%</dd></div><div><dt>分红削减失效线</dt><dd>-15.00%</dd></div></dl>
+              </section>
+              <section>
+                <h3>回测参数</h3>
+                <dl class="strategy-parameters"><div><dt>线上策略</dt><dd>dividend_yield_dynamic</dd></div><div><dt>最短再平衡交易日</dt><dd>20</dd></div><div><dt>valuation_timing</dt><dd>point_in_time</dd></div><div><dt>missing_valuation_policy</dt><dd>reject</dd></div><div><dt>strategy_parameters</dt><dd>{&quot;base_weight&quot;: 0.3, &quot;dividend_cut_limit&quot;: -0.15, &quot;expensive_percentile&quot;: 0.2, &quot;first_add_drawdown&quot;: -0.05, &quot;first_add_percentile&quot;: 0.7, &quot;first_add_weight&quot;: 0.5, &quot;full_add_drawdown&quot;: -0.15, &quot;full_add_percentile&quot;: 0.95, &quot;full_weight&quot;: 1.0, &quot;minimum_history_observations&quot;: 726, &quot;minimum_weight&quot;: 0.2, &quot;second_add_drawdown&quot;: -0.1, &quot;second_add_percentile&quot;: 0.85, &quot;second_add_weight&quot;: 0.75}</dd></div></dl>
+                <p class="strategy-boundary">
+                  回测仓位仅用于历史模拟，不代表实盘仓位或自动交易指令。
+                </p>
+              </section>
+            </div>
+            <dl class="strategy-record-metadata">
+              <div><dt>策略画像</dt>
+                <dd><code>dividend_yield_dynamic_v1</code></dd></div>
+              <div><dt>线上算法</dt>
+                <dd><code>dividend_yield_dynamic</code></dd></div>
+              <div><dt>回测模型</dt>
+                <dd><code>dividend_yield_percentile_allocation v1.0.0</code></dd></div>
+              <div><dt>创建时间</dt>
+                <dd>2026-08-16 18:30+08:00</dd></div>
+              <div><dt>启用时间</dt>
+                <dd>未设置</dd></div>
+              <div><dt>弃用时间</dt>
+                <dd>未设置</dd></div>
+              <div class="strategy-fingerprint"><dt>参数指纹</dt>
+                <dd><code>282ff081288fd85be40f610f8559ab469c132f01d2c332c1b7618a529078253e</code></dd></div>
+            </dl>
+          </div>
         </details>
       </div>
     </section>

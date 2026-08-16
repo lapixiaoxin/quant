@@ -14,8 +14,11 @@ from quant_monitor.domain.control_plane import (
 )
 from quant_monitor.infrastructure.strategy_catalog import (
     StrategyCatalog,
+    load_strategy_catalog,
     strategy_profile_fingerprint,
 )
+
+ROOT = Path(__file__).resolve().parents[1]
 
 CONFIG = """
 [app]
@@ -112,6 +115,23 @@ class StrategyCatalogTest(unittest.TestCase):
                     record(fingerprint, record_id="record-v2"),
                 ),
             )
+
+    def test_repository_draft_fingerprint_matches_config_template(self) -> None:
+        settings = load_settings(
+            ROOT,
+            ROOT / "config" / "config.example.toml",
+        )
+        catalog = load_strategy_catalog(
+            ROOT / "research" / "strategies" / "catalog.toml"
+        )
+        draft = catalog.record("dividend-yield-dynamic-v1")
+        profile = settings.strategy_profiles[draft.profile_id]
+
+        self.assertEqual(draft.lifecycle, StrategyLifecycle.DRAFT)
+        self.assertEqual(
+            draft.parameters_fingerprint,
+            strategy_profile_fingerprint(profile),
+        )
 
 
 if __name__ == "__main__":

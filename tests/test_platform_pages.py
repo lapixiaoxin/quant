@@ -206,6 +206,76 @@ exchange = "SH"
 
 
 class PlatformStrategyPageTest(unittest.TestCase):
+    def test_strategy_page_renders_unbound_draft_profile(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            config_path = root / "config.toml"
+            config_path.write_text(
+                """
+[app]
+
+[product_types.etf]
+strategy_profiles = ["default"]
+research_profile = "core"
+notification_policy = "silent"
+history_days = 300
+
+[strategy_profiles.default]
+strategy = "dividend_low_vol"
+
+[research_profiles.core]
+skill = "instrument-analyst"
+sections = ["趋势"]
+source_priorities = ["官方"]
+
+[notification_policies.silent]
+enabled = false
+channels = []
+events = []
+
+[[instruments]]
+symbol = "515100"
+name = "测试 ETF"
+type = "etf"
+""".strip(),
+                encoding="utf-8",
+            )
+            settings = load_settings(root, config_path)
+            draft = StrategyRecord(
+                record_id="dynamic-v1",
+                profile_id="dividend_yield_dynamic_v1",
+                version="1.0.0",
+                name="动态股息率策略",
+                symbols=("512890",),
+                horizon=InvestmentHorizon.LONG,
+                lifecycle=StrategyLifecycle.DRAFT,
+                validation_state=ValidationState.PENDING,
+                created_at=datetime(2026, 8, 16, tzinfo=timezone.utc),
+                enabled_at=None,
+                retired_at=None,
+                thesis="估值数据不足时拒绝方向性结论",
+                parameters_fingerprint="sha256:draft",
+                backtest_model_id="dividend_yield_percentile_allocation",
+                backtest_model_version="1.0.0",
+                backtest_parameters={
+                    "strategy_id": "dividend_yield_dynamic",
+                    "strategy_parameters": {
+                        "first_add_percentile": 0.70,
+                    },
+                },
+            )
+
+            html = _strategy_page(
+                settings,
+                StrategyCatalog(1, (draft,)),
+                {"backtest_runs": []},
+            )
+
+            self.assertIn("草案未配置", html)
+            self.assertIn("第一增配分位", html)
+            self.assertIn("70.00%", html)
+            self.assertIn("dividend_yield_dynamic", html)
+
     def test_strategy_record_exposes_expandable_auditable_details(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from .base import AnalysisStrategy
-from .etf import DividendLowVolStrategy
+from .etf import DividendLowVolStrategy, DividendYieldDynamicStrategy
 
 
 class StrategyRegistry:
@@ -14,7 +14,12 @@ class StrategyRegistry:
 
     @classmethod
     def default(cls) -> StrategyRegistry:
-        return cls((DividendLowVolStrategy(),))
+        return cls(
+            (
+                DividendLowVolStrategy(),
+                DividendYieldDynamicStrategy(),
+            )
+        )
 
     def get(self, strategy_id: str) -> AnalysisStrategy:
         try:

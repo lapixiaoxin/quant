@@ -273,6 +273,11 @@ data/selections/             候选程序筛选 JSON 与不可变快照
 严格样本外评估、涨跌停、停牌、分红再投资和申赎冲击，因此不能把当前关注度
 映射当作已验证的买卖信号。
 
+股息率动态配置策略 `dividend-yield-dynamic-v1` 当前登记为 `draft/pending`。
+它需要逐日、时点一致的指数股息率和基本面门禁；本地历史库尚未具备这些数据，
+因此只允许当期研究比较，不执行长期回测或自动仓位调整。方法与当前候选适配性见
+`research/methods/dividend-yield-dynamic-v1.html`。
+
 当前远端仓库是私有仓库，`data/` 和 `research/private/` 会进入 Git，方便
 跨设备复用。`config/config.toml`、日志、凭证和 SQLite 事务边车文件仍被忽略。
 若未来改为公开仓库，必须先清理 Git 历史中的个人数据。

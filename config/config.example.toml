@@ -22,6 +22,26 @@ mild_drawdown = -0.03
 near_high = -0.01
 high_volatility = 0.25
 
+# 动态股息率策略仍为 draft；只有接入可回放的历史估值后才绑定到标的。
+[strategy_profiles.dividend_yield_dynamic_v1]
+strategy = "dividend_yield_dynamic"
+
+[strategy_profiles.dividend_yield_dynamic_v1.parameters]
+minimum_history_observations = 726
+expensive_percentile = 0.20
+first_add_percentile = 0.70
+second_add_percentile = 0.85
+full_add_percentile = 0.95
+minimum_weight = 0.20
+base_weight = 0.30
+first_add_weight = 0.50
+second_add_weight = 0.75
+full_weight = 1.00
+first_add_drawdown = -0.05
+second_add_drawdown = -0.10
+full_add_drawdown = -0.15
+dividend_cut_limit = -0.15
+
 # 研究画像定义“想了解什么”，可被多个同类标的复用。
 [research_profiles.etf_core]
 skill = "instrument-analyst"
