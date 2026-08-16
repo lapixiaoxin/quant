@@ -12,7 +12,7 @@ index.html                 研究知识库入口
 instruments/               标的档案的组织说明
 library/                   可提交、可复用、已脱敏的方法与经验
 methods/                   数据、策略和回测方法说明
-selections/                候选筛选工作台和深度选择报告
+selections/                统一候选选择报告
 strategies/                策略版本、生命周期、参数指纹和回测绑定
 templates/                 HTML 研究报告模板
 private/                   私有仓库内同步的标的讨论与个人语境

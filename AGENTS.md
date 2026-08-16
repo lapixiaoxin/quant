@@ -51,7 +51,7 @@ research/strategies/策略版本、生命周期、参数指纹和回测模型绑
 research/library/  可提交、已脱敏、可复用的研究经验
 research/private/  私有仓库内同步的标的讨论和个人语境
 research/universes/可版本化的候选池、硬门槛和低频事实来源
-research/selections/候选筛选工作台和深度选择报告
+research/selections/唯一的候选选择 HTML 报告
 install.md         新设备自动化部署的 Agent 权威指南
 capabilities.md    当前已交付能力与边界
 data/latest/       schema v4 最新解析结果与代理提示，可覆盖
@@ -62,7 +62,7 @@ data/history/      SQLite 标准化日线历史库
 data/control/      SQLite 选择、分析、回测、报告和发布运行索引
 data/analysis/     标准分析请求及其不可变快照
 data/backtests/    回测 JSON 结果和 HTML 验证报告
-data/selections/   候选池初筛数据包、快照与基础 HTML 报告
+data/selections/   候选池程序筛选 JSON 与不可变快照
 ```
 
 平台按以下五条业务链组织，不得退化为按文件类型堆放页面：
@@ -163,6 +163,9 @@ data/selections/   候选池初筛数据包、快照与基础 HTML 报告
    买入顺序、金额或仓位。
 8. 最终 HTML 报告保留完整候选池、每项原始指标、淘汰理由、来源冲突和失效条件。
 9. 报告生成后运行 `./quant site`，确认根路径工作台存在可点击入口。
+10. 程序筛选和 Agent 深度选择属于同一作业的两个内部阶段；前者只保存 JSON，
+    用户侧只生成一份 `research/selections/<id>/<日期>-selection.html`，
+    不得再建立独立“候选初筛报告”入口。
 
 ### 沉淀讨论结果
 

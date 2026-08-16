@@ -222,7 +222,7 @@ research/private/   私有仓库内同步的具体标的、持仓语境和个人
 research/methods/   数据、策略与回测方法说明
 research/templates/ HTML 讨论报告模板
 research/universes/ 候选池、硬门槛、低频事实与来源日期
-research/selections/候选筛选工作台和深度选择报告
+research/selections/统一选择报告
 research/strategies/策略生命周期、参数指纹和回测模型绑定
 ```
 
@@ -259,7 +259,7 @@ data/history/market.sqlite3  标准化日线历史库
 data/control/research.sqlite3 统一运行索引
 data/analysis/               标准分析请求及快照
 data/backtests/              回测 JSON 与 HTML 验证报告
-data/selections/             候选初筛数据包、快照与基础 HTML 报告
+data/selections/             候选程序筛选 JSON 与不可变快照
 ```
 
 项目根目录的 `index.html` 是自动生成的统一研究工作台与内容目录。

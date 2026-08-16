@@ -84,6 +84,14 @@ do
   fi
 done
 
+# 程序筛选 HTML 已由统一选择报告取代，避免旧运行副本重新暴露重复入口。
+for legacy_selection_report in \
+  "$RUNTIME_ROOT"/data/selections/latest/*.html
+do
+  [ -e "$legacy_selection_report" ] || continue
+  rm -f "$legacy_selection_report"
+done
+
 if [ "$RUNTIME_DATA_MODE" = "replace" ]; then
   # 仅用于单写者设备交接：仓库版本覆盖同名运行数据，但保留目标端独有文件。
   for relative_dir in \

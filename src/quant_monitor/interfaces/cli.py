@@ -306,7 +306,7 @@ def _parser() -> argparse.ArgumentParser:
     select_parser.add_argument(
         "--output",
         type=Path,
-        help="HTML 输出路径；默认写入 data/selections/latest",
+        help="可选的机器筛选明细 HTML；正式选择报告由 Agent 补全",
     )
     subparsers.add_parser("doctor", help="检查配置、扩展点与本地环境")
     return parser
@@ -669,16 +669,20 @@ def main() -> int:
                 repository=repository,
             )
             packet_path, packet = service.prepare(universe)
-            output = args.output or (
-                settings.data_dir
-                / "selections"
-                / "latest"
-                / f"{universe.universe_id}.html"
-            )
-            if not output.is_absolute():
-                output = root / output
-            report_path = write_selection_report(output, packet)
             requested_at = datetime.fromisoformat(str(packet["as_of"]))
+            selection_report_path = (
+                root
+                / "research"
+                / "selections"
+                / universe.universe_id
+                / f"{requested_at:%Y-%m-%d}-selection.html"
+            )
+            detail_path = None
+            if args.output is not None:
+                output = args.output
+                if not output.is_absolute():
+                    output = root / output
+                detail_path = write_selection_report(output, packet)
             control_repository.save_selection(
                 SelectionRunRecord(
                     run_id=(
@@ -689,11 +693,13 @@ def main() -> int:
                     horizon=universe.horizon,
                     theme=universe.theme,
                     requested_at=requested_at,
-                    status="completed",
+                    status="screened",
                     candidate_count=packet["summary"]["candidate_count"],
                     shortlist_count=packet["summary"]["eligible"],
                     packet_path=str(packet_path.relative_to(root)),
-                    report_path=str(report_path.relative_to(root)),
+                    report_path=str(
+                        selection_report_path.relative_to(root)
+                    ),
                 )
             )
             _, portal_path = _write_site(
@@ -705,7 +711,9 @@ def main() -> int:
                 factors,
             )
             print(f"数据包：{packet_path}")
-            print(f"初筛报告：{report_path}")
+            if detail_path is not None:
+                print(f"机器筛选明细：{detail_path}")
+            print(f"选择报告目标：{selection_report_path}")
             print(f"研究工作台：{portal_path}")
             return 0
 

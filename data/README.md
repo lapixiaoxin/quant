@@ -14,8 +14,8 @@ control/research.sqlite3 选择、分析、回测、报告和发布状态索引
 analysis/latest/        标准分析请求
 analysis/snapshots/     按日期保存的分析请求快照
 backtests/<代码>/       冻结回测 JSON 和 HTML 验证报告
-selections/latest/      每个候选池最新的初筛 JSON 和基础 HTML 报告
-selections/snapshots/   带时间戳的候选池初筛快照
+selections/latest/      每个候选池最新的程序筛选 JSON
+selections/snapshots/   带时间戳的程序筛选快照
 ```
 
 ## schema v4
@@ -94,6 +94,10 @@ SQLite 负责跨日期查询和回测输入，两者不能相互替代。
 
 `market_score` 只比较流动性、近期波动和一年最大回撤，不代表最终适配性、
 收益预测或买入顺序。
+
+程序筛选不再生成独立 HTML。Agent 读取该 JSON 后，在
+`research/selections/<候选池 ID>/<日期>-selection.html` 补齐深度比较；
+这份选择报告同时承载硬门槛、证据缺口和最终短名单，是唯一用户可见入口。
 
 ## 控制面与回测
 

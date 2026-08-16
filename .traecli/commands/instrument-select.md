@@ -15,11 +15,10 @@ argument-hint: "[候选池 ID 或投资目标]"
 
 ```text
 data/selections/latest/${1}.json
-data/selections/latest/${1}.html
 ```
 
-补齐费用、规模、跟踪误差、指数规则、成分暴露和来源时间后复跑初筛，
-最终将 HTML 报告保存到：
+补齐费用、规模、跟踪误差、指数规则、成分暴露和来源时间后复跑程序筛选，
+并将唯一的 HTML 选择报告保存到：
 
 ```text
 research/selections/${1}/YYYY-MM-DD-selection.html

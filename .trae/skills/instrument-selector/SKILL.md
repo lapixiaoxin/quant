@@ -124,7 +124,6 @@ source_urls = ["https://example.com/official-source"]
 
 ```text
 data/selections/latest/<候选池 ID>.json
-data/selections/latest/<候选池 ID>.html
 ```
 
 必须检查：
@@ -179,7 +178,7 @@ data/selections/latest/<候选池 ID>.html
 若最终报告仍包含 `needs_research` 候选，标题和摘要必须明确写“初步比较”，
 不得宣称选择流程已经完成。
 
-### 6. 形成 HTML 报告
+### 6. 补全唯一的 HTML 选择报告
 
 保存到：
 
@@ -211,7 +210,8 @@ research/selections/<候选池 ID>/YYYY-MM-DD-selection.html
 ```
 
 确认根路径 `index.html` 的“最近产物”和“选择报告”目录已经出现新报告；
-不得生成只有文件路径、没有可视化入口的孤立页面。
+不得再生成单独的“候选初筛报告”。程序初筛是同一选择作业的内部阶段，
+只保留 JSON 审计包；面向用户始终只有上述一份选择报告。
 
 ## 禁止事项
 

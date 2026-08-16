@@ -14,8 +14,8 @@ argument-hint: "[候选池 ID 或投资目标]"
 ./quant select --universe research/universes/<参数>.toml
 ```
 
-3. 读取 `data/selections/latest/<参数>.json` 和 `.html`。
-4. 按 Skill 要求补齐低频事实、复跑初筛并生成最终 HTML 报告。
+3. 读取 `data/selections/latest/<参数>.json`。
+4. 按 Skill 要求补齐低频事实、复跑程序筛选并补全唯一 HTML 选择报告。
 5. 报告完成前核对候选状态；`needs_research` 不得写成最终短名单或首选。
 6. 核对事实日期未被报告生成日期覆盖，并确认关键来源在 HTML 中可点击。
 

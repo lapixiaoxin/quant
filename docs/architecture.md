@@ -268,7 +268,7 @@ JSON。
 - `research/library/`：经过复核与脱敏的跨标的经验，可随代码版本管理。
 - `research/methods/`：数据、策略和回测方法的 HTML 报告。
 - `research/universes/`：候选池、硬门槛、低频事实和来源日期。
-- `research/selections/`：候选筛选入口与深度选择报告。
+- `research/selections/`：唯一的候选选择 HTML 报告；程序筛选 JSON 作为内部阶段输入。
 - `research/strategies/`：策略生命周期、参数指纹和回测模型绑定。
 
 研究记录必须区分事实和推断，并包含数据时间、来源、反例、风险和失效条件。

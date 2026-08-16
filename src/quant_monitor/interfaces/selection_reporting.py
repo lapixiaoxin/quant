@@ -1,4 +1,4 @@
-"""候选池确定性初筛 HTML 报告。"""
+"""候选选择作业的可选机器筛选明细。"""
 
 from __future__ import annotations
 
@@ -89,7 +89,7 @@ def build_selection_report(packet: dict[str, Any]) -> str:
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{_text(universe["name"])}候选初筛</title>
+  <title>{_text(universe["name"])}机器筛选明细</title>
   <link rel="stylesheet"
     href="../../../docs/assets/docs.css?v={ASSET_VERSION}">
 </head>
@@ -99,7 +99,7 @@ def build_selection_report(packet: dict[str, Any]) -> str:
     <section class="hero">
       <div>
         <p class="eyebrow">Candidate Screening</p>
-        <h1>{_text(universe["name"])}候选初筛</h1>
+        <h1>{_text(universe["name"])}机器筛选明细</h1>
         <p class="hero-copy">{_text(universe["objective"])}</p>
       </div>
       <aside class="hero-meta">
@@ -147,7 +147,7 @@ def build_selection_report(packet: dict[str, Any]) -> str:
   </main>
   <footer class="site-footer">
     <div class="footer-inner">
-      <span>候选初筛是研究材料，不构成投资建议或自动交易指令。</span>
+      <span>机器筛选明细不构成投资建议或自动交易指令。</span>
       <span>{_text(universe["id"])}</span>
     </div>
   </footer>

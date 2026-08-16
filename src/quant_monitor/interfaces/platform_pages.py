@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from html import escape
 from pathlib import Path
 from typing import Any
@@ -38,6 +39,7 @@ def _status(value: str) -> str:
         "completed": "已完成",
         "partial": "部分完成",
         "running": "运行中",
+        "screened": "待深度研究",
         "sent": "已发送",
         "not_requested": "未要求发送",
         "available": "可用",
@@ -73,6 +75,7 @@ def _status_class(value: str) -> str:
         "pending",
         "partial",
         "running",
+        "screened",
         "reserved",
         "not_requested",
         "legacy",
@@ -168,12 +171,18 @@ def _selection_page(
             root,
             universe.universe_id,
         )
-        status = str(run.get("status", "pending"))
+        status = _selection_status(root, run)
         report_path = str(run.get("report_path", ""))
-        link = (
-            f'../../{escape(report_path)}'
-            if report_path
-            else f"../universes/{escape(path.name)}"
+        report_ready = bool(
+            status == "completed"
+            and report_path
+            and (root / report_path).is_file()
+        )
+        name = (
+            f'<a href="../../{escape(report_path)}">'
+            f"<strong>{escape(universe.name)}</strong></a>"
+            if report_ready
+            else f"<strong>{escape(universe.name)}</strong>"
         )
         rows.append(
             f"""
@@ -181,7 +190,7 @@ def _selection_page(
           data-horizon="{universe.horizon.value}"
           data-status="{status}"
           data-theme="{escape(universe.theme)}">
-          <td><a href="{link}"><strong>{escape(universe.name)}</strong></a>
+          <td>{name}
             <small>{escape(universe.universe_id)}</small></td>
           <td>{escape(_status(universe.horizon.value))}</td>
           <td>{escape(universe.theme)}</td>
@@ -208,12 +217,12 @@ def _selection_page(
         (
             "状态",
             "status",
-            ("completed", "running", "failed", "pending", "legacy"),
+            ("completed", "screened", "running", "failed", "pending"),
         ),
     ),
 )}
       <div class="table-wrap">
-        <table data-catalog="selections">
+        <table class="management-table" data-catalog="selections">
           <thead><tr><th>候选池</th><th>期限</th><th>主题</th><th>创建</th><th>候选</th><th>短名单</th><th>状态</th></tr></thead>
           <tbody>{"".join(rows)}</tbody>
         </table>
@@ -227,12 +236,32 @@ def _selection_page(
     )
 
 
+def _selection_status(root: Path, run: dict[str, Any]) -> str:
+    status = str(run.get("status", "pending"))
+    report_path = str(run.get("report_path", ""))
+    if status not in {"completed", "screened"}:
+        return status
+    report = root / report_path
+    if not report.is_file():
+        return "screened"
+    if status == "completed":
+        return status
+    try:
+        requested_at = datetime.fromisoformat(str(run["requested_at"]))
+    except (KeyError, ValueError):
+        return "screened"
+    report_at = datetime.fromtimestamp(
+        report.stat().st_mtime,
+        tz=requested_at.tzinfo,
+    )
+    return "completed" if report_at >= requested_at else status
+
+
 def _legacy_selection_run(root: Path, universe_id: str) -> dict[str, Any]:
     packet_path = (
         root / "data" / "selections" / "latest" / f"{universe_id}.json"
     )
-    report_path = packet_path.with_suffix(".html")
-    if not packet_path.exists() or not report_path.exists():
+    if not packet_path.exists():
         return {}
     try:
         packet = json.loads(packet_path.read_text(encoding="utf-8"))
@@ -241,8 +270,21 @@ def _legacy_selection_run(root: Path, universe_id: str) -> dict[str, Any]:
     summary = packet.get("summary", {})
     if not isinstance(summary, dict):
         return {}
+    requested_at_raw = str(packet.get("as_of", ""))
+    try:
+        requested_at = datetime.fromisoformat(requested_at_raw)
+    except ValueError:
+        return {}
+    report_path = (
+        root
+        / "research"
+        / "selections"
+        / universe_id
+        / f"{requested_at:%Y-%m-%d}-selection.html"
+    )
     return {
-        "status": "legacy",
+        "status": "screened",
+        "requested_at": requested_at_raw,
         "candidate_count": summary.get("candidate_count", "未知"),
         "shortlist_count": summary.get("eligible", "未索引"),
         "report_path": str(report_path.relative_to(root)),
@@ -516,7 +558,6 @@ def _report_page(
         if item.category in {
             "标的报告",
             "选择报告",
-            "候选初筛",
             "标的档案",
         }
         and item.href not in indexed_paths
@@ -570,7 +611,7 @@ def _legacy_report_row(item: PortalEntry) -> str:
             else "strategy_report"
         )
         type_label = _status(report_type)
-    elif item.category in {"选择报告", "候选初筛"}:
+    elif item.category == "选择报告":
         report_type = "selection"
         type_label = "选择报告"
     else:

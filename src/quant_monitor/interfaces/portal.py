@@ -16,7 +16,6 @@ _DATE_PATTERN = re.compile(r"20\d{2}-\d{2}-\d{2}")
 _CATEGORY_ORDER = (
     "标的报告",
     "选择报告",
-    "候选初筛",
     "回测报告",
     "标的档案",
     "研究经验",
@@ -85,8 +84,6 @@ def _category_for(relative: Path) -> str | None:
             return "标的报告"
         if parts[:2] == ("data", "dashboard"):
             return None
-        if parts[:3] == ("data", "selections", "latest"):
-            return "候选初筛"
         if parts[:2] == ("data", "backtests"):
             return "回测报告"
         if parts[:2] == ("research", "selections") and relative.name != "index.html":
@@ -122,7 +119,6 @@ def discover_portal_entries(root: Path) -> tuple[PortalEntry, ...]:
         *root.joinpath("research", "selections").rglob("*.html"),
         *root.joinpath("data", "reports").rglob("*.html"),
         *root.joinpath("data", "backtests").rglob("*.html"),
-        *root.joinpath("data", "selections", "latest").glob("*.html"),
     ]
     entries = [
         entry
@@ -230,7 +226,6 @@ def build_portal(
         if item.category in {
             "标的报告",
             "选择报告",
-            "候选初筛",
             "回测报告",
             "标的档案",
         }
@@ -241,8 +236,7 @@ def build_portal(
             "latest" in item.href,
             item.published if item.published != "持续更新" else "",
             {
-                "候选初筛": 3,
-                "选择报告": 2,
+                "选择报告": 3,
                 "回测报告": 2,
                 "标的报告": 4,
                 "标的档案": 1,

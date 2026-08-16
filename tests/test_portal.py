@@ -22,6 +22,7 @@ class PortalTest(unittest.TestCase):
             selection = root / "research" / "selections" / "test"
             library = root / "research" / "library"
             reports = root / "data" / "reports" / "2026-08-15"
+            machine_details = root / "data" / "selections" / "latest"
             snapshots = root / "data" / "snapshots" / "2026-08-15"
             universe = root / "research" / "universes"
             for path in (
@@ -29,6 +30,7 @@ class PortalTest(unittest.TestCase):
                 selection,
                 library,
                 reports,
+                machine_details,
                 snapshots,
                 universe,
             ):
@@ -47,6 +49,10 @@ class PortalTest(unittest.TestCase):
             )
             (library / "method.html").write_text(
                 "<title>测试研究经验</title>",
+                encoding="utf-8",
+            )
+            (machine_details / "test.html").write_text(
+                "<title>机器筛选明细</title>",
                 encoding="utf-8",
             )
             (universe / "test.toml").write_text(
@@ -81,6 +87,7 @@ class PortalTest(unittest.TestCase):
             )
             self.assertNotIn("测试候选池", content)
             self.assertNotIn("文档中心", content)
+            self.assertNotIn("机器筛选明细", content)
             self.assertNotIn("raw.json", content)
             self.assertNotIn("market.sqlite3", content)
             self.assertNotIn("不得进入目录", content)
