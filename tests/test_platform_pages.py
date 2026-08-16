@@ -27,6 +27,59 @@ from quant_monitor.interfaces.platform_pages import (
 
 
 class PlatformSelectionPageTest(unittest.TestCase):
+    def test_selection_page_keeps_latest_run_for_each_universe(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            universe_dir = root / "research" / "universes"
+            universe_dir.mkdir(parents=True)
+            (universe_dir / "test.toml").write_text(
+                """
+schema_version = 2
+universe_id = "test"
+name = "测试候选池"
+objective = "验证最新运行"
+instrument_type = "etf"
+history_days = 120
+shortlist_size = 1
+
+[[candidates]]
+symbol = "515100"
+name = "候选一"
+exchange = "SH"
+
+[[candidates]]
+symbol = "512890"
+name = "候选二"
+exchange = "SH"
+""".strip(),
+                encoding="utf-8",
+            )
+            control = {
+                "selection_runs": [
+                    {
+                        "universe_id": "test",
+                        "requested_at": "2026-08-16T17:35:00+08:00",
+                        "status": "screened",
+                        "candidate_count": 12,
+                        "shortlist_count": 7,
+                        "report_path": "",
+                    },
+                    {
+                        "universe_id": "test",
+                        "requested_at": "2026-08-16T17:33:00+08:00",
+                        "status": "screened",
+                        "candidate_count": 12,
+                        "shortlist_count": 0,
+                        "report_path": "",
+                    },
+                ]
+            }
+
+            html = _selection_page(root, control)
+
+            self.assertIn("<th>初筛合格</th>", html)
+            self.assertIn("<td>12</td>\n          <td>7</td>", html)
+
     def test_stale_report_is_not_linked_as_current_selection(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

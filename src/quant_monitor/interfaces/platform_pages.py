@@ -161,10 +161,9 @@ def _selection_page(
     root: Path,
     control: dict[str, Any],
 ) -> str:
-    runs = {
-        item["universe_id"]: item
-        for item in control["selection_runs"]
-    }
+    runs: dict[str, dict[str, Any]] = {}
+    for item in control["selection_runs"]:
+        runs.setdefault(item["universe_id"], item)
     rows: list[str] = []
     for path in sorted((root / "research" / "universes").glob("*.toml")):
         universe = load_selection_universe(path)
@@ -224,7 +223,7 @@ def _selection_page(
 )}
       <div class="table-wrap">
         <table class="management-table" data-catalog="selections">
-          <thead><tr><th>候选池</th><th>期限</th><th>主题</th><th>创建</th><th>候选</th><th>短名单</th><th>状态</th></tr></thead>
+          <thead><tr><th>候选池</th><th>期限</th><th>主题</th><th>创建</th><th>候选</th><th>初筛合格</th><th>状态</th></tr></thead>
           <tbody>{"".join(rows)}</tbody>
         </table>
       </div>
