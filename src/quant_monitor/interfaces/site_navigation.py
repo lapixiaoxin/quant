@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import re
+from html import unescape
 from pathlib import Path
+from urllib.parse import quote, unquote, urlsplit
 
 _HEADER_PATTERN = re.compile(
     r"  <header class=\"site-header\">.*?  </header>",
@@ -12,7 +14,8 @@ _HEADER_PATTERN = re.compile(
 _ASSET_VERSION_PATTERN = re.compile(
     r"(?P<asset>docs\.css|navigation\.js)\?v=[0-9.]+"
 )
-ASSET_VERSION = "0.8.1"
+_HREF_PATTERN = re.compile(r'href="(?P<href>[^"]+)"')
+ASSET_VERSION = "0.9.1"
 
 
 def _link_current(current: str, value: str) -> str:
@@ -124,6 +127,8 @@ def _current_for(path: Path, root: Path) -> str:
     if relative == Path("index.html"):
         return "workspace"
     if parts[0] == "docs":
+        if relative.name == "markdown.html":
+            return "reports"
         if relative.name == "capabilities.html":
             return "capabilities"
         if relative.name == "architecture.html":
@@ -159,6 +164,35 @@ def _prefix_for(path: Path, root: Path) -> str:
     return "../" * depth
 
 
+def _rewrite_markdown_links(content: str, path: Path, root: Path) -> str:
+    prefix = _prefix_for(path, root)
+
+    def replace(match: re.Match[str]) -> str:
+        href = unescape(match.group("href"))
+        parsed = urlsplit(href)
+        if (
+            parsed.scheme
+            or parsed.netloc
+            or not unquote(parsed.path).lower().endswith(".md")
+        ):
+            return match.group(0)
+        target = (path.parent / unquote(parsed.path)).resolve()
+        try:
+            relative = target.relative_to(root)
+        except ValueError:
+            return match.group(0)
+        source = quote(f"../{relative.as_posix()}", safe="/")
+        fragment = (
+            f"#{quote(unquote(parsed.fragment), safe='-._~')}"
+            if parsed.fragment
+            else ""
+        )
+        viewer = f"{prefix}docs/markdown.html?src={source}{fragment}"
+        return f'href="{viewer}"'
+
+    return _HREF_PATTERN.sub(replace, content)
+
+
 def refresh_site_navigation(root: Path) -> tuple[Path, ...]:
     """统一现有 HTML 的导航、静态资源版本和键盘交互脚本。"""
 
@@ -184,6 +218,7 @@ def refresh_site_navigation(root: Path) -> tuple[Path, ...]:
             rf"\g<asset>?v={ASSET_VERSION}",
             updated,
         )
+        updated = _rewrite_markdown_links(updated, path, root)
         if "navigation.js" not in updated:
             script = (
                 f'  <script src="{prefix}docs/assets/navigation.js'

@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>分析作业 · Quant Monitor</title>
   <link rel="stylesheet"
-    href="../../docs/assets/docs.css?v=0.8.1">
+    href="../../docs/assets/docs.css?v=0.9.1">
 </head>
-<body>
+<body class="module-page module-analysis">
   <header class="site-header">
     <div class="header-inner">
       <a class="brand" href="../../index.html">Quant Monitor</a>
@@ -71,19 +71,13 @@
   </header>
   <main class="page control-page">
     <section class="control-heading">
-      <p class="eyebrow">Analysis Jobs</p>
+      <span class="module-index">03</span>
       <h1>分析作业</h1>
-      <p>统一管理触发入口、标的范围、周期、因子、Agent 模式和运行结果。</p>
     </section>
 
     <section class="section">
       <div class="section-head">
-        <p class="section-label">作业记录</p>
-        <div><h2>人工、定时和飞书共用一个分析请求</h2>
-          <p class="section-intro">
-            支持单个、多个或全部标的，以及日、月、年和均线维度。
-          </p>
-        </div>
+        <h2>分析任务</h2>
       </div>
 <form class="catalog-filters" data-catalog-filters="analysis">
         <label class="catalog-search">
@@ -121,19 +115,10 @@
           <tbody><tr data-catalog-row><td colspan="6">暂无分析记录</td></tr></tbody>
         </table>
       </div>
-      <div class="notice ok">
-        CLI：
-        <code>
-          ./quant analyze --symbol 515100 --cycle daily
-          --cycle moving_average
-        </code><br>
-        飞书：<code>/quant analyze 515100 daily,moving_average</code>
-      </div>
     </section>
     <section class="section">
       <div class="section-head">
-        <p class="section-label">因子能力</p>
-        <div><h2>确定性因子可用，外部因子保留适配口</h2></div>
+        <h2>分析因子</h2>
       </div>
 <form class="catalog-filters" data-catalog-filters="factors">
         <label class="catalog-search">
@@ -308,7 +293,7 @@
 
   </main>
   <script
-    src="../../docs/assets/navigation.js?v=0.8.1"></script>
-  <script src="../../docs/assets/catalog.js?v=0.8.1"></script>
+    src="../../docs/assets/navigation.js?v=0.9.1"></script>
+  <script src="../../docs/assets/catalog.js?v=0.9.1"></script>
 </body>
 </html>

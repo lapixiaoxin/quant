@@ -55,6 +55,15 @@ class PortalTest(unittest.TestCase):
             self.assertIn("测试候选 &amp; 报告", content)
             self.assertIn("515100 研究简报", content)
             self.assertIn("测试候选池", content)
+            self.assertIn(
+                'href="docs/markdown.html?src=../data/reports/'
+                '2026-08-15/515100-research.md"',
+                content,
+            )
+            self.assertNotIn(
+                'href="data/reports/2026-08-15/515100-research.md"',
+                content,
+            )
             self.assertNotIn("raw.json", content)
             self.assertNotIn("market.sqlite3", content)
             self.assertNotIn("不得进入目录", content)

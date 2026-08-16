@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>策略与回测 · Quant Monitor</title>
   <link rel="stylesheet"
-    href="../../docs/assets/docs.css?v=0.8.1">
+    href="../../docs/assets/docs.css?v=0.9.1">
 </head>
-<body>
+<body class="module-page module-strategy">
   <header class="site-header">
     <div class="header-inner">
       <a class="brand" href="../../index.html">Quant Monitor</a>
@@ -71,19 +71,13 @@
   </header>
   <main class="page control-page">
     <section class="control-heading">
-      <p class="eyebrow">Strategy Lifecycle</p>
+      <span class="module-index">02</span>
       <h1>策略与回测</h1>
-      <p>按标的管理策略版本、启用和弃用时间，并用冻结参数和本地历史验证。</p>
     </section>
 
     <section class="section">
       <div class="section-head">
-        <p class="section-label">策略版本</p>
-        <div><h2>启用状态与实际配置同源</h2>
-          <p class="section-intro">
-            策略目录保存生命周期，配置保存算法参数；参数指纹阻止两者漂移。
-          </p>
-        </div>
+        <h2>策略版本</h2>
       </div>
 <form class="catalog-filters" data-catalog-filters="strategies">
         <label class="catalog-search">
@@ -146,12 +140,7 @@
     </section>
     <section class="section">
       <div class="section-head">
-        <p class="section-label">回测任务</p>
-        <div><h2>版本冻结后再验证</h2>
-          <p class="section-intro">
-            本地历史、下一交易日执行、成本和限制均写入结果。
-          </p>
-        </div>
+        <h2>回测记录</h2>
       </div>
 <form class="catalog-filters" data-catalog-filters="backtests">
         <label class="catalog-search">
@@ -199,17 +188,11 @@
         </tr></tbody>
         </table>
       </div>
-      <div class="notice">
-        运行示例：
-        <code>
-          ./quant backtest --strategy-record 515100-dividend-low-vol-v1
-        </code>
-      </div>
     </section>
 
   </main>
   <script
-    src="../../docs/assets/navigation.js?v=0.8.1"></script>
-  <script src="../../docs/assets/catalog.js?v=0.8.1"></script>
+    src="../../docs/assets/navigation.js?v=0.9.1"></script>
+  <script src="../../docs/assets/catalog.js?v=0.9.1"></script>
 </body>
 </html>

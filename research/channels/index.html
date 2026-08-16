@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>渠道与通知 · Quant Monitor</title>
   <link rel="stylesheet"
-    href="../../docs/assets/docs.css?v=0.8.1">
+    href="../../docs/assets/docs.css?v=0.9.1">
 </head>
-<body>
+<body class="module-page module-channels">
   <header class="site-header">
     <div class="header-inner">
       <a class="brand" href="../../index.html">Quant Monitor</a>
@@ -71,20 +71,13 @@
   </header>
   <main class="page control-page">
     <section class="control-heading">
-      <p class="eyebrow">Channels &amp; Delivery</p>
+      <span class="module-index">05</span>
       <h1>渠道与通知</h1>
-      <p>管理发送通道、事件策略和飞书固定命令，不在网页中暴露凭证。</p>
     </section>
 
     <section class="section">
       <div class="section-head">
-        <p class="section-label">发送通道</p>
-        <div><h2>网页与飞书各自承担稳定职责</h2>
-          <p class="section-intro">
-            CLI 维护网页资产，飞书负责固定命令和报告推送；
-            敏感参数不进入页面。
-          </p>
-        </div>
+        <h2>发送通道</h2>
       </div>
       <div class="table-wrap">
         <table>
@@ -106,8 +99,7 @@
     </section>
     <section class="section">
       <div class="section-head">
-        <p class="section-label">通知策略</p>
-        <div><h2>事件路由与通道实现分离</h2></div>
+        <h2>通知策略</h2>
       </div>
       <div class="table-wrap">
         <table>
@@ -133,16 +125,11 @@
         </tr></tbody>
         </table>
       </div>
-      <div class="notice">
-        飞书可用：<code>/quant status</code>、<code>/quant strategies 515100</code>、
-        <code>/quant analyze 515100 daily,moving_average</code> 和
-        <code>/quant help</code>。飞书不提供选标命令。
-      </div>
     </section>
 
   </main>
   <script
-    src="../../docs/assets/navigation.js?v=0.8.1"></script>
-  <script src="../../docs/assets/catalog.js?v=0.8.1"></script>
+    src="../../docs/assets/navigation.js?v=0.9.1"></script>
+  <script src="../../docs/assets/catalog.js?v=0.9.1"></script>
 </body>
 </html>

@@ -46,6 +46,7 @@ from ..infrastructure.strategy_catalog import (
 )
 from .backtest_reporting import write_backtest_report
 from .dashboard import write_dashboard
+from .markdown_viewer import write_markdown_viewer
 from .platform_pages import write_platform_pages
 from .portal import write_portal
 from .remote import RemoteCommandRouter, listen_remote_commands
@@ -392,6 +393,7 @@ def _write_site(
         control_repository,
         factors,
     )
+    write_markdown_viewer(root / "docs" / "markdown.html")
     portal = write_portal(root / "index.html", root)
     refresh_site_navigation(root)
     return dashboard, portal

@@ -12,7 +12,7 @@ from ..domain.factors import FactorRegistry
 from ..infrastructure.control_repository import SQLiteControlPlaneRepository
 from ..infrastructure.selection_config import load_selection_universe
 from ..infrastructure.strategy_catalog import StrategyCatalog
-from .portal import PortalEntry, discover_portal_entries
+from .portal import PortalEntry, discover_portal_entries, readable_href
 from .site_navigation import ASSET_VERSION, build_site_header
 
 
@@ -83,11 +83,16 @@ def _status_class(value: str) -> str:
 def _page(
     *,
     title: str,
-    eyebrow: str,
-    description: str,
     current: str,
     content: str,
 ) -> str:
+    module_numbers = {
+        "selection": "01",
+        "strategy": "02",
+        "analysis": "03",
+        "reports": "04",
+        "channels": "05",
+    }
     return f"""<!doctype html>
 <html lang="zh-CN">
 <head>
@@ -97,13 +102,12 @@ def _page(
   <link rel="stylesheet"
     href="../../docs/assets/docs.css?v={ASSET_VERSION}">
 </head>
-<body>
+<body class="module-page module-{escape(current)}">
 {build_site_header("../../", current)}
   <main class="page control-page">
     <section class="control-heading">
-      <p class="eyebrow">{escape(eyebrow)}</p>
+      <span class="module-index">{module_numbers[current]}</span>
       <h1>{escape(title)}</h1>
-      <p>{escape(description)}</p>
     </section>
 {content}
   </main>
@@ -194,13 +198,7 @@ def _selection_page(
     content = f"""
     <section class="section">
       <div class="section-head">
-        <p class="section-label">候选池</p>
-        <div>
-          <h2>短期与长期选择任务</h2>
-          <p class="section-intro">
-            按期限、主题、状态和时间管理，飞书不提供选标入口。
-          </p>
-        </div>
+        <h2>候选池</h2>
       </div>
 {_filter_bar(
     "selections",
@@ -219,16 +217,10 @@ def _selection_page(
           <tbody>{"".join(rows)}</tbody>
         </table>
       </div>
-      <div class="notice">
-        标准入口：<code>/instrument-select &lt;候选池 ID&gt;</code>。
-        选择完成后再由人工决定是否进入正式标的配置。
-      </div>
     </section>
     """
     return _page(
         title="标的选择",
-        eyebrow="Instrument Selection",
-        description="从需求、期限和资金约束出发建立候选池，保留筛选历史、证据缺口和短名单。",
         current="selection",
         content=content,
     )
@@ -328,12 +320,7 @@ def _strategy_page(
     content = f"""
     <section class="section">
       <div class="section-head">
-        <p class="section-label">策略版本</p>
-        <div><h2>启用状态与实际配置同源</h2>
-          <p class="section-intro">
-            策略目录保存生命周期，配置保存算法参数；参数指纹阻止两者漂移。
-          </p>
-        </div>
+        <h2>策略版本</h2>
       </div>
 {_filter_bar(
     "strategies",
@@ -352,12 +339,7 @@ def _strategy_page(
     </section>
     <section class="section">
       <div class="section-head">
-        <p class="section-label">回测任务</p>
-        <div><h2>版本冻结后再验证</h2>
-          <p class="section-intro">
-            本地历史、下一交易日执行、成本和限制均写入结果。
-          </p>
-        </div>
+        <h2>回测记录</h2>
       </div>
 {_filter_bar("backtests", (("状态", "status", ("running", "completed", "failed")),))}
       <div class="table-wrap">
@@ -366,18 +348,10 @@ def _strategy_page(
           <tbody>{backtests or _empty_row(7, "暂无回测记录")}</tbody>
         </table>
       </div>
-      <div class="notice">
-        运行示例：
-        <code>
-          ./quant backtest --strategy-record 515100-dividend-low-vol-v1
-        </code>
-      </div>
     </section>
     """
     return _page(
         title="策略与回测",
-        eyebrow="Strategy Lifecycle",
-        description="按标的管理策略版本、启用和弃用时间，并用冻结参数和本地历史验证。",
         current="strategy",
         content=content,
     )
@@ -446,12 +420,7 @@ def _analysis_page(
     content = f"""
     <section class="section">
       <div class="section-head">
-        <p class="section-label">作业记录</p>
-        <div><h2>人工、定时和飞书共用一个分析请求</h2>
-          <p class="section-intro">
-            支持单个、多个或全部标的，以及日、月、年和均线维度。
-          </p>
-        </div>
+        <h2>分析任务</h2>
       </div>
 {_filter_bar(
     "analysis",
@@ -467,19 +436,10 @@ def _analysis_page(
           <tbody>{rows or _empty_row(6, "暂无分析记录")}</tbody>
         </table>
       </div>
-      <div class="notice ok">
-        CLI：
-        <code>
-          ./quant analyze --symbol 515100 --cycle daily
-          --cycle moving_average
-        </code><br>
-        飞书：<code>/quant analyze 515100 daily,moving_average</code>
-      </div>
     </section>
     <section class="section">
       <div class="section-head">
-        <p class="section-label">因子能力</p>
-        <div><h2>确定性因子可用，外部因子保留适配口</h2></div>
+        <h2>分析因子</h2>
       </div>
 {_filter_bar(
     "factors",
@@ -498,8 +458,6 @@ def _analysis_page(
     """
     return _page(
         title="分析作业",
-        eyebrow="Analysis Jobs",
-        description="统一管理触发入口、标的范围、周期、因子、Agent 模式和运行结果。",
         current="analysis",
         content=content,
     )
@@ -514,6 +472,10 @@ def _report_page(
     for item in control["reports"]:
         cycles = "、".join(_json_list(item["cycles_json"]))
         channels = "、".join(_json_list(item["channels_json"])) or "网页"
+        href = readable_href(
+            str(item["path"]),
+            root_prefix="../../",
+        )
         rows.append(
             f"""
         <tr data-catalog-row
@@ -521,7 +483,7 @@ def _report_page(
           data-type="{escape(str(item['report_type']))}"
           data-delivery="{escape(str(item['delivery_status']))}">
           <td>
-            <a href="../../{escape(str(item['path']))}">
+            <a href="{escape(href, quote=True)}">
               <strong>{escape(str(item['title']))}</strong>
             </a>
             <small>{escape(str(item['report_id']))}</small>
@@ -550,12 +512,7 @@ def _report_page(
     content = f"""
     <section class="section">
       <div class="section-head">
-        <p class="section-label">报告目录</p>
-        <div><h2>按标的、类型、时间和发布状态查看</h2>
-          <p class="section-intro">
-            报告正文、策略版本、因子和渠道状态通过统一索引关联。
-          </p>
-        </div>
+        <h2>报告</h2>
       </div>
 {_filter_bar(
     "reports",
@@ -578,8 +535,6 @@ def _report_page(
     """
     return _page(
         title="报告中心",
-        eyebrow="Report Center",
-        description="报告不再揉成一个文件列表，而是按标的、作业、策略、因子和渠道归档。",
         current="reports",
         content=content,
     )
@@ -594,11 +549,12 @@ def _legacy_report_row(item: PortalEntry) -> str:
         ),
         "",
     )
+    href = readable_href(item.href, root_prefix="../../")
     return f"""
         <tr data-catalog-row data-symbol="{symbol}"
           data-type="legacy" data-delivery="legacy">
           <td>
-            <a href="../../{escape(item.href)}">
+            <a href="{escape(href, quote=True)}">
               <strong>{escape(item.title)}</strong>
             </a>
             <small>{escape(item.href)}</small>
@@ -649,13 +605,7 @@ def _channel_page(settings: Settings) -> str:
     content = f"""
     <section class="section">
       <div class="section-head">
-        <p class="section-label">发送通道</p>
-        <div><h2>网页与飞书各自承担稳定职责</h2>
-          <p class="section-intro">
-            CLI 维护网页资产，飞书负责固定命令和报告推送；
-            敏感参数不进入页面。
-          </p>
-        </div>
+        <h2>发送通道</h2>
       </div>
       <div class="table-wrap">
         <table>
@@ -666,8 +616,7 @@ def _channel_page(settings: Settings) -> str:
     </section>
     <section class="section">
       <div class="section-head">
-        <p class="section-label">通知策略</p>
-        <div><h2>事件路由与通道实现分离</h2></div>
+        <h2>通知策略</h2>
       </div>
       <div class="table-wrap">
         <table>
@@ -675,17 +624,10 @@ def _channel_page(settings: Settings) -> str:
           <tbody>{policy_rows}</tbody>
         </table>
       </div>
-      <div class="notice">
-        飞书可用：<code>/quant status</code>、<code>/quant strategies 515100</code>、
-        <code>/quant analyze 515100 daily,moving_average</code> 和
-        <code>/quant help</code>。飞书不提供选标命令。
-      </div>
     </section>
     """
     return _page(
         title="渠道与通知",
-        eyebrow="Channels & Delivery",
-        description="管理发送通道、事件策略和飞书固定命令，不在网页中暴露凭证。",
         current="channels",
         content=content,
     )

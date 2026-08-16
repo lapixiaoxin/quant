@@ -9,7 +9,7 @@ from html import escape
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
-from urllib.parse import quote
+from urllib.parse import quote, unquote
 
 from .site_navigation import ASSET_VERSION, build_site_header
 
@@ -91,6 +91,8 @@ def _toml_title(path: Path) -> str:
 def _category_for(relative: Path) -> str | None:
     parts = relative.parts
     if relative.suffix == ".html":
+        if relative == Path("docs/markdown.html"):
+            return None
         if parts[:2] == ("data", "dashboard"):
             return None
         if parts[:3] == ("data", "selections", "latest"):
@@ -166,15 +168,26 @@ def discover_portal_entries(root: Path) -> tuple[PortalEntry, ...]:
     )
 
 
+def readable_href(href: str, *, root_prefix: str = "") -> str:
+    """把 Markdown 资产路由到站内阅读器，其他资产保持原链接。"""
+
+    if unquote(href).lower().endswith(".md"):
+        return (
+            f"{root_prefix}docs/markdown.html?src="
+            f"{quote('../' + unquote(href), safe='/')}"
+        )
+    return f"{root_prefix}{href}"
+
+
 def _resource_row(entry: PortalEntry) -> str:
+    href = readable_href(entry.href)
     return f"""
-        <a class="resource-row" href="{escape(entry.href, quote=True)}"
+        <a class="resource-row" href="{escape(href, quote=True)}"
           data-catalog-row data-category="{escape(entry.category)}"
           data-date="{escape(entry.published)}">
           <span class="resource-main">
             <small>{escape(entry.category)}</small>
             <strong>{escape(entry.title)}</strong>
-            <code>{escape(entry.href)}</code>
           </span>
           <span class="resource-date">{escape(entry.published)}</span>
         </a>
@@ -200,15 +213,15 @@ def _grouped_catalog(entries: tuple[PortalEntry, ...]) -> str:
         rows = "\n".join(_resource_row(item) for item in items)
         groups.append(
             f"""
-      <section class="resource-group">
-        <header>
-          <h3>{escape(category)}</h3>
+      <details class="resource-group">
+        <summary>
+          <strong>{escape(category)}</strong>
           <span>{len(items)} 项</span>
-        </header>
+        </summary>
         <div class="resource-list compact">
 {rows}
         </div>
-      </section>
+      </details>
             """.strip()
         )
     return "\n".join(groups)
@@ -264,14 +277,7 @@ def build_portal(
 
   <main class="page workspace-page">
     <section class="workspace-intro">
-      <div>
-        <p class="eyebrow">Research Workspace</p>
-        <h1>研究工作台</h1>
-        <p>
-          从标的选择开始，经过策略与回测、分析作业、报告生成和渠道发布。
-          每个模块读取同一份配置或控制面数据。
-        </p>
-      </div>
+      <h1>研究工作台</h1>
       <dl class="workspace-summary">
         <div><dt>可浏览内容</dt><dd>{len(entries)}</dd></div>
         <div><dt>研究与报告</dt><dd>{report_count}</dd></div>
@@ -281,43 +287,33 @@ def build_portal(
 
     <section class="section">
       <div class="section-head">
-        <p class="section-label">常用入口</p>
-        <div>
-          <h2>先选任务，再进入内容</h2>
-          <p class="section-intro">稳定入口不会随报告数量增长而改变。</p>
-        </div>
+        <h2>研究流程</h2>
       </div>
       <div class="workspace-actions platform-actions">
-        <a href="research/selections/index.html">
-          <strong>1. 标的选择</strong><span>短期/长期候选与筛选历史</span>
+        <a class="module-selection" href="research/selections/index.html">
+          <strong><span>01</span>标的选择</strong><small>候选池 · 短名单</small>
         </a>
-        <a href="research/strategies/index.html">
-          <strong>2. 策略与回测</strong><span>版本、启停、参数一致性和验证</span>
+        <a class="module-strategy" href="research/strategies/index.html">
+          <strong><span>02</span>策略与回测</strong><small>版本 · 验证</small>
         </a>
-        <a href="research/analysis/index.html">
-          <strong>3. 分析作业</strong><span>标的范围、周期、因子和触发入口</span>
+        <a class="module-analysis" href="research/analysis/index.html">
+          <strong><span>03</span>分析作业</strong><small>任务 · 因子</small>
         </a>
-        <a href="research/reports/index.html">
-          <strong>4. 报告中心</strong><span>策略化报告与历史归档</span>
+        <a class="module-reports" href="research/reports/index.html">
+          <strong><span>04</span>报告中心</strong><small>报告 · 发布</small>
         </a>
-        <a href="research/channels/index.html">
-          <strong>5. 渠道与通知</strong><span>网页、飞书和发布状态</span>
+        <a class="module-channels" href="research/channels/index.html">
+          <strong><span>05</span>渠道与通知</strong><small>策略 · 通道</small>
         </a>
-        <a href="data/dashboard/index.html">
-          <strong>投资看板</strong><span>当前标的趋势与策略判断</span>
+        <a class="module-dashboard" href="data/dashboard/index.html">
+          <strong><span>06</span>投资看板</strong><small>行情 · 判断</small>
         </a>
       </div>
     </section>
 
     <section class="section">
       <div class="section-head">
-        <p class="section-label">最近产物</p>
-        <div>
-          <h2>优先显示可直接阅读的结果</h2>
-          <p class="section-intro">
-            原始 JSON 快照和 SQLite 不进入这里，避免干扰阅读。
-          </p>
-        </div>
+        <h2>最近报告</h2>
       </div>
       <div class="resource-list">
 {recent_rows}
@@ -326,13 +322,9 @@ def build_portal(
 
     <section class="section">
       <div class="section-head">
-        <p class="section-label">内容目录</p>
-        <div>
-          <h2>全部可浏览资产</h2>
-          <p class="section-intro">按用途分组，未来新增页面由扫描规则自动收录。</p>
-        </div>
+        <h2>全部内容</h2>
       </div>
-      <div class="resource-groups">
+      <div class="resource-browser">
         <form class="catalog-filters" data-catalog-filters="portal-assets">
           <label class="catalog-search">
             <span>搜索全部内容</span>
@@ -352,7 +344,7 @@ def build_portal(
           <button type="reset">重置</button>
           <output data-catalog-count="portal-assets"></output>
         </form>
-        <div data-catalog="portal-assets">
+        <div class="resource-catalog" data-catalog="portal-assets">
 {catalog}
         </div>
       </div>

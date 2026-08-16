@@ -13,6 +13,7 @@
     );
     const apply = () => {
       let visible = 0;
+      const filtering = controls.some((control) => control.value.trim());
       for (const row of rows) {
         const matched = controls.every((control) => {
           const expected = control.value.trim().toLowerCase();
@@ -33,9 +34,11 @@
         }
       }
       for (const group of catalog.querySelectorAll(".resource-group")) {
-        group.hidden = !group.querySelector(
+        const hasMatch = Boolean(group.querySelector(
           "[data-catalog-row]:not([hidden])",
-        );
+        ));
+        group.hidden = !hasMatch;
+        group.open = filtering && hasMatch;
       }
       if (count) {
         count.textContent = `${visible} / ${rows.length}`;

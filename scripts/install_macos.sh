@@ -123,6 +123,7 @@ if [ ! -e "$SOURCE_ROOT/.venv" ]; then
 fi
 
 "$RUNTIME_ROOT/quant" doctor
+"$RUNTIME_ROOT/quant" site
 
 AUTOMATION_INFO=$("$RUNTIME_ROOT/.venv/bin/python" - "$RUNTIME_ROOT/config/config.toml" <<'PY'
 import sys
