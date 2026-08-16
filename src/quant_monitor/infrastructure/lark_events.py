@@ -21,6 +21,35 @@ class RemoteMessage:
     content: str
 
 
+def _normalize_command_content(
+    event: dict[str, object],
+    content: str,
+    prefix: str,
+) -> str:
+    """移除群聊中由飞书渲染在命令前的机器人提及。"""
+
+    normalized = content.strip()
+    mentions = event.get("mentions", [])
+    if isinstance(mentions, list):
+        for mention in mentions:
+            if not isinstance(mention, dict):
+                continue
+            name = str(mention.get("name", "")).strip()
+            marker = f"@{name}" if name else ""
+            if marker and normalized.startswith(marker):
+                normalized = normalized[len(marker) :].lstrip()
+    if normalized.startswith(prefix):
+        return normalized
+    parts = normalized.split(maxsplit=1)
+    if (
+        len(parts) == 2
+        and parts[0].startswith("@")
+        and parts[1].startswith(prefix)
+    ):
+        return parts[1]
+    return normalized
+
+
 class LarkCliEventSource:
     """启动只读事件订阅并逐条输出文本消息。"""
 
@@ -93,7 +122,11 @@ class LarkCliEventSource:
                 message_id = str(event.get("message_id", "")).strip()
                 sender_id = str(event.get("sender_id", "")).strip()
                 chat_id = str(event.get("chat_id", "")).strip()
-                content = str(event.get("content", "")).strip()
+                content = _normalize_command_content(
+                    event,
+                    str(event.get("content", "")),
+                    self._config.prefix,
+                )
                 if message_id and sender_id and chat_id and content:
                     yield RemoteMessage(
                         message_id=message_id,

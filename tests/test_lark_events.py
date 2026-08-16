@@ -80,6 +80,38 @@ class LarkEventsTest(unittest.TestCase):
         "quant_monitor.infrastructure.lark_events.shutil.which",
         return_value="/usr/local/bin/lark-cli",
     )
+    @patch("quant_monitor.infrastructure.lark_events.subprocess.Popen")
+    def test_removes_bot_mention_before_group_command(
+        self,
+        popen,
+        _which,
+    ) -> None:
+        event = {
+            "type": "im.message.receive_v1",
+            "message_id": "om_group",
+            "sender_id": "ou_allowed",
+            "chat_id": "oc_allowed",
+            "message_type": "text",
+            "content": "@小知行 /quant status",
+            "mentions": [
+                {
+                    "id": "ou_bot",
+                    "key": "@_user_1",
+                    "name": "小知行",
+                }
+            ],
+        }
+        popen.return_value = FakeProcess(json.dumps(event) + "\n")
+
+        messages = list(LarkCliEventSource(remote_config()).messages())
+
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(messages[0].content, "/quant status")
+
+    @patch(
+        "quant_monitor.infrastructure.lark_events.shutil.which",
+        return_value="/usr/local/bin/lark-cli",
+    )
     @patch("quant_monitor.infrastructure.lark_events.subprocess.run")
     def test_reply_uses_bot_and_structured_payload(self, run, _which) -> None:
         LarkCliReplier(remote_config()).reply("om_1", "执行完成")
