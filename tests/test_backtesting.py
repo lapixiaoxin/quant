@@ -4,8 +4,18 @@ import unittest
 from datetime import date, timedelta
 
 from quant_monitor.application.backtesting import BacktestService
-from quant_monitor.domain.backtesting import BacktestSignal, BacktestSpecification
-from quant_monitor.domain.models import DailyBar, Instrument, InstrumentType
+from quant_monitor.domain.backtesting import (
+    BacktestSignal,
+    BacktestSpecification,
+    DividendYieldPercentileAllocationModel,
+)
+from quant_monitor.domain.models import (
+    DailyBar,
+    Instrument,
+    InstrumentType,
+    ValuationObservation,
+)
+from quant_monitor.domain.strategies.etf import DividendYieldDynamicStrategy
 
 
 class TrackingModel:
@@ -153,6 +163,119 @@ class BacktestingContractTest(unittest.TestCase):
             1_000 / 1.01,
         )
         self.assertLess(result.metrics.total_return, 0)
+
+
+class DividendYieldBacktestModelTest(unittest.TestCase):
+    def setUp(self) -> None:
+        first_day = date(2024, 1, 1)
+        self.bars = tuple(
+            DailyBar(
+                trading_date=first_day + timedelta(days=index),
+                open=100,
+                close=(
+                    90
+                    if index == 241
+                    else 100
+                ),
+                high=100,
+                low=90,
+                volume=1_000,
+                amount=100_000,
+                amplitude_pct=0,
+                change_pct=0,
+                turnover_pct=0,
+            )
+            for index in range(270)
+        )
+        filler_start = first_day - timedelta(days=800)
+        valuation_dates = {
+            filler_start + timedelta(days=index)
+            for index in range(727)
+        }
+        valuation_dates.update(item.trading_date for item in self.bars)
+        observations = tuple(
+            ValuationObservation(
+                valuation_symbol="000151",
+                observation_date=observation_date,
+                metric="dividend_yield",
+                weighting="market_cap_weighted",
+                history_window="y3",
+                value=0.065,
+                percentile=(
+                    0.10
+                    if observation_date >= self.bars[261].trading_date
+                    else 0.75
+                ),
+                percentile_20_value=0.05,
+                percentile_50_value=0.06,
+                percentile_80_value=0.07,
+                source="测试估值",
+                source_url="https://example.com",
+            )
+            for observation_date in sorted(valuation_dates)
+        )
+        self.model = DividendYieldPercentileAllocationModel(
+            DividendYieldDynamicStrategy(),
+            observations,
+        )
+        self.parameters = {
+            "profile_id": "dynamic",
+            "rebalance_interval_days": 20,
+            "valuation_timing": "point_in_time",
+            "missing_valuation_policy": "reject",
+            "fundamental_guard_mode": "index_methodology_proxy",
+            "strategy_parameters": {
+                "minimum_history_observations": 726,
+                "expensive_percentile": 0.20,
+                "first_add_percentile": 0.70,
+                "second_add_percentile": 0.85,
+                "full_add_percentile": 0.95,
+                "minimum_weight": 0.20,
+                "base_weight": 0.30,
+                "first_add_weight": 0.50,
+                "second_add_weight": 0.75,
+                "full_weight": 1.00,
+                "first_add_drawdown": -0.05,
+                "second_add_drawdown": -0.10,
+                "full_add_drawdown": -0.15,
+                "dividend_cut_limit": -0.15,
+            },
+        }
+
+    def test_maps_percentile_and_drawdown_to_target_weight(self) -> None:
+        signal = self.model.generate_signal(
+            instrument(),
+            self.bars[:242],
+            self.parameters,
+        )
+
+        self.assertEqual(signal.target_weight, 0.50)
+        self.assertIn("历史分位 75.00%", signal.reason)
+        self.assertIn("242日回撤 -10.00%", signal.reason)
+
+    def test_keeps_target_between_twenty_day_rebalances(self) -> None:
+        before_next_rebalance = self.model.generate_signal(
+            instrument(),
+            self.bars[:261],
+            self.parameters,
+        )
+        on_next_rebalance = self.model.generate_signal(
+            instrument(),
+            self.bars[:262],
+            self.parameters,
+        )
+
+        self.assertEqual(before_next_rebalance.target_weight, 0.50)
+        self.assertEqual(on_next_rebalance.target_weight, 0.20)
+
+    def test_rejects_non_point_in_time_mode(self) -> None:
+        with self.assertRaisesRegex(ValueError, "point_in_time"):
+            self.model.validate_parameters(
+                {
+                    **self.parameters,
+                    "valuation_timing": "full_sample",
+                }
+            )
 
 
 if __name__ == "__main__":

@@ -12,7 +12,13 @@ from ..domain.control_plane import (
     ReportRecord,
     SelectionRunRecord,
 )
-from ..domain.models import DailyBar, HistorySummary, Instrument, MarketBundle
+from ..domain.models import (
+    DailyBar,
+    HistorySummary,
+    Instrument,
+    MarketBundle,
+    ValuationObservation,
+)
 
 
 class MarketDataProvider(Protocol):
@@ -45,6 +51,25 @@ class MarketHistoryRepository(Protocol):
 
     def summarize(self, symbol: str) -> HistorySummary:
         """返回一个标的在本地历史库中的覆盖情况。"""
+
+    def save_valuation_observations(
+        self,
+        observations: tuple[ValuationObservation, ...],
+        fetched_at: datetime,
+    ) -> None:
+        """幂等保存带来源和事实日期的指数估值时序。"""
+
+    def load_valuation_observations(
+        self,
+        valuation_symbol: str,
+        *,
+        metric: str,
+        weighting: str,
+        history_window: str,
+        start_date: date | None = None,
+        end_date: date | None = None,
+    ) -> tuple[ValuationObservation, ...]:
+        """按时间升序读取指定口径的估值时序。"""
 
 
 class ResearchRepository(Protocol):

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>红利股息率动态配置策略 v1.0.0 · Quant Monitor</title>
-  <link rel="stylesheet" href="../../docs/assets/docs.css?v=0.10.1">
+  <link rel="stylesheet" href="../../docs/assets/docs.css?v=0.11.0">
   <style>
     @media (max-width: 620px) {
       .hero > div,
@@ -44,7 +44,7 @@
           <div><dt>生命周期</dt><dd>draft</dd></div>
           <div><dt>验证状态</dt><dd>pending</dd></div>
           <div><dt>事实日期</dt><dd>2026-08-14</dd></div>
-          <div><dt>严格回测</dt><dd>被数据门禁阻断</dd></div>
+          <div><dt>基线回测</dt><dd>已完成，仍待验证</dd></div>
         </dl>
       </aside>
     </section>
@@ -232,27 +232,46 @@
       <div class="section-head">
         <p class="section-label">回测</p>
         <div>
-          <h2>现在不能宣称策略已验证</h2>
-          <p class="section-intro">本地只有约 500 根 ETF 价格日线，没有历史股息率时序。</p>
+          <h2>510720 基线降低了风险，也明显牺牲了收益</h2>
+          <p class="section-intro">
+            当前参数未经优化；结果用于识别策略性格，不用于证明策略有效。
+          </p>
         </div>
+      </div>
+      <div class="metric-row">
+        <div class="metric"><strong>2.08%</strong><span>策略总收益</span></div>
+        <div class="metric"><strong>6.13%</strong><span>同期持有收益</span></div>
+        <div class="metric"><strong>-4.06%</strong><span>策略最大回撤</span></div>
+        <div class="metric"><strong>-14.39%</strong><span>持有最大回撤</span></div>
+        <div class="metric"><strong>23.88%</strong><span>平均目标仓位</span></div>
+        <div class="metric"><strong>-4.05%</strong><span>相对持有差额</span></div>
+        <div class="metric"><strong>5</strong><span>交易次数</span></div>
+        <div class="metric"><strong>0.63x</strong><span>累计换手</span></div>
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>所需输入</th><th>当前状态</th><th>缺失时的处理</th></tr></thead>
+          <thead><tr><th>项目</th><th>本次口径</th><th>结论边界</th></tr></thead>
           <tbody>
-            <tr><td>逐日指数股息率与当时可见财务数据</td><td>未接入</td><td>拒绝运行估值回测</td></tr>
-            <tr><td>至少 3 年，推荐 10 年历史</td><td>网页仅可读取当前分位与近期明细</td><td>不手工拼接、不猜测</td></tr>
-            <tr><td>价格指数与全收益指数</td><td>产品价格日线可用</td><td>后续需补全收益基准</td></tr>
-            <tr><td>分红削减、盈利、现金流门禁时序</td><td>只有当前/低频事实</td><td>不允许使用未来年报回填过去信号</td></tr>
+            <tr><td>估值输入</td><td>000151 市值加权股息率，727 个逐日时点分位</td><td>公开窗口仅三年</td></tr>
+            <tr><td>价格输入</td><td>510720 前复权日线，2024-07-24 至 2026-08-14</td><td>近似含分红表现，未单列现金分红</td></tr>
+            <tr><td>有效执行区间</td><td>2025-07-24 至 2026-08-14</td><td>先预留 242 日回撤窗口，仅约一年</td></tr>
+            <tr><td>仓位覆盖</td><td>20%：158 日；30%：100 日</td><td>没有触发 50%、75% 或 100% 增配档</td></tr>
+            <tr><td>基本面门禁</td><td>用指数连续分红与支付率选样规则代理</td><td>尚未逐日回放盈利、现金流和分红削减</td></tr>
           </tbody>
         </table>
       </div>
+      <div class="notice">
+        <strong>如何理解：</strong>策略最大回撤和波动显著低于持有，主要原因是平均仅使用
+        23.88% 的目标仓位，而不是已经证明存在择时超额收益。样本期没有覆盖股息率
+        70% 以上的增配区，因此本次最关键的“低估加仓”逻辑实际上尚未被检验。
+      </div>
+      <p><a href="../../data/backtests/510720/20260817T001818-9a8b86af.html">查看 510720 完整基线回测报告</a></p>
       <p><strong>后续验收顺序：</strong></p>
       <ol>
-        <li>接入只追加的指数估值历史，保存来源、事实日期、抓取时间和计算口径。</li>
-        <li>按时间划分训练、验证和样本外区间，不在全样本上搜索阈值。</li>
-        <li>比较长期持有、固定价格网格、原视频规则、股息率分位策略和增强策略。</li>
-        <li>同时报告年化收益、最大回撤、夏普、换手、资金利用率、最大套牢时间和失败区间。</li>
+        <li>补足五至十年估值历史，并使用指数或更长存续产品覆盖完整牛熊周期。</li>
+        <li>单独回放 ETF 现金分红、前复权价格和分红再投资，避免收益口径混淆。</li>
+        <li>接入逐日可见的分红削减、盈利与现金流门禁，替换当前指数规则代理。</li>
+        <li>再比较长期持有、原视频价格网格、纯股息率策略和增强策略。</li>
         <li>单次回测不自动把策略从 `pending` 改为 `passed`。</li>
       </ol>
     </section>
@@ -285,6 +304,6 @@
       <span>研究材料，不替代人的最终决策</span>
     </div>
   </footer>
-  <script src="../../docs/assets/navigation.js?v=0.10.1"></script>
+  <script src="../../docs/assets/navigation.js?v=0.11.0"></script>
 </body>
 </html>

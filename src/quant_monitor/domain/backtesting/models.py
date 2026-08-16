@@ -74,6 +74,8 @@ class BacktestMetrics:
     turnover: float
     trade_count: int
     benchmark_return: float | None = None
+    benchmark_max_drawdown: float | None = None
+    benchmark_annualized_volatility: float | None = None
     excess_return: float | None = None
 
 

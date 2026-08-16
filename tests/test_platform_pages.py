@@ -275,6 +275,11 @@ type = "etf"
             self.assertIn("第一增配分位", html)
             self.assertIn("70.00%", html)
             self.assertIn("dividend_yield_dynamic", html)
+            self.assertIn("分位、仓位和回撤对应表", html)
+            self.assertIn("242日回撤", html)
+            self.assertIn("术语速查", html)
+            self.assertIn("策略预算中计划暴露", html)
+            self.assertIn("查看原始参数名", html)
 
     def test_strategy_record_exposes_expandable_auditable_details(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

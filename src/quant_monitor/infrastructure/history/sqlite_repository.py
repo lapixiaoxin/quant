@@ -11,13 +11,14 @@ from ...domain.models import (
     HistorySummary,
     Instrument,
     MarketBundle,
+    ValuationObservation,
 )
 
 
 class SQLiteMarketHistoryRepository:
     """以单文件事务数据库保存中长线研究需要的日线数据。"""
 
-    schema_version = 1
+    schema_version = 2
 
     def __init__(self, database_path: Path) -> None:
         self.database_path = database_path
@@ -101,7 +102,46 @@ class SQLiteMarketHistoryRepository:
                     INSERT OR IGNORE INTO schema_migrations (version, applied_at)
                     VALUES (?, ?)
                     """,
-                    (self.schema_version, datetime.now().astimezone().isoformat()),
+                    (1, datetime.now().astimezone().isoformat()),
+                )
+                current_version = 1
+            if current_version < 2:
+                connection.executescript(
+                    """
+                    CREATE TABLE IF NOT EXISTS valuation_observations (
+                        valuation_symbol TEXT NOT NULL,
+                        observation_date TEXT NOT NULL,
+                        metric TEXT NOT NULL,
+                        weighting TEXT NOT NULL,
+                        history_window TEXT NOT NULL,
+                        value REAL NOT NULL,
+                        percentile REAL NOT NULL,
+                        percentile_20_value REAL NOT NULL,
+                        percentile_50_value REAL NOT NULL,
+                        percentile_80_value REAL NOT NULL,
+                        source TEXT NOT NULL,
+                        source_url TEXT NOT NULL,
+                        fetched_at TEXT NOT NULL,
+                        PRIMARY KEY (
+                            valuation_symbol,
+                            observation_date,
+                            metric,
+                            weighting,
+                            history_window
+                        )
+                    );
+
+                    CREATE INDEX IF NOT EXISTS
+                    valuation_observations_date_idx
+                    ON valuation_observations (observation_date);
+                    """
+                )
+                connection.execute(
+                    """
+                    INSERT OR IGNORE INTO schema_migrations (version, applied_at)
+                    VALUES (?, ?)
+                    """,
+                    (2, datetime.now().astimezone().isoformat()),
                 )
 
     def save_bundle(
@@ -244,6 +284,125 @@ class SQLiteMarketHistoryRepository:
                 amplitude_pct=float(row["amplitude_pct"]),
                 change_pct=float(row["change_pct"]),
                 turnover_pct=float(row["turnover_pct"]),
+            )
+            for row in records
+        )
+
+    def save_valuation_observations(
+        self,
+        observations: tuple[ValuationObservation, ...],
+        fetched_at: datetime,
+    ) -> None:
+        if not observations:
+            raise ValueError("没有可保存的指数估值")
+        identity = {
+            (
+                item.valuation_symbol,
+                item.metric,
+                item.weighting,
+                item.history_window,
+            )
+            for item in observations
+        }
+        if len(identity) != 1:
+            raise ValueError("一次估值保存只能包含同一指数、指标和窗口")
+        timestamp = fetched_at.isoformat()
+        rows = [
+            (
+                item.valuation_symbol,
+                item.observation_date.isoformat(),
+                item.metric,
+                item.weighting,
+                item.history_window,
+                item.value,
+                item.percentile,
+                item.percentile_20_value,
+                item.percentile_50_value,
+                item.percentile_80_value,
+                item.source,
+                item.source_url,
+                timestamp,
+            )
+            for item in observations
+        ]
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            connection.executemany(
+                """
+                INSERT INTO valuation_observations (
+                    valuation_symbol, observation_date, metric, weighting,
+                    history_window, value, percentile,
+                    percentile_20_value, percentile_50_value,
+                    percentile_80_value, source, source_url, fetched_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT (
+                    valuation_symbol, observation_date, metric, weighting,
+                    history_window
+                ) DO UPDATE SET
+                    value = excluded.value,
+                    percentile = excluded.percentile,
+                    percentile_20_value = excluded.percentile_20_value,
+                    percentile_50_value = excluded.percentile_50_value,
+                    percentile_80_value = excluded.percentile_80_value,
+                    source = excluded.source,
+                    source_url = excluded.source_url,
+                    fetched_at = excluded.fetched_at
+                """,
+                rows,
+            )
+
+    def load_valuation_observations(
+        self,
+        valuation_symbol: str,
+        *,
+        metric: str,
+        weighting: str,
+        history_window: str,
+        start_date: date | None = None,
+        end_date: date | None = None,
+    ) -> tuple[ValuationObservation, ...]:
+        clauses = [
+            "valuation_symbol = ?",
+            "metric = ?",
+            "weighting = ?",
+            "history_window = ?",
+        ]
+        parameters: list[object] = [
+            valuation_symbol,
+            metric,
+            weighting,
+            history_window,
+        ]
+        if start_date is not None:
+            clauses.append("observation_date >= ?")
+            parameters.append(start_date.isoformat())
+        if end_date is not None:
+            clauses.append("observation_date <= ?")
+            parameters.append(end_date.isoformat())
+        query = (
+            "SELECT valuation_symbol, observation_date, metric, weighting, "
+            "history_window, value, percentile, percentile_20_value, "
+            "percentile_50_value, percentile_80_value, source, source_url "
+            "FROM valuation_observations WHERE "
+            + " AND ".join(clauses)
+            + " ORDER BY observation_date ASC"
+        )
+        with self._connect() as connection:
+            records = connection.execute(query, parameters).fetchall()
+        return tuple(
+            ValuationObservation(
+                valuation_symbol=str(row["valuation_symbol"]),
+                observation_date=date.fromisoformat(row["observation_date"]),
+                metric=str(row["metric"]),
+                weighting=str(row["weighting"]),
+                history_window=str(row["history_window"]),
+                value=float(row["value"]),
+                percentile=float(row["percentile"]),
+                percentile_20_value=float(row["percentile_20_value"]),
+                percentile_50_value=float(row["percentile_50_value"]),
+                percentile_80_value=float(row["percentile_80_value"]),
+                source=str(row["source"]),
+                source_url=str(row["source_url"]),
             )
             for row in records
         )

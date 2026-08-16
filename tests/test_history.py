@@ -12,6 +12,7 @@ from quant_monitor.domain.models import (
     InstrumentType,
     MarketBundle,
     MarketQuote,
+    ValuationObservation,
 )
 from quant_monitor.infrastructure.history import SQLiteMarketHistoryRepository
 
@@ -84,7 +85,7 @@ class SQLiteMarketHistoryRepositoryTest(unittest.TestCase):
                 connection.execute(
                     """
                     INSERT INTO schema_migrations (version, applied_at)
-                    VALUES (2, '2026-08-15T00:00:00+00:00')
+                    VALUES (3, '2026-08-15T00:00:00+00:00')
                     """
                 )
 
@@ -137,6 +138,52 @@ class SQLiteMarketHistoryRepositoryTest(unittest.TestCase):
                 [item.trading_date for item in bars],
                 [date(2026, 8, 14)],
             )
+
+    def test_valuation_migration_and_upsert_are_idempotent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            repository = SQLiteMarketHistoryRepository(
+                Path(directory) / "history.sqlite3"
+            )
+            observation = ValuationObservation(
+                valuation_symbol="000151",
+                observation_date=date(2026, 8, 14),
+                metric="dividend_yield",
+                weighting="market_cap_weighted",
+                history_window="y3",
+                value=0.0433,
+                percentile=0.1157,
+                percentile_20_value=0.0443,
+                percentile_50_value=0.0529,
+                percentile_80_value=0.0662,
+                source="测试估值源",
+                source_url="https://example.com/000151",
+            )
+            repository.save_valuation_observations(
+                (observation,),
+                datetime(2026, 8, 15, tzinfo=timezone.utc),
+            )
+            updated = ValuationObservation(
+                **{
+                    **observation.__dict__,
+                    "value": 0.0434,
+                }
+            )
+            repository.save_valuation_observations(
+                (updated,),
+                datetime(2026, 8, 16, tzinfo=timezone.utc),
+            )
+
+            records = repository.load_valuation_observations(
+                "000151",
+                metric="dividend_yield",
+                weighting="market_cap_weighted",
+                history_window="y3",
+            )
+
+            self.assertEqual(repository.schema_version, 2)
+            self.assertEqual(len(records), 1)
+            self.assertEqual(records[0].value, 0.0434)
+            self.assertEqual(records[0].percentile, 0.1157)
 
 
 if __name__ == "__main__":

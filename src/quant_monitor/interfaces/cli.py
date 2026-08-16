@@ -31,6 +31,7 @@ from ..domain.factors import FactorRegistry
 from ..domain.strategies import StrategyRegistry
 from ..infrastructure.control_repository import SQLiteControlPlaneRepository
 from ..infrastructure.history import SQLiteMarketHistoryRepository
+from ..infrastructure.index_valuation import LixingerIndexValuationProvider
 from ..infrastructure.lark_events import LarkCliEventSource, LarkCliReplier
 from ..infrastructure.market_data import DataSourceError, FallbackMarketDataProvider
 from ..infrastructure.notifications import (
@@ -293,6 +294,20 @@ def _parser() -> argparse.ArgumentParser:
         help="查看本地 SQLite 历史行情覆盖情况",
     )
     _add_target_options(history_parser)
+    valuation_parser = subparsers.add_parser(
+        "valuation-sync",
+        help="按策略记录同步可回放的指数估值历史",
+    )
+    valuation_parser.add_argument(
+        "--strategy-record",
+        required=True,
+        help="策略目录 record_id",
+    )
+    valuation_parser.add_argument(
+        "--input",
+        type=Path,
+        help="可选的已下载 pageData 脚本；省略时从公开页面获取",
+    )
     select_parser = subparsers.add_parser(
         "select",
         help="按候选池执行确定性标的初筛",
@@ -569,6 +584,49 @@ def main() -> int:
                     f"{symbol}\t{summary.bar_count} 根\t{coverage}\t"
                     f"最近来源：{source}"
                 )
+            return 0
+
+        if args.command == "valuation-sync":
+            record = strategy_catalog.record(args.strategy_record)
+            parameters = record.backtest_parameters
+            index_code = str(parameters.get("valuation_symbol", "")).strip()
+            exchange = str(
+                parameters.get("valuation_exchange", "")
+            ).strip()
+            ticker_id = int(parameters.get("valuation_ticker_id", 0))
+            if not index_code or not exchange or ticker_id <= 0:
+                raise ValueError(
+                    f"策略记录 {record.record_id} 缺少估值源标识"
+                )
+            provider = LixingerIndexValuationProvider()
+            if args.input:
+                page_url = provider.page_url_template.format(
+                    exchange=exchange,
+                    index_code=index_code,
+                    ticker_id=ticker_id,
+                )
+                observations = provider.parse(
+                    args.input.read_text(encoding="utf-8"),
+                    index_code=index_code,
+                    source_url=page_url,
+                )
+            else:
+                observations = provider.fetch(
+                    exchange=exchange,
+                    index_code=index_code,
+                    ticker_id=ticker_id,
+                )
+            fetched_at = datetime.now().astimezone().replace(microsecond=0)
+            history_repository.save_valuation_observations(
+                observations,
+                fetched_at,
+            )
+            print(
+                f"指数估值：{index_code}，{len(observations)} 根，"
+                f"{observations[0].observation_date} 至 "
+                f"{observations[-1].observation_date}"
+            )
+            print(f"来源：{observations[-1].source_url}")
             return 0
 
         if args.command == "backtest":

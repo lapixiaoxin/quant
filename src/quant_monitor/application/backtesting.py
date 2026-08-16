@@ -13,11 +13,14 @@ from ..domain.backtesting import (
     AttentionScoreAllocationModel,
     BacktestMetrics,
     BacktestResult,
+    BacktestSignalModel,
     BacktestSpecification,
+    DividendYieldPercentileAllocationModel,
     EquityPoint,
 )
 from ..domain.models import DailyBar, Instrument
 from ..domain.strategies import StrategyRegistry
+from ..domain.strategies.etf import DividendYieldDynamicStrategy
 from ..infrastructure.strategy_catalog import StrategyCatalog
 from .ports import MarketHistoryRepository
 
@@ -31,12 +34,27 @@ def _max_drawdown(values: list[float]) -> float:
     return worst
 
 
+def _annualized_volatility(values: list[float]) -> float | None:
+    returns = [
+        values[index] / values[index - 1] - 1
+        for index in range(1, len(values))
+        if values[index - 1] != 0
+    ]
+    return (
+        statistics.stdev(returns) * math.sqrt(242)
+        if len(returns) >= 2
+        else None
+    )
+
+
 def _metrics(
     specification: BacktestSpecification,
     equity_curve: tuple[EquityPoint, ...],
     traded_notional: float,
     trade_count: int,
     benchmark_return: float | None,
+    benchmark_max_drawdown: float | None,
+    benchmark_annualized_volatility: float | None,
 ) -> BacktestMetrics:
     equities = [item.equity for item in equity_curve]
     total_return = equities[-1] / specification.initial_cash - 1
@@ -53,11 +71,7 @@ def _metrics(
         for index in range(1, len(equities))
         if equities[index - 1] != 0
     ]
-    volatility = (
-        statistics.stdev(returns) * math.sqrt(242)
-        if len(returns) >= 2
-        else None
-    )
+    volatility = _annualized_volatility(equities)
     sharpe = (
         statistics.fmean(returns) / statistics.stdev(returns) * math.sqrt(242)
         if len(returns) >= 2 and statistics.stdev(returns) > 0
@@ -73,6 +87,8 @@ def _metrics(
         turnover=traded_notional / average_equity,
         trade_count=trade_count,
         benchmark_return=benchmark_return,
+        benchmark_max_drawdown=benchmark_max_drawdown,
+        benchmark_annualized_volatility=benchmark_annualized_volatility,
         excess_return=(
             total_return - benchmark_return
             if benchmark_return is not None
@@ -132,17 +148,65 @@ class BacktestService:
             raise ValueError("回测规格模型版本与策略目录不一致")
         if specification.parameters_fingerprint != record.parameters_fingerprint:
             raise ValueError("回测规格参数指纹与策略目录不一致")
-        if record.backtest_model_id != "attention_score_allocation":
-            raise ValueError(
-                f"未注册回测模型 {record.backtest_model_id!r}"
-            )
         strategy = self._strategies.get(
             str(record.backtest_parameters.get(
                 "strategy_id",
                 "dividend_low_vol",
             ))
         )
-        model = AttentionScoreAllocationModel(strategy)
+        model: BacktestSignalModel
+        model_warnings: tuple[str, ...] = ()
+        if record.backtest_model_id == "attention_score_allocation":
+            model = AttentionScoreAllocationModel(strategy)
+        elif (
+            record.backtest_model_id
+            == "dividend_yield_percentile_allocation"
+        ):
+            valuation_symbol = str(
+                record.backtest_parameters.get("valuation_symbol", "")
+            )
+            if not valuation_symbol:
+                raise ValueError("动态股息率回测缺少 valuation_symbol")
+            if not isinstance(strategy, DividendYieldDynamicStrategy):
+                raise ValueError(
+                    "动态股息率回测模型必须绑定 dividend_yield_dynamic 策略"
+                )
+            valuations = self._history.load_valuation_observations(
+                valuation_symbol,
+                metric=str(
+                    record.backtest_parameters.get(
+                        "valuation_metric",
+                        "dividend_yield",
+                    )
+                ),
+                weighting=str(
+                    record.backtest_parameters.get(
+                        "valuation_weighting",
+                        "market_cap_weighted",
+                    )
+                ),
+                history_window=str(
+                    record.backtest_parameters.get(
+                        "valuation_history_window",
+                        "y3",
+                    )
+                ),
+                end_date=specification.end_date,
+            )
+            model = DividendYieldPercentileAllocationModel(
+                strategy,
+                valuations,
+            )
+            model_warnings = (
+                "基本面门禁暂以指数编制规则代理，未逐日回放盈利、现金流和分红削减",
+                "价格使用前复权 ETF 日线近似含分红表现，未单列现金分红与再投资税费",
+                "公开估值窗口只有三年，且 ETF 成立较晚，"
+                "本次有效验证区间不足一个完整周期",
+            )
+        else:
+            raise ValueError(
+                f"未注册回测模型 {record.backtest_model_id!r}"
+            )
         parameters = {
             **record.backtest_parameters,
             "profile_id": record.profile_id,
@@ -164,6 +228,7 @@ class BacktestService:
             specification,
             model,
             parameters,
+            warnings=model_warnings,
         )
 
     @staticmethod
@@ -171,8 +236,10 @@ class BacktestService:
         instrument: Instrument,
         bars: tuple[DailyBar, ...],
         specification: BacktestSpecification,
-        model: AttentionScoreAllocationModel,
+        model: BacktestSignalModel,
         parameters: dict[str, Any],
+        *,
+        warnings: tuple[str, ...] = (),
     ) -> BacktestResult:
         cash = specification.initial_cash
         shares = 0.0
@@ -221,11 +288,16 @@ class BacktestService:
             )
         if not equity_curve:
             raise ValueError("回测没有生成权益曲线")
+        benchmark_values = [bars[model.minimum_bars].open] + [
+            item.close for item in bars[model.minimum_bars :]
+        ]
         benchmark_return = (
-            bars[-1].close / bars[model.minimum_bars].open - 1
-            if bars[model.minimum_bars].open
+            benchmark_values[-1] / benchmark_values[0] - 1
+            if benchmark_values[0]
             else None
         )
+        benchmark_max_drawdown = _max_drawdown(benchmark_values)
+        benchmark_volatility = _annualized_volatility(benchmark_values)
         result = BacktestResult(
             specification=specification,
             metrics=_metrics(
@@ -234,13 +306,16 @@ class BacktestService:
                 traded_notional,
                 trade_count,
                 benchmark_return,
+                benchmark_max_drawdown,
+                benchmark_volatility,
             ),
             equity_curve=tuple(equity_curve),
             warnings=(
                 "信号使用前一交易日及更早数据，在下一交易日开盘执行",
                 "该目标仓位映射仅用于验证，不是线上自动交易指令",
-                "结果未包含涨跌停、停牌、分红再投资和申赎冲击",
-            ),
+                "结果未包含涨跌停、停牌和申赎冲击",
+            )
+            + warnings,
         )
         return result
 

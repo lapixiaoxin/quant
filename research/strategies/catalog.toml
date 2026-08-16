@@ -5,7 +5,7 @@ record_id = "dividend-yield-dynamic-v1"
 profile_id = "dividend_yield_dynamic_v1"
 version = "1.0.0"
 name = "红利股息率动态配置策略"
-symbols = ["512890", "510720", "159581", "159209", "513530"]
+symbols = ["510720"]
 horizon = "long"
 lifecycle = "draft"
 validation_state = "pending"
@@ -20,6 +20,13 @@ strategy_id = "dividend_yield_dynamic"
 rebalance_interval_days = 20
 valuation_timing = "point_in_time"
 missing_valuation_policy = "reject"
+valuation_symbol = "000151"
+valuation_exchange = "sh"
+valuation_ticker_id = 151
+valuation_metric = "dividend_yield"
+valuation_weighting = "market_cap_weighted"
+valuation_history_window = "y3"
+fundamental_guard_mode = "index_methodology_proxy"
 
 [strategies.backtest_parameters.strategy_parameters]
 minimum_history_observations = 726

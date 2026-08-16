@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>策略与回测 · Quant Monitor</title>
   <link rel="stylesheet"
-    href="../../docs/assets/docs.css?v=0.10.1">
+    href="../../docs/assets/docs.css?v=0.11.0">
 </head>
 <body class="module-page module-strategy">
   <header class="site-header">
@@ -69,7 +69,7 @@
             </span>
             <span class="strategy-record-facts">
               <span><small>标的</small>
-                <strong>512890、510720、159581、159209、513530</strong></span>
+                <strong>510720</strong></span>
               <span><small>版本</small>
                 <strong>1.0.0</strong></span>
               <span><small>期限</small>
@@ -84,29 +84,93 @@
                 待验证
               </span>
               <span class="status conditional">
-                草案未配置
+                研究标的停用
               </span>
               <span class="strategy-expand">详情</span>
             </span>
           </summary>
           <div class="strategy-record-body">
             <section class="strategy-thesis">
-              <h3>策略逻辑</h3>
+              <h3>一句话逻辑</h3>
               <p>以可回放的股息率历史分位决定研究目标仓位，以242日回撤确认增配，并以分红削减和基本面状态阻断越跌越买；缺少估值历史时拒绝方向性结论。</p>
             </section>
-            <div class="strategy-detail-columns">
-              <section>
-                <h3>线上判断参数</h3>
-                <dl class="strategy-parameters"><div><dt>最少估值观察数</dt><dd>726</dd></div><div><dt>偏贵分位上限</dt><dd>20.00%</dd></div><div><dt>第一增配分位</dt><dd>70.00%</dd></div><div><dt>第二增配分位</dt><dd>85.00%</dd></div><div><dt>充分增配分位</dt><dd>95.00%</dd></div><div><dt>最低研究仓位</dt><dd>20.00%</dd></div><div><dt>核心研究仓位</dt><dd>30.00%</dd></div><div><dt>第一增配仓位</dt><dd>50.00%</dd></div><div><dt>第二增配仓位</dt><dd>75.00%</dd></div><div><dt>高关注回测仓位</dt><dd>100.00%</dd></div><div><dt>第一回撤确认</dt><dd>-5.00%</dd></div><div><dt>第二回撤确认</dt><dd>-10.00%</dd></div><div><dt>充分回撤确认</dt><dd>-15.00%</dd></div><div><dt>分红削减失效线</dt><dd>-15.00%</dd></div></dl>
-              </section>
-              <section>
-                <h3>回测参数</h3>
-                <dl class="strategy-parameters"><div><dt>线上策略</dt><dd>dividend_yield_dynamic</dd></div><div><dt>最短再平衡交易日</dt><dd>20</dd></div><div><dt>valuation_timing</dt><dd>point_in_time</dd></div><div><dt>missing_valuation_policy</dt><dd>reject</dd></div><div><dt>strategy_parameters</dt><dd>{&quot;base_weight&quot;: 0.3, &quot;dividend_cut_limit&quot;: -0.15, &quot;expensive_percentile&quot;: 0.2, &quot;first_add_drawdown&quot;: -0.05, &quot;first_add_percentile&quot;: 0.7, &quot;first_add_weight&quot;: 0.5, &quot;full_add_drawdown&quot;: -0.15, &quot;full_add_percentile&quot;: 0.95, &quot;full_weight&quot;: 1.0, &quot;minimum_history_observations&quot;: 726, &quot;minimum_weight&quot;: 0.2, &quot;second_add_drawdown&quot;: -0.1, &quot;second_add_percentile&quot;: 0.85, &quot;second_add_weight&quot;: 0.75}</dd></div></dl>
-                <p class="strategy-boundary">
-                  回测仓位仅用于历史模拟，不代表实盘仓位或自动交易指令。
-                </p>
-              </section>
-            </div>
+            <section class="strategy-reading-guide">
+              <h3>判断顺序</h3>
+              <ol class="strategy-flow">
+                <li><span>1</span><strong>先看历史分位</strong>
+                  <small>分位越高，当前股息率相对历史越高。</small></li>
+                <li><span>2</span><strong>映射目标仓位</strong>
+                  <small>先按分位找到对应档位。</small></li>
+                <li><span>3</span><strong>检查回撤确认</strong>
+                  <small>只有高分位且价格已有回撤，才完成增配。</small></li>
+                <li><span>4</span><strong>通过基本面门禁</strong>
+                  <small>分红或盈利恶化时禁止越跌越加。</small></li>
+              </ol>
+            </section>
+            <section class="strategy-decision-section">
+              <div class="strategy-section-heading">
+                <h3>分位、仓位和回撤对应表</h3>
+                <p>目标仓位是策略预算内部的研究敞口，不是总账户仓位。</p>
+              </div>
+              <div class="table-wrap">
+                <table class="strategy-decision-table">
+                  <thead><tr><th>股息率历史分位</th><th>状态</th>
+                    <th>目标仓位</th><th>回撤确认</th>
+                    <th>未确认时</th></tr></thead>
+                  <tbody><tr><td><strong>0–20%</strong></td><td>估值偏贵</td><td><strong>20%</strong></td><td>不要求</td><td>不新增动态仓位</td></tr><tr><td><strong>20%–70%</strong></td><td>核心观察</td><td><strong>30%</strong></td><td>不要求</td><td>保留核心研究敞口</td></tr><tr><td><strong>70%–85%</strong></td><td>第一增配区</td><td><strong>50%</strong></td><td>242日回撤 ≤ -5%</td><td>未确认则保持 30%</td></tr><tr><td><strong>85%–95%</strong></td><td>第二增配区</td><td><strong>75%</strong></td><td>242日回撤 ≤ -10%</td><td>未确认则降为 50%</td></tr><tr><td><strong>95%–100%</strong></td><td>极端低估区</td><td><strong>100%</strong></td><td>242日回撤 ≤ -15%</td><td>未确认则降为 75%</td></tr></tbody>
+                </table>
+              </div>
+            </section>
+            <section class="strategy-guard-section">
+              <div class="strategy-section-heading">
+                <h3>增配前必须通过的门禁</h3>
+                <p>任一关键输入不可靠，都不输出积极方向。</p>
+              </div>
+              <dl class="strategy-guard-list">
+                <div><dt>726 个观察值</dt>
+                  <dd>股息率历史至少约三年，避免短样本分位失真。</dd></div>
+                <div><dt>-15% 分红削减线</dt>
+                  <dd>达到该幅度视为基本面失效，只保留最低研究仓位。</dd></div>
+                <div><dt>数据陈旧或缺失</dt>
+                  <dd>直接阻断判断，不降级成“价格跌了就买”。</dd></div>
+              </dl>
+            </section>
+            <section class="strategy-execution-section">
+              <div class="strategy-section-heading">
+                <h3>回测如何执行</h3>
+                <p>这里描述历史模拟口径，不代表实盘订单。</p>
+              </div>
+              <div class="table-wrap">
+                <table class="strategy-execution-table">
+                  <thead><tr><th>项目</th><th>当前设置</th>
+                    <th>实际含义</th></tr></thead>
+                  <tbody><tr><td><strong>再平衡间隔</strong><small>rebalance_interval_days</small></td><td>20 个交易日</td><td>约每月评估一次；期间保持上次目标仓位。</td></tr><tr><td><strong>估值来源标的</strong><small>valuation_symbol</small></td><td>000151</td><td>510720 跟踪的上证国有企业红利指数代码。</td></tr><tr><td><strong>估值统计窗口</strong><small>valuation_history_window</small></td><td>滚动 3 年</td><td>使用来源逐日发布的三年历史分位，不用全样本未来数据重算。</td></tr><tr><td><strong>估值加权口径</strong><small>valuation_weighting</small></td><td>市值加权</td><td>按成分股市值汇总指数股息率；不同加权口径不能混用。</td></tr><tr><td><strong>信号时点</strong><small>valuation_timing</small></td><td>时点一致</td><td>只使用当时已经公开的数据，信号次一交易日开盘执行。</td></tr><tr><td><strong>数据缺失</strong><small>missing_valuation_policy</small></td><td>拒绝运行</td><td>缺少同日股息率或历史不足时停止，不用价格回撤代替。</td></tr><tr><td><strong>基本面门禁</strong><small>fundamental_guard_mode</small></td><td>指数规则代理</td><td>本轮以指数连续分红和支付率筛选规则近似，尚未逐日回放财务数据。</td></tr></tbody>
+                </table>
+              </div>
+            </section>
+            <section class="strategy-glossary">
+              <div class="strategy-section-heading">
+                <h3>术语速查</h3>
+              </div>
+              <dl>
+                <div><dt>股息率</dt>
+                  <dd>指数成分股预期年度现金分红相对当前价格的比例。</dd></div>
+                <div><dt>历史分位</dt>
+                  <dd>当前股息率在历史样本中的位置；70%表示高于约七成历史观察值。</dd></div>
+                <div><dt>242日回撤</dt>
+                  <dd>当前价格相对最近约一年最高收盘价的跌幅。</dd></div>
+                <div><dt>目标仓位</dt>
+                  <dd>策略预算中计划暴露于该标的的比例，不等于总资产配置比例。</dd></div>
+                <div><dt>时点一致</dt>
+                  <dd>历史某天只能使用那天已经公开的信息，防止未来数据泄漏。</dd></div>
+                <div><dt>参数指纹</dt>
+                  <dd>参数内容的哈希摘要，用于识别回测后参数是否被改动。</dd></div>
+              </dl>
+              <details class="strategy-raw-parameters">
+                <summary>查看原始参数名</summary>
+                <dl class="strategy-parameters"><div><dt>最少估值观察数</dt><dd>726</dd></div><div><dt>偏贵分位上限</dt><dd>20.00%</dd></div><div><dt>第一增配分位</dt><dd>70.00%</dd></div><div><dt>第二增配分位</dt><dd>85.00%</dd></div><div><dt>充分增配分位</dt><dd>95.00%</dd></div><div><dt>最低研究仓位</dt><dd>20.00%</dd></div><div><dt>核心研究仓位</dt><dd>30.00%</dd></div><div><dt>第一增配仓位</dt><dd>50.00%</dd></div><div><dt>第二增配仓位</dt><dd>75.00%</dd></div><div><dt>充分增配仓位</dt><dd>100.00%</dd></div><div><dt>第一回撤确认</dt><dd>-5.00%</dd></div><div><dt>第二回撤确认</dt><dd>-10.00%</dd></div><div><dt>充分回撤确认</dt><dd>-15.00%</dd></div><div><dt>分红削减失效线</dt><dd>-15.00%</dd></div></dl>
+              </details>
+            </section>
             <dl class="strategy-record-metadata">
               <div><dt>策略画像</dt>
                 <dd><code>dividend_yield_dynamic_v1</code></dd></div>
@@ -150,14 +214,26 @@
       <div class="table-wrap">
         <table data-catalog="backtests">
           <thead><tr><th>运行</th><th>标的</th><th>策略记录</th><th>状态</th><th>收益</th><th>回撤</th><th>交易数</th></tr></thead>
-          <tbody><tr data-catalog-row><td colspan="7">暂无回测记录</td></tr></tbody>
+          <tbody><tr data-catalog-row data-status="completed">
+          <td><a href="../../data/backtests/510720/20260817T001818-9a8b86af.html">20260817T001818-9a8b86af</a></td>
+          <td>510720</td>
+          <td>dividend-yield-dynamic-v1</td>
+          <td>
+            <span class="status ok">
+              已完成
+            </span>
+          </td>
+          <td>2.08%</td>
+          <td>-4.06%</td>
+          <td>5</td>
+        </tr></tbody>
         </table>
       </div>
     </section>
 
   </main>
   <script
-    src="../../docs/assets/navigation.js?v=0.10.1"></script>
-  <script src="../../docs/assets/catalog.js?v=0.10.1"></script>
+    src="../../docs/assets/navigation.js?v=0.11.0"></script>
+  <script src="../../docs/assets/catalog.js?v=0.11.0"></script>
 </body>
 </html>

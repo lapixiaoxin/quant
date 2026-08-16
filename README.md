@@ -95,7 +95,8 @@ allowed_chat_ids = []
 allowed_channel_targets = []
 ```
 
-模板默认不预置标的。新增标的时再添加 `[[instruments]]`，例如：
+模板预置停用的 510720 研究/回测配置，不会参与自动化或通知。新增其他标的时
+再添加 `[[instruments]]`，例如：
 
 ```toml
 [[instruments]]
@@ -137,6 +138,10 @@ export FEISHU_RECEIVE_ID="<群聊 chat_id>"
 ./quant instruments
 ./quant history --all
 ./quant strategies
+./quant valuation-sync \
+  --strategy-record dividend-yield-dynamic-v1
+./quant backtest \
+  --strategy-record dividend-yield-dynamic-v1 --symbol 510720
 ./quant select \
   --universe research/universes/china-dividend-low-vol-monthly-etf.toml
 ./quant analyze --symbol <标的代码> \
@@ -276,8 +281,9 @@ data/selections/             候选程序筛选 JSON 与不可变快照
 映射当作已验证的买卖信号。
 
 股息率动态配置策略 `dividend-yield-dynamic-v1` 当前登记为 `draft/pending`。
-它需要逐日、时点一致的指数股息率和基本面门禁；本地历史库尚未具备这些数据，
-因此只允许当期研究比较，不执行长期回测或自动仓位调整。方法与当前候选适配性见
+本地已保存 000151 最近三年的逐日股息率分位，并完成 510720 有限基线回测；
+公开估值窗口、ETF 存续期和基本面门禁时序仍不足，不能据此改为 `passed` 或自动
+调整仓位。方法、结果与当前候选适配性见
 `research/methods/dividend-yield-dynamic-v1.html`。
 
 当前远端仓库是私有仓库，`data/` 和 `research/private/` 会进入 Git，方便

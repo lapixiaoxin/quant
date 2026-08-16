@@ -83,6 +83,24 @@ class DailyBar:
 
 
 @dataclass(frozen=True)
+class ValuationObservation:
+    """某个指数在指定交易日可见的估值与历史分位。"""
+
+    valuation_symbol: str
+    observation_date: date
+    metric: str
+    weighting: str
+    history_window: str
+    value: float
+    percentile: float
+    percentile_20_value: float
+    percentile_50_value: float
+    percentile_80_value: float
+    source: str
+    source_url: str
+
+
+@dataclass(frozen=True)
 class MarketQuote:
     """统一后的实时或延迟行情快照。比例字段使用小数，例如 0.025 表示 2.5%。"""
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from html import escape
 from pathlib import Path
 
@@ -12,6 +13,10 @@ from .site_navigation import ASSET_VERSION, build_site_header
 
 def _pct(value: float | None) -> str:
     return "暂无" if value is None else f"{value * 100:.2f}%"
+
+
+def _number(value: float | None) -> str:
+    return "暂无" if value is None else f"{value:.2f}"
 
 
 def _validation_label(value: str) -> str:
@@ -27,6 +32,24 @@ def build_backtest_report(
     strategy: StrategyRecord,
 ) -> str:
     metrics = result.metrics
+    effective_start = result.equity_curve[0].trading_date
+    effective_end = result.equity_curve[-1].trading_date
+    average_target = sum(
+        item.target_weight for item in result.equity_curve
+    ) / len(result.equity_curve)
+    target_counts = Counter(
+        item.target_weight for item in result.equity_curve
+    )
+    target_rows = "".join(
+        f"""
+        <tr>
+          <td>{target:.0%}</td>
+          <td>{count}</td>
+          <td>{count / len(result.equity_curve):.2%}</td>
+        </tr>
+        """.strip()
+        for target, count in sorted(target_counts.items())
+    )
     rows = "\n".join(
         f"""
         <tr>
@@ -68,9 +91,8 @@ def build_backtest_report(
           <div><dt>策略版本</dt><dd>{escape(strategy.version)}</dd></div>
           <div><dt>标的</dt><dd>{escape(result.specification.symbol)}</dd></div>
           <div>
-            <dt>区间</dt>
-            <dd>{result.specification.start_date} 至
-              {result.specification.end_date}</dd>
+            <dt>有效执行区间</dt>
+            <dd>{effective_start} 至 {effective_end}</dd>
           </div>
         </dl>
       </aside>
@@ -106,6 +128,20 @@ def build_backtest_report(
         <div class="metric">
           <strong>{metrics.turnover:.2f}x</strong><span>累计换手</span>
         </div>
+        <div class="metric">
+          <strong>{average_target:.2%}</strong><span>平均目标仓位</span>
+        </div>
+        <div class="metric">
+          <strong>{_number(metrics.sharpe_ratio)}</strong><span>夏普比率</span>
+        </div>
+        <div class="metric">
+          <strong>{_pct(metrics.benchmark_max_drawdown)}</strong>
+          <span>持有基准最大回撤</span>
+        </div>
+        <div class="metric">
+          <strong>{_pct(metrics.benchmark_annualized_volatility)}</strong>
+          <span>持有基准年化波动</span>
+        </div>
       </div>
     </section>
     <section class="section">
@@ -139,6 +175,29 @@ def build_backtest_report(
               </td>
             </tr>
           </tbody>
+        </table>
+      </div>
+      <p class="section-intro">
+        请求数据区间为 {result.specification.start_date} 至
+        {result.specification.end_date}；模型需要预留历史窗口，因此实际产生
+        权益曲线的区间从 {effective_start} 开始。
+      </p>
+    </section>
+    <section class="section">
+      <div class="section-head">
+        <p class="section-label">仓位</p>
+        <div>
+          <h2>策略在各目标仓位停留了多久</h2>
+          <p class="section-intro">
+            只有样本真正覆盖多个估值档位，才足以检验分档规则。
+          </p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>目标仓位</th><th>交易日</th>
+            <th>有效区间占比</th></tr></thead>
+          <tbody>{target_rows}</tbody>
         </table>
       </div>
     </section>

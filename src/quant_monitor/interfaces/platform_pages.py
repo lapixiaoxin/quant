@@ -317,7 +317,11 @@ def _backtest_row(item: dict[str, Any]) -> str:
     """.strip()
 
 
-def _strategy_parameter_list(parameters: dict[str, Any]) -> str:
+def _strategy_parameter_list(
+    parameters: dict[str, Any],
+    *,
+    label_overrides: dict[str, str] | None = None,
+) -> str:
     labels = {
         "strategy_id": "线上策略",
         "deep_drawdown": "深度回撤",
@@ -365,6 +369,8 @@ def _strategy_parameter_list(parameters: dict[str, Any]) -> str:
         "full_add_drawdown",
         "dividend_cut_limit",
     }
+    if label_overrides:
+        labels.update(label_overrides)
     rows = []
     for key, value in parameters.items():
         if key in percentage_keys and isinstance(value, (int, float)):
@@ -388,6 +394,272 @@ def _strategy_parameter_list(parameters: dict[str, Any]) -> str:
     return f'<dl class="strategy-parameters">{"".join(rows)}</dl>'
 
 
+def _parameter(
+    parameters: dict[str, Any],
+    key: str,
+    default: float | int,
+) -> float:
+    return float(parameters.get(key, default))
+
+
+def _pct(parameter: float) -> str:
+    return f"{parameter:.0%}"
+
+
+def _dynamic_strategy_details(
+    profile_parameters: dict[str, Any],
+    backtest_parameters: dict[str, Any],
+) -> str:
+    expensive = _parameter(
+        profile_parameters,
+        "expensive_percentile",
+        0.20,
+    )
+    first = _parameter(
+        profile_parameters,
+        "first_add_percentile",
+        0.70,
+    )
+    second = _parameter(
+        profile_parameters,
+        "second_add_percentile",
+        0.85,
+    )
+    full = _parameter(
+        profile_parameters,
+        "full_add_percentile",
+        0.95,
+    )
+    minimum_weight = _parameter(
+        profile_parameters,
+        "minimum_weight",
+        0.20,
+    )
+    base_weight = _parameter(profile_parameters, "base_weight", 0.30)
+    first_weight = _parameter(
+        profile_parameters,
+        "first_add_weight",
+        0.50,
+    )
+    second_weight = _parameter(
+        profile_parameters,
+        "second_add_weight",
+        0.75,
+    )
+    full_weight = _parameter(profile_parameters, "full_weight", 1.00)
+    first_drawdown = _parameter(
+        profile_parameters,
+        "first_add_drawdown",
+        -0.05,
+    )
+    second_drawdown = _parameter(
+        profile_parameters,
+        "second_add_drawdown",
+        -0.10,
+    )
+    full_drawdown = _parameter(
+        profile_parameters,
+        "full_add_drawdown",
+        -0.15,
+    )
+    minimum_observations = int(
+        profile_parameters.get("minimum_history_observations", 726)
+    )
+    dividend_cut = _parameter(
+        profile_parameters,
+        "dividend_cut_limit",
+        -0.15,
+    )
+    interval = int(
+        backtest_parameters.get("rebalance_interval_days", 20)
+    )
+    valuation_symbol = escape(
+        str(backtest_parameters.get("valuation_symbol", "未配置"))
+    )
+    rows = (
+        (
+            f"0–{_pct(expensive)}",
+            "估值偏贵",
+            _pct(minimum_weight),
+            "不要求",
+            "不新增动态仓位",
+        ),
+        (
+            f"{_pct(expensive)}–{_pct(first)}",
+            "核心观察",
+            _pct(base_weight),
+            "不要求",
+            "保留核心研究敞口",
+        ),
+        (
+            f"{_pct(first)}–{_pct(second)}",
+            "第一增配区",
+            _pct(first_weight),
+            f"242日回撤 ≤ {_pct(first_drawdown)}",
+            f"未确认则保持 {_pct(base_weight)}",
+        ),
+        (
+            f"{_pct(second)}–{_pct(full)}",
+            "第二增配区",
+            _pct(second_weight),
+            f"242日回撤 ≤ {_pct(second_drawdown)}",
+            f"未确认则降为 {_pct(first_weight)}",
+        ),
+        (
+            f"{_pct(full)}–100%",
+            "极端低估区",
+            _pct(full_weight),
+            f"242日回撤 ≤ {_pct(full_drawdown)}",
+            f"未确认则降为 {_pct(second_weight)}",
+        ),
+    )
+    decision_rows = "".join(
+        "<tr>"
+        f"<td><strong>{band}</strong></td>"
+        f"<td>{state}</td>"
+        f"<td><strong>{weight}</strong></td>"
+        f"<td>{drawdown}</td>"
+        f"<td>{fallback}</td>"
+        "</tr>"
+        for band, state, weight, drawdown, fallback in rows
+    )
+    execution_rows = (
+        (
+            "再平衡间隔",
+            f"{interval} 个交易日",
+            "约每月评估一次；期间保持上次目标仓位。",
+            "rebalance_interval_days",
+        ),
+        (
+            "估值来源标的",
+            valuation_symbol,
+            "510720 跟踪的上证国有企业红利指数代码。",
+            "valuation_symbol",
+        ),
+        (
+            "估值统计窗口",
+            "滚动 3 年",
+            "使用来源逐日发布的三年历史分位，不用全样本未来数据重算。",
+            "valuation_history_window",
+        ),
+        (
+            "估值加权口径",
+            "市值加权",
+            "按成分股市值汇总指数股息率；不同加权口径不能混用。",
+            "valuation_weighting",
+        ),
+        (
+            "信号时点",
+            "时点一致",
+            "只使用当时已经公开的数据，信号次一交易日开盘执行。",
+            "valuation_timing",
+        ),
+        (
+            "数据缺失",
+            "拒绝运行",
+            "缺少同日股息率或历史不足时停止，不用价格回撤代替。",
+            "missing_valuation_policy",
+        ),
+        (
+            "基本面门禁",
+            "指数规则代理",
+            "本轮以指数连续分红和支付率筛选规则近似，尚未逐日回放财务数据。",
+            "fundamental_guard_mode",
+        ),
+    )
+    execution_html = "".join(
+        "<tr>"
+        f"<td><strong>{label}</strong><small>{key}</small></td>"
+        f"<td>{value}</td><td>{description}</td>"
+        "</tr>"
+        for label, value, description, key in execution_rows
+    )
+    return f"""
+            <section class="strategy-reading-guide">
+              <h3>判断顺序</h3>
+              <ol class="strategy-flow">
+                <li><span>1</span><strong>先看历史分位</strong>
+                  <small>分位越高，当前股息率相对历史越高。</small></li>
+                <li><span>2</span><strong>映射目标仓位</strong>
+                  <small>先按分位找到对应档位。</small></li>
+                <li><span>3</span><strong>检查回撤确认</strong>
+                  <small>只有高分位且价格已有回撤，才完成增配。</small></li>
+                <li><span>4</span><strong>通过基本面门禁</strong>
+                  <small>分红或盈利恶化时禁止越跌越加。</small></li>
+              </ol>
+            </section>
+            <section class="strategy-decision-section">
+              <div class="strategy-section-heading">
+                <h3>分位、仓位和回撤对应表</h3>
+                <p>目标仓位是策略预算内部的研究敞口，不是总账户仓位。</p>
+              </div>
+              <div class="table-wrap">
+                <table class="strategy-decision-table">
+                  <thead><tr><th>股息率历史分位</th><th>状态</th>
+                    <th>目标仓位</th><th>回撤确认</th>
+                    <th>未确认时</th></tr></thead>
+                  <tbody>{decision_rows}</tbody>
+                </table>
+              </div>
+            </section>
+            <section class="strategy-guard-section">
+              <div class="strategy-section-heading">
+                <h3>增配前必须通过的门禁</h3>
+                <p>任一关键输入不可靠，都不输出积极方向。</p>
+              </div>
+              <dl class="strategy-guard-list">
+                <div><dt>{minimum_observations} 个观察值</dt>
+                  <dd>股息率历史至少约三年，避免短样本分位失真。</dd></div>
+                <div><dt>{_pct(dividend_cut)} 分红削减线</dt>
+                  <dd>达到该幅度视为基本面失效，只保留最低研究仓位。</dd></div>
+                <div><dt>数据陈旧或缺失</dt>
+                  <dd>直接阻断判断，不降级成“价格跌了就买”。</dd></div>
+              </dl>
+            </section>
+            <section class="strategy-execution-section">
+              <div class="strategy-section-heading">
+                <h3>回测如何执行</h3>
+                <p>这里描述历史模拟口径，不代表实盘订单。</p>
+              </div>
+              <div class="table-wrap">
+                <table class="strategy-execution-table">
+                  <thead><tr><th>项目</th><th>当前设置</th>
+                    <th>实际含义</th></tr></thead>
+                  <tbody>{execution_html}</tbody>
+                </table>
+              </div>
+            </section>
+            <section class="strategy-glossary">
+              <div class="strategy-section-heading">
+                <h3>术语速查</h3>
+              </div>
+              <dl>
+                <div><dt>股息率</dt>
+                  <dd>指数成分股预期年度现金分红相对当前价格的比例。</dd></div>
+                <div><dt>历史分位</dt>
+                  <dd>当前股息率在历史样本中的位置；70%表示高于约七成历史观察值。</dd></div>
+                <div><dt>242日回撤</dt>
+                  <dd>当前价格相对最近约一年最高收盘价的跌幅。</dd></div>
+                <div><dt>目标仓位</dt>
+                  <dd>策略预算中计划暴露于该标的的比例，不等于总资产配置比例。</dd></div>
+                <div><dt>时点一致</dt>
+                  <dd>历史某天只能使用那天已经公开的信息，防止未来数据泄漏。</dd></div>
+                <div><dt>参数指纹</dt>
+                  <dd>参数内容的哈希摘要，用于识别回测后参数是否被改动。</dd></div>
+              </dl>
+              <details class="strategy-raw-parameters">
+                <summary>查看原始参数名</summary>
+                {_strategy_parameter_list(
+                    profile_parameters,
+                    label_overrides={
+                        "full_weight": "充分增配仓位",
+                    },
+                )}
+              </details>
+            </section>
+    """.strip()
+
+
 def _strategy_datetime(value: datetime | None) -> str:
     return value.isoformat(sep=" ", timespec="minutes") if value else "未设置"
 
@@ -397,6 +669,7 @@ def _strategy_record(
     profile: StrategyProfileConfig,
     *,
     bound: bool,
+    operational: bool,
     configured: bool = True,
 ) -> str:
     backtest_model = (
@@ -404,15 +677,39 @@ def _strategy_record(
         if item.backtest_model_id
         else "未绑定"
     )
-    if bound:
+    if bound and operational:
         configuration_status = "配置一致"
         configuration_class = "ok"
+    elif bound:
+        configuration_status = "研究标的停用"
+        configuration_class = "conditional"
     elif configured:
         configuration_status = "尚未绑定"
         configuration_class = "conditional"
     else:
         configuration_status = "草案未配置"
         configuration_class = "conditional"
+    if profile.strategy_id == "dividend_yield_dynamic":
+        detail_content = _dynamic_strategy_details(
+            profile.parameters,
+            item.backtest_parameters,
+        )
+    else:
+        detail_content = f"""
+            <div class="strategy-detail-columns">
+              <section>
+                <h3>判断参数</h3>
+                {_strategy_parameter_list(profile.parameters)}
+              </section>
+              <section>
+                <h3>回测执行参数</h3>
+                {_strategy_parameter_list(item.backtest_parameters)}
+                <p class="strategy-boundary">
+                  回测仓位仅用于历史模拟，不代表实盘仓位或自动交易指令。
+                </p>
+              </section>
+            </div>
+        """.strip()
     return f"""
         <details class="strategy-record" data-catalog-row
           data-lifecycle="{item.lifecycle.value}"
@@ -447,22 +744,10 @@ def _strategy_record(
           </summary>
           <div class="strategy-record-body">
             <section class="strategy-thesis">
-              <h3>策略逻辑</h3>
+              <h3>一句话逻辑</h3>
               <p>{escape(item.thesis)}</p>
             </section>
-            <div class="strategy-detail-columns">
-              <section>
-                <h3>线上判断参数</h3>
-                {_strategy_parameter_list(profile.parameters)}
-              </section>
-              <section>
-                <h3>回测参数</h3>
-                {_strategy_parameter_list(item.backtest_parameters)}
-                <p class="strategy-boundary">
-                  回测仓位仅用于历史模拟，不代表实盘仓位或自动交易指令。
-                </p>
-              </section>
-            </div>
+            {detail_content}
             <dl class="strategy-record-metadata">
               <div><dt>策略画像</dt>
                 <dd><code>{escape(item.profile_id)}</code></dd></div>
@@ -514,11 +799,15 @@ def _strategy_page(
             and item.profile_id in instruments[symbol].strategy_profile_ids
             for symbol in item.symbols
         )
+        operational = bound and all(
+            instruments[symbol].enabled for symbol in item.symbols
+        )
         rows.append(
             _strategy_record(
                 item,
                 profile,
                 bound=bound,
+                operational=operational,
                 configured=configured_profile is not None,
             )
         )

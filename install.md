@@ -257,8 +257,9 @@ Agent 必须逐项执行：
 ./scripts/service.sh status
 ```
 
-配置真实标的后，再对该代码执行 `prepare`、`history`、`strategies`、
-`base-report` 和 `automate --no-send` 验收。模板不预置示例标的。
+模板中的 510720 仅为停用的研究/回测标的，不参与自动化。启用真实监控标的后，
+再对该代码执行 `prepare`、`history`、`strategies`、`base-report` 和
+`automate --no-send` 验收。
 
 如果启用了远程命令：
 
