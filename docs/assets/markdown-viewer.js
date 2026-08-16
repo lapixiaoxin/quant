@@ -11,7 +11,10 @@
     content.append(state);
   };
 
-  const sourceValue = new URLSearchParams(window.location.search).get("src");
+  const sourceValue = (
+    document.body.dataset.markdownSource
+    || new URLSearchParams(window.location.search).get("src")
+  );
   if (!sourceValue) {
     fail("缺少 Markdown 文件路径。");
     return;
@@ -99,9 +102,13 @@
       );
       const title = heading?.textContent.trim() || filename;
       document.title = `${title} · Quant Monitor`;
-      pathLabel.textContent = filename;
-      rawLink.href = sourceUrl.href;
-      rawLink.hidden = false;
+      if (pathLabel) {
+        pathLabel.textContent = filename;
+      }
+      if (rawLink) {
+        rawLink.href = sourceUrl.href;
+        rawLink.hidden = false;
+      }
       if (window.location.hash) {
         document.getElementById(
           decodeURIComponent(window.location.hash.slice(1)),

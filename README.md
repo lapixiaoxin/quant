@@ -8,10 +8,10 @@
 - 产品大类默认值与单标的个性化覆盖。
 - 可配置的多策略画像、研究画像、通知策略和通知通道。
 - 东方财富行情采集，失败后自动降级腾讯。
-- 增量 SQLite 日线历史库、JSON 审计快照、Markdown 报告和静态本地看板。
+- 增量 SQLite 日线历史库、JSON 审计快照、HTML 标的报告和静态本地看板。
 - 可版本化策略生命周期、无未来数据回测执行器和 HTML 验证报告。
 - 候选池发现、硬门槛初筛、证据缺口和同类标的短名单工作流。
-- 本地 Markdown 阅读器，站内报告直接渲染并经过 HTML 消毒。
+- 标的 Markdown 推送源自动生成同名 HTML；工程 Markdown 使用独立安全阅读器。
 - schema v4 动态注入启用策略、分析周期、因子、研究计划和通知计划。
 - 选择、分析、回测、报告和发布状态统一登记到控制面 SQLite。
 - TraeCode CLI 非交互定时研究，并在 CLI 不可用时按配置降级。
@@ -24,10 +24,10 @@
 策略与回测、分析作业、报告中心、渠道状态和系统文档；原始 JSON 快照与
 SQLite 不进入可视化目录。
 
-- 文档中心：[docs/index.html](docs/index.html)
 - 研究中心：[research/index.html](research/index.html)
 - 新设备部署：[install.md](install.md)
 - 当前能力与边界：[capabilities.md](capabilities.md)
+- 工程约束与文档路径：[AGENTS.md](AGENTS.md)
 
 ## 配置模型
 
@@ -154,9 +154,9 @@ export FEISHU_RECEIVE_ID="<群聊 chat_id>"
 
 发送命令不会直接选择飞书，而是按该标的的通知策略校验事件并路由通道。
 
-`site` 会刷新根工作台、五个管理模块、投资看板和全部可浏览页面的统一导航。
+`site` 会刷新根工作台、五个管理模块、投资看板、标的 HTML 报告和单一返回路径。
 `dashboard`、`select`、`backtest`、自动化研究和飞书分析命令也会同步刷新；
-Agent 新建 HTML 报告后仍应执行一次 `./quant site`。
+Agent 新建 Markdown 推送源后仍应执行一次 `./quant site` 生成 HTML。
 
 本地浏览：
 

@@ -7,7 +7,7 @@
 ```text
 latest/                 每个标的最新的 schema v4 数据包、代理提示和基础报告
 snapshots/YYYY-MM-DD/   每次采集的带时间戳快照
-reports/YYYY-MM-DD/     基础报告和研究代理报告
+reports/YYYY-MM-DD/     标的报告 Markdown 推送源和同名 HTML 网页
 dashboard/              从 latest 数据包生成的静态看板
 history/market.sqlite3  标准化日线历史库，供长期查询和回测使用
 control/research.sqlite3 选择、分析、回测、报告和发布状态索引
@@ -44,6 +44,10 @@ selections/snapshots/   带时间戳的候选池初筛快照
 提交前必须确认数据包不含凭证、真实通知接收 ID 或不准备跨设备同步的个人信息。
 若未来仓库改为公开，必须先从 Git 历史中清理个人研究数据，而不只是修改
 `.gitignore`。
+
+标的报告 Markdown 只用于通知和审计。运行 `./quant site` 后生成同名 HTML，
+工作台和报告中心只链接 HTML；HTML 页面保留图表扩展区，不要把工程说明混入
+标的报告目录。
 
 LaunchAgent 写入的是 `~/.local/share/quant-monitor` 运行副本。由主写设备执行
 `./scripts/sync_runtime_data.sh`，脚本会暂停服务、使用 SQLite 在线备份生成一致

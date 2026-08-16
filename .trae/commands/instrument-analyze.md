@@ -25,11 +25,11 @@ data/latest/${1}.prompt.txt
 - `research_plan`：研究章节、来源和个性指令。
 
 使用 `research_plan.skill` 指定的 Skill，围绕当前策略生成报告，禁止把一般行情
-摘要代替策略分析。报告保存为：
+摘要代替策略分析。Markdown 推送源保存为：
 
 ```text
 data/reports/YYYY-MM-DD/${1}-research.md
 ```
 
 若第三个参数是 `push`，按 `notification_plan` 发送。最后运行
-`./quant site`，确认报告进入网页报告目录。
+`./quant site`，确认同名 HTML 报告进入网页报告目录。

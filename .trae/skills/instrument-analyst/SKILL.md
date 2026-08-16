@@ -94,11 +94,15 @@ data/latest/<标的代码>.prompt.txt
 
 ### 6. 保存与通知
 
-完整报告保存到：
+完整报告的 Markdown 推送源保存到：
 
 ```text
 data/reports/YYYY-MM-DD/<标的代码>-research.md
 ```
+
+随后运行 `./quant site`。站点生成器会在同目录生成
+`<标的代码>-research.html`，网页、工作台和报告中心必须链接 HTML；
+Markdown 只用于通知和审计，不作为面向人的网页入口。
 
 只有用户明确要求推送时才执行：
 
@@ -110,4 +114,4 @@ data/reports/YYYY-MM-DD/<标的代码>-research.md
 
 CLI 会按 `notification_plan` 校验事件并路由通道。策略禁用、事件未订阅或通道失败时保留报告，并返回原始错误；不要绕过配置改用其他发送方式。
 
-保存后运行 `./quant site`，确认报告已进入网页报告中心。
+保存后运行 `./quant site`，确认同名 HTML 已生成并进入网页报告中心。

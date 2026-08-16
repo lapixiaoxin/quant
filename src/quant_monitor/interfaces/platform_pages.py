@@ -13,6 +13,7 @@ from ..infrastructure.control_repository import SQLiteControlPlaneRepository
 from ..infrastructure.selection_config import load_selection_universe
 from ..infrastructure.strategy_catalog import StrategyCatalog
 from .portal import PortalEntry, discover_portal_entries, readable_href
+from .research_report_pages import report_html_path
 from .site_navigation import ASSET_VERSION, build_site_header
 
 
@@ -467,15 +468,22 @@ def _report_page(
     root: Path,
     control: dict[str, Any],
 ) -> str:
-    indexed_paths = {str(item["path"]) for item in control["reports"]}
+    indexed_paths = {
+        (
+            report_html_path(Path(str(item["path"]))).as_posix()
+            if str(item["path"]).lower().endswith(".md")
+            else str(item["path"])
+        )
+        for item in control["reports"]
+    }
     rows: list[str] = []
     for item in control["reports"]:
         cycles = "、".join(_json_list(item["cycles_json"]))
         channels = "、".join(_json_list(item["channels_json"])) or "网页"
-        href = readable_href(
-            str(item["path"]),
-            root_prefix="../../",
-        )
+        report_path = str(item["path"])
+        if report_path.lower().endswith(".md"):
+            report_path = report_html_path(Path(report_path)).as_posix()
+        href = f"../../{report_path}"
         rows.append(
             f"""
         <tr data-catalog-row
@@ -505,7 +513,12 @@ def _report_page(
     legacy = [
         item
         for item in discover_portal_entries(root)
-        if item.category in {"选择报告", "候选初筛", "标的研究"}
+        if item.category in {
+            "标的报告",
+            "选择报告",
+            "候选初筛",
+            "标的档案",
+        }
         and item.href not in indexed_paths
     ]
     rows.extend(_legacy_report_row(item) for item in legacy)
@@ -550,9 +563,22 @@ def _legacy_report_row(item: PortalEntry) -> str:
         "",
     )
     href = readable_href(item.href, root_prefix="../../")
+    if item.category == "标的报告":
+        report_type = (
+            "base_report"
+            if "-base" in item.href
+            else "strategy_report"
+        )
+        type_label = _status(report_type)
+    elif item.category in {"选择报告", "候选初筛"}:
+        report_type = "selection"
+        type_label = "选择报告"
+    else:
+        report_type = "legacy"
+        type_label = "历史报告"
     return f"""
         <tr data-catalog-row data-symbol="{symbol}"
-          data-type="legacy" data-delivery="legacy">
+          data-type="{report_type}" data-delivery="legacy">
           <td>
             <a href="{escape(href, quote=True)}">
               <strong>{escape(item.title)}</strong>
@@ -560,7 +586,7 @@ def _legacy_report_row(item: PortalEntry) -> str:
             <small>{escape(item.href)}</small>
           </td>
           <td>{escape(symbol or "未索引")}</td>
-          <td>历史报告</td>
+          <td>{escape(type_label)}</td>
           <td>未索引</td>
           <td>{escape(item.published)}</td>
           <td>网页</td>

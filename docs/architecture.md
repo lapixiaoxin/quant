@@ -275,15 +275,15 @@ JSON。
 
 ## 统一可视化入口
 
-HTTP 根路径 `index.html` 是稳定的一级工作台，`docs/`、`research/` 和
-`data/dashboard/` 是按职责划分的二级页面。`interfaces.portal` 扫描经过允许的
-HTML、研究 Markdown 和候选池 TOML，生成最近产物和分组目录；原始 JSON 快照、
-SQLite、日志、配置和凭证不进入目录。
+HTTP 根路径 `index.html` 是唯一网页导航入口。顶部只保留返回工作台；
+五个业务模块、投资看板、研究归档和低频工程 Markdown 都由工作台分类进入。
+`interfaces.portal` 只扫描面向人的研究 HTML，不把工程 HTML 副本、TOML、
+原始 JSON、SQLite、日志、配置和凭证混入投资内容。
 
-`./quant site` 刷新根工作台、五个业务模块、投资看板，并重写全部可浏览页面的
-统一导航、当前位置和静态资源版本。页面目录使用浏览器端筛选，不引入 Web
-服务器或第二份业务状态。Agent 直接生成新报告时，项目 Skill 必须在完成前运行
-`./quant site`。
+标的报告以 Markdown 作为通知源，`./quant site` 生成同目录同名 HTML，
+并预留图表挂载区；工程 Markdown 则通过 `docs/markdown.html` 低频阅读。
+`./quant site` 同时刷新工作台、模块页、报告 HTML 和全部页面的单一返回路径，
+不引入第二份业务状态。
 
 ## TRAE 与 TraeCode CLI
 

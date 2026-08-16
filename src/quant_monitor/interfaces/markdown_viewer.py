@@ -18,7 +18,7 @@ def build_markdown_viewer() -> str:
   <title>Markdown 阅读 · Quant Monitor</title>
   <link rel="stylesheet" href="assets/docs.css?v={ASSET_VERSION}">
 </head>
-<body class="module-page module-reports markdown-reader-page">
+<body class="module-page module-engineering markdown-reader-page">
 {build_site_header("../", "reports")}
   <main class="page reader-page">
     <header class="reader-toolbar">

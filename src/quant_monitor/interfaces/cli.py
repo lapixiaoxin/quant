@@ -51,6 +51,7 @@ from .platform_pages import write_platform_pages
 from .portal import write_portal
 from .remote import RemoteCommandRouter, listen_remote_commands
 from .reporting import build_base_report
+from .research_report_pages import write_research_report_pages
 from .selection_reporting import write_selection_report
 from .site_navigation import refresh_site_navigation
 
@@ -386,6 +387,7 @@ def _write_site(
         dashboard_path,
         repository.list_latest_packets(),
     )
+    write_research_report_pages(root)
     write_platform_pages(
         root,
         settings,

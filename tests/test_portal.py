@@ -9,6 +9,9 @@ from quant_monitor.interfaces.portal import (
     build_portal,
     discover_portal_entries,
 )
+from quant_monitor.interfaces.research_report_pages import (
+    write_research_report_pages,
+)
 
 
 class PortalTest(unittest.TestCase):
@@ -17,10 +20,18 @@ class PortalTest(unittest.TestCase):
             root = Path(directory)
             docs = root / "docs"
             selection = root / "research" / "selections" / "test"
+            library = root / "research" / "library"
             reports = root / "data" / "reports" / "2026-08-15"
             snapshots = root / "data" / "snapshots" / "2026-08-15"
             universe = root / "research" / "universes"
-            for path in (docs, selection, reports, snapshots, universe):
+            for path in (
+                docs,
+                selection,
+                library,
+                reports,
+                snapshots,
+                universe,
+            ):
                 path.mkdir(parents=True)
             (docs / "index.html").write_text(
                 "<title>文档中心</title>",
@@ -34,6 +45,10 @@ class PortalTest(unittest.TestCase):
                 "# 515100 研究简报\n",
                 encoding="utf-8",
             )
+            (library / "method.html").write_text(
+                "<title>测试研究经验</title>",
+                encoding="utf-8",
+            )
             (universe / "test.toml").write_text(
                 'name = "测试候选池"\n',
                 encoding="utf-8",
@@ -44,6 +59,7 @@ class PortalTest(unittest.TestCase):
             )
             (root / "data" / "history").mkdir(parents=True)
             (root / "data" / "history" / "market.sqlite3").touch()
+            write_research_report_pages(root)
 
             entries = discover_portal_entries(root)
             content = build_portal(
@@ -51,19 +67,20 @@ class PortalTest(unittest.TestCase):
                 generated_at=datetime(2026, 8, 15, 14, 0, tzinfo=timezone.utc),
             )
 
-            self.assertEqual(len(entries), 4)
+            self.assertEqual(len(entries), 3)
             self.assertIn("测试候选 &amp; 报告", content)
             self.assertIn("515100 研究简报", content)
-            self.assertIn("测试候选池", content)
+            self.assertIn("测试研究经验", content)
             self.assertIn(
-                'href="docs/markdown.html?src=../data/reports/'
-                '2026-08-15/515100-research.md"',
+                'href="data/reports/2026-08-15/515100-research.html"',
                 content,
             )
             self.assertNotIn(
                 'href="data/reports/2026-08-15/515100-research.md"',
                 content,
             )
+            self.assertNotIn("测试候选池", content)
+            self.assertNotIn("文档中心", content)
             self.assertNotIn("raw.json", content)
             self.assertNotIn("market.sqlite3", content)
             self.assertNotIn("不得进入目录", content)
@@ -82,11 +99,12 @@ class PortalTest(unittest.TestCase):
             self.assertIn('href="data/dashboard/index.html"', content)
             self.assertIn('href="research/selections/index.html"', content)
             self.assertIn('href="research/index.html"', content)
-            self.assertIn('href="docs/index.html"', content)
             self.assertIn(
-                'href="index.html" aria-current="page"',
+                'href="docs/markdown.html?src=../AGENTS.md"',
                 content,
             )
+            self.assertNotIn('href="docs/index.html"', content)
+            self.assertNotIn('class="site-nav"', content)
 
 
 if __name__ == "__main__":

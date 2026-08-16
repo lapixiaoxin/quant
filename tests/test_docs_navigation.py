@@ -14,22 +14,11 @@ PAGES = sorted(
         *ROOT.joinpath("data", "dashboard").rglob("*.html"),
         *ROOT.joinpath("data", "selections").rglob("*.html"),
         *ROOT.joinpath("data", "backtests").rglob("*.html"),
+        *ROOT.joinpath("data", "reports").rglob("*.html"),
     }
 )
 EXPECTED_DESTINATIONS = {
     ROOT / "index.html",
-    ROOT / "research" / "selections" / "index.html",
-    ROOT / "research" / "strategies" / "index.html",
-    ROOT / "research" / "analysis" / "index.html",
-    ROOT / "research" / "reports" / "index.html",
-    ROOT / "research" / "index.html",
-    ROOT / "research" / "instruments" / "index.html",
-    ROOT / "research" / "library" / "index.html",
-    ROOT / "research" / "channels" / "index.html",
-    ROOT / "docs" / "index.html",
-    ROOT / "docs" / "capabilities.html",
-    ROOT / "docs" / "architecture.html",
-    ROOT / "data" / "dashboard" / "index.html",
 }
 
 
@@ -110,28 +99,32 @@ class DocumentationNavigationTest(unittest.TestCase):
                     for href in parser.hrefs
                     if href and not urlsplit(href).scheme
                 }
-                self.assertEqual(parser.navigation_count, 1)
+                expected_navigation = 0 if page == ROOT / "index.html" else 1
+                self.assertEqual(
+                    parser.navigation_count,
+                    expected_navigation,
+                )
                 self.assertEqual(
                     parser.summaries,
-                    ["研究流程", "资产与渠道", "系统"],
+                    [],
                 )
-                self.assertEqual(destinations, EXPECTED_DESTINATIONS)
-                self.assertEqual(parser.current_links, 1)
-                ungrouped_pages = {
-                    ROOT / "index.html",
-                    ROOT / "data" / "dashboard" / "index.html",
-                }
-                expected_groups = 0 if page in ungrouped_pages else 1
-                self.assertEqual(parser.current_groups, expected_groups)
+                expected_destinations = (
+                    set()
+                    if page == ROOT / "index.html"
+                    else EXPECTED_DESTINATIONS
+                )
+                self.assertEqual(destinations, expected_destinations)
+                self.assertEqual(parser.current_links, 0)
+                self.assertEqual(parser.current_groups, 0)
                 self.assertEqual(len(parser.stylesheets), 1)
-                self.assertIn("docs.css?v=0.9.1", parser.stylesheets[0])
+                self.assertIn("docs.css?v=0.10.0", parser.stylesheets[0])
                 navigation_scripts = [
                     item for item in parser.scripts
                     if "navigation.js" in item
                 ]
                 self.assertEqual(len(navigation_scripts), 1)
                 self.assertIn(
-                    "navigation.js?v=0.9.1",
+                    "navigation.js?v=0.10.0",
                     navigation_scripts[0],
                 )
 

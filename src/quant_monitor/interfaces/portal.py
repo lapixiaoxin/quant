@@ -8,26 +8,27 @@ from datetime import datetime
 from html import escape
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import Any
 from urllib.parse import quote, unquote
 
 from .site_navigation import ASSET_VERSION, build_site_header
 
-try:
-    import tomllib
-except ModuleNotFoundError:  # pragma: no cover - Python 3.9
-    import tomli as tomllib
-
 _DATE_PATTERN = re.compile(r"20\d{2}-\d{2}-\d{2}")
 _CATEGORY_ORDER = (
+    "标的报告",
     "选择报告",
     "候选初筛",
     "回测报告",
-    "标的研究",
-    "候选定义",
-    "方法与经验",
-    "研究入口",
-    "系统文档",
+    "标的档案",
+    "研究经验",
+)
+_ENGINEERING_DOCUMENTS = (
+    ("工程约束", "AGENTS.md"),
+    ("使用说明", "README.md"),
+    ("能力边界", "capabilities.md"),
+    ("安装部署", "install.md"),
+    ("架构设计", "docs/architecture.md"),
+    ("数据目录", "data/README.md"),
+    ("研究归档", "research/README.md"),
 )
 
 
@@ -72,27 +73,16 @@ class _TitleParser(HTMLParser):
 def _html_title(path: Path) -> str:
     parser = _TitleParser()
     parser.feed(path.read_text(encoding="utf-8"))
-    return parser.title or path.stem
-
-
-def _markdown_title(path: Path) -> str:
-    for line in path.read_text(encoding="utf-8").splitlines():
-        if line.startswith("# "):
-            return line[2:].strip()
-    return path.stem
-
-
-def _toml_title(path: Path) -> str:
-    with path.open("rb") as handle:
-        values: dict[str, Any] = tomllib.load(handle)
-    return str(values.get("name") or values.get("universe_id") or path.stem)
+    title = parser.title or path.stem
+    suffix = " · Quant Monitor"
+    return title[:-len(suffix)] if title.endswith(suffix) else title
 
 
 def _category_for(relative: Path) -> str | None:
     parts = relative.parts
     if relative.suffix == ".html":
-        if relative == Path("docs/markdown.html"):
-            return None
+        if parts[:2] == ("data", "reports"):
+            return "标的报告"
         if parts[:2] == ("data", "dashboard"):
             return None
         if parts[:3] == ("data", "selections", "latest"):
@@ -102,17 +92,9 @@ def _category_for(relative: Path) -> str | None:
         if parts[:2] == ("research", "selections") and relative.name != "index.html":
             return "选择报告"
         if parts[:2] == ("research", "private"):
-            return "标的研究"
+            return "标的档案"
         if parts[:2] == ("research", "library") and relative.name != "index.html":
-            return "方法与经验"
-        if parts[0] == "research":
-            return "研究入口"
-        if parts[0] == "docs":
-            return "系统文档"
-    if relative.suffix == ".md" and parts[:2] == ("data", "reports"):
-        return "标的研究"
-    if relative.suffix == ".toml" and parts[:2] == ("research", "universes"):
-        return "候选定义"
+            return "研究经验"
     return None
 
 
@@ -121,12 +103,7 @@ def _entry(root: Path, path: Path) -> PortalEntry | None:
     category = _category_for(relative)
     if category is None:
         return None
-    if path.suffix == ".html":
-        title = _html_title(path)
-    elif path.suffix == ".md":
-        title = _markdown_title(path)
-    else:
-        title = _toml_title(path)
+    title = _html_title(path)
     date_match = _DATE_PATTERN.search(relative.as_posix())
     return PortalEntry(
         title=title,
@@ -140,10 +117,10 @@ def discover_portal_entries(root: Path) -> tuple[PortalEntry, ...]:
     """扫描允许进入可视化目录的研究资产，不暴露原始快照和数据库。"""
 
     candidates = [
-        *root.joinpath("docs").glob("*.html"),
-        *root.joinpath("research").rglob("*.html"),
-        *root.joinpath("research", "universes").glob("*.toml"),
-        *root.joinpath("data", "reports").rglob("*.md"),
+        *root.joinpath("research", "private").rglob("*.html"),
+        *root.joinpath("research", "library").rglob("*.html"),
+        *root.joinpath("research", "selections").rglob("*.html"),
+        *root.joinpath("data", "reports").rglob("*.html"),
         *root.joinpath("data", "backtests").rglob("*.html"),
         *root.joinpath("data", "selections", "latest").glob("*.html"),
     ]
@@ -169,7 +146,7 @@ def discover_portal_entries(root: Path) -> tuple[PortalEntry, ...]:
 
 
 def readable_href(href: str, *, root_prefix: str = "") -> str:
-    """把 Markdown 资产路由到站内阅读器，其他资产保持原链接。"""
+    """把工程 Markdown 路由到站内阅读器，其他资产保持原链接。"""
 
     if unquote(href).lower().endswith(".md"):
         return (
@@ -177,6 +154,17 @@ def readable_href(href: str, *, root_prefix: str = "") -> str:
             f"{quote('../' + unquote(href), safe='/')}"
         )
     return f"{root_prefix}{href}"
+
+
+def _engineering_links() -> str:
+    return "\n".join(
+        f"""
+          <a href="{escape(readable_href(path), quote=True)}">
+            <strong>{escape(label)}</strong><code>{escape(path)}</code>
+          </a>
+        """.strip()
+        for label, path in _ENGINEERING_DOCUMENTS
+    )
 
 
 def _resource_row(entry: PortalEntry) -> str:
@@ -240,10 +228,11 @@ def build_portal(
         item
         for item in entries
         if item.category in {
+            "标的报告",
             "选择报告",
             "候选初筛",
             "回测报告",
-            "标的研究",
+            "标的档案",
         }
     ]
     recent = sorted(
@@ -255,7 +244,8 @@ def build_portal(
                 "候选初筛": 3,
                 "选择报告": 2,
                 "回测报告": 2,
-                "标的研究": 1,
+                "标的报告": 4,
+                "标的档案": 1,
             }[item.category],
             item.title,
         ),
@@ -263,6 +253,7 @@ def build_portal(
     )[:6]
     recent_rows = "\n".join(_resource_row(item) for item in recent)
     catalog = _grouped_catalog(entries)
+    engineering_links = _engineering_links()
     report_count = len(reports)
     return f"""<!doctype html>
 <html lang="zh-CN">
@@ -313,6 +304,23 @@ def build_portal(
 
     <section class="section">
       <div class="section-head">
+        <h2>研究资料</h2>
+      </div>
+      <div class="workspace-actions asset-actions">
+        <a class="module-archive" href="research/index.html">
+          <strong>研究归档</strong><small>目录 · 隐私分层</small>
+        </a>
+        <a class="module-instruments" href="research/instruments/index.html">
+          <strong>标的档案</strong><small>讨论 · 判断</small>
+        </a>
+        <a class="module-library" href="research/library/index.html">
+          <strong>研究经验</strong><small>方法 · 复用</small>
+        </a>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
         <h2>最近报告</h2>
       </div>
       <div class="resource-list">
@@ -348,6 +356,18 @@ def build_portal(
 {catalog}
         </div>
       </div>
+    </section>
+
+    <section class="section engineering-section">
+      <details class="engineering-resources">
+        <summary>
+          <strong>工程资料</strong>
+          <span>Agent 与低频查阅</span>
+        </summary>
+        <div class="engineering-links">
+{engineering_links}
+        </div>
+      </details>
     </section>
   </main>
 
