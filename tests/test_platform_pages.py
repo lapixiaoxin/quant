@@ -7,10 +7,22 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+from quant_monitor.config import load_settings
+from quant_monitor.domain.control_plane import (
+    InvestmentHorizon,
+    StrategyLifecycle,
+    StrategyRecord,
+    ValidationState,
+)
+from quant_monitor.infrastructure.strategy_catalog import (
+    StrategyCatalog,
+    strategy_profile_fingerprint,
+)
 from quant_monitor.interfaces.platform_pages import (
     _legacy_selection_run,
     _selection_page,
     _selection_status,
+    _strategy_page,
 )
 
 
@@ -138,6 +150,95 @@ exchange = "SH"
             }
 
             self.assertEqual(_selection_status(root, run), "screened")
+
+
+class PlatformStrategyPageTest(unittest.TestCase):
+    def test_strategy_record_exposes_expandable_auditable_details(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            config_path = root / "config.toml"
+            config_path.write_text(
+                """
+[app]
+
+[product_types.etf]
+strategy_profiles = ["default"]
+research_profile = "core"
+notification_policy = "silent"
+history_days = 300
+
+[strategy_profiles.default]
+strategy = "dividend_low_vol"
+parameters = {
+  attention_drawdown = -0.05,
+  high_volatility = 0.25,
+}
+
+[research_profiles.core]
+skill = "instrument-analyst"
+sections = ["趋势"]
+source_priorities = ["官方"]
+
+[notification_policies.silent]
+enabled = false
+channels = []
+events = []
+
+[[instruments]]
+symbol = "515100"
+name = "测试 ETF"
+type = "etf"
+""".strip(),
+                encoding="utf-8",
+            )
+            settings = load_settings(root, config_path)
+            profile = settings.strategy_profiles["default"]
+            fingerprint = strategy_profile_fingerprint(profile)
+            record = StrategyRecord(
+                record_id="record-v1",
+                profile_id="default",
+                version="1.0.0",
+                name="<测试策略>",
+                symbols=("515100",),
+                horizon=InvestmentHorizon.LONG,
+                lifecycle=StrategyLifecycle.ACTIVE,
+                validation_state=ValidationState.PENDING,
+                created_at=datetime(2026, 8, 14, tzinfo=timezone.utc),
+                enabled_at=datetime(2026, 8, 15, tzinfo=timezone.utc),
+                retired_at=None,
+                thesis="验证策略逻辑与详情来自同一事实源",
+                parameters_fingerprint=fingerprint,
+                backtest_model_id="attention_score_allocation",
+                backtest_model_version="1.0.0",
+                backtest_parameters={
+                    "strategy_id": "dividend_low_vol",
+                    "full_score": 68,
+                    "watch_score": 52,
+                    "full_weight": 1.0,
+                    "watch_weight": 0.5,
+                },
+            )
+
+            html = _strategy_page(
+                settings,
+                StrategyCatalog(1, (record,)),
+                {"backtest_runs": []},
+            )
+
+            self.assertIn('<details class="strategy-record"', html)
+            self.assertIn("<summary>", html)
+            self.assertIn("&lt;测试策略&gt;", html)
+            self.assertNotIn("<测试策略>", html)
+            self.assertIn("验证策略逻辑与详情来自同一事实源", html)
+            self.assertIn("关注回撤", html)
+            self.assertIn("-5.00%", html)
+            self.assertIn("高关注回测仓位", html)
+            self.assertIn("100.00%", html)
+            self.assertIn("仅用于历史模拟", html)
+            self.assertIn("attention_score_allocation v1.0.0", html)
+            self.assertIn(fingerprint, html)
+            self.assertIn('data-lifecycle="active"', html)
+            self.assertIn('data-validation="pending"', html)
 
 
 if __name__ == "__main__":

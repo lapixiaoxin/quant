@@ -117,14 +117,14 @@ class DocumentationNavigationTest(unittest.TestCase):
                 self.assertEqual(parser.current_links, 0)
                 self.assertEqual(parser.current_groups, 0)
                 self.assertEqual(len(parser.stylesheets), 1)
-                self.assertIn("docs.css?v=0.10.0", parser.stylesheets[0])
+                self.assertIn("docs.css?v=0.10.1", parser.stylesheets[0])
                 navigation_scripts = [
                     item for item in parser.scripts
                     if "navigation.js" in item
                 ]
                 self.assertEqual(len(navigation_scripts), 1)
                 self.assertIn(
-                    "navigation.js?v=0.10.0",
+                    "navigation.js?v=0.10.1",
                     navigation_scripts[0],
                 )
 

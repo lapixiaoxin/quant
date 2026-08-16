@@ -15,7 +15,7 @@ _ASSET_VERSION_PATTERN = re.compile(
     r"(?P<asset>docs\.css|navigation\.js)\?v=[0-9.]+"
 )
 _HREF_PATTERN = re.compile(r'href="(?P<href>[^"]+)"')
-ASSET_VERSION = "0.10.0"
+ASSET_VERSION = "0.10.1"
 
 
 def build_site_header(prefix: str, current: str) -> str:

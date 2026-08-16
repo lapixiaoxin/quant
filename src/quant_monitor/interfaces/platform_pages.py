@@ -8,7 +8,8 @@ from html import escape
 from pathlib import Path
 from typing import Any
 
-from ..config import Settings
+from ..config import Settings, StrategyProfileConfig
+from ..domain.control_plane import StrategyRecord
 from ..domain.factors import FactorRegistry
 from ..infrastructure.control_repository import SQLiteControlPlaneRepository
 from ..infrastructure.selection_config import load_selection_universe
@@ -317,6 +318,139 @@ def _backtest_row(item: dict[str, Any]) -> str:
     """.strip()
 
 
+def _strategy_parameter_list(parameters: dict[str, Any]) -> str:
+    labels = {
+        "strategy_id": "线上策略",
+        "deep_drawdown": "深度回撤",
+        "attention_drawdown": "关注回撤",
+        "mild_drawdown": "温和回撤",
+        "near_high": "接近高位",
+        "high_volatility": "高波动率",
+        "full_score": "高关注分数",
+        "watch_score": "观察分数",
+        "full_weight": "高关注回测仓位",
+        "watch_weight": "观察回测仓位",
+    }
+    percentage_keys = {
+        "deep_drawdown",
+        "attention_drawdown",
+        "mild_drawdown",
+        "near_high",
+        "high_volatility",
+        "full_weight",
+        "watch_weight",
+    }
+    rows = []
+    for key, value in parameters.items():
+        if key in percentage_keys and isinstance(value, (int, float)):
+            rendered = f"{float(value) * 100:.2f}%"
+        elif isinstance(value, (dict, list, tuple)):
+            rendered = json.dumps(
+                value,
+                ensure_ascii=False,
+                sort_keys=True,
+            )
+        else:
+            rendered = str(value)
+        rows.append(
+            "<div>"
+            f"<dt>{escape(labels.get(key, key))}</dt>"
+            f"<dd>{escape(rendered)}</dd>"
+            "</div>"
+        )
+    if not rows:
+        return '<p class="strategy-empty">未配置可调参数</p>'
+    return f'<dl class="strategy-parameters">{"".join(rows)}</dl>'
+
+
+def _strategy_datetime(value: datetime | None) -> str:
+    return value.isoformat(sep=" ", timespec="minutes") if value else "未设置"
+
+
+def _strategy_record(
+    item: StrategyRecord,
+    profile: StrategyProfileConfig,
+    *,
+    bound: bool,
+) -> str:
+    backtest_model = (
+        f"{item.backtest_model_id} v{item.backtest_model_version}"
+        if item.backtest_model_id
+        else "未绑定"
+    )
+    configuration_status = "配置一致" if bound else "配置不一致"
+    configuration_class = "ok" if bound else "no"
+    return f"""
+        <details class="strategy-record" data-catalog-row
+          data-lifecycle="{item.lifecycle.value}"
+          data-validation="{item.validation_state.value}"
+          data-horizon="{item.horizon.value}">
+          <summary>
+            <span class="strategy-record-title">
+              <strong>{escape(item.name)}</strong>
+              <small>{escape(item.record_id)}</small>
+            </span>
+            <span class="strategy-record-facts">
+              <span><small>标的</small>
+                <strong>{escape("、".join(item.symbols))}</strong></span>
+              <span><small>版本</small>
+                <strong>{escape(item.version)}</strong></span>
+              <span><small>期限</small>
+                <strong>{escape(_status(item.horizon.value))}</strong></span>
+            </span>
+            <span class="strategy-record-state">
+              <span class="status {_status_class(item.lifecycle.value)}">
+                {escape(_status(item.lifecycle.value))}
+              </span>
+              <span
+                class="status {_status_class(item.validation_state.value)}">
+                {escape(_status(item.validation_state.value))}
+              </span>
+              <span class="status {configuration_class}">
+                {configuration_status}
+              </span>
+              <span class="strategy-expand">详情</span>
+            </span>
+          </summary>
+          <div class="strategy-record-body">
+            <section class="strategy-thesis">
+              <h3>策略逻辑</h3>
+              <p>{escape(item.thesis)}</p>
+            </section>
+            <div class="strategy-detail-columns">
+              <section>
+                <h3>线上判断参数</h3>
+                {_strategy_parameter_list(profile.parameters)}
+              </section>
+              <section>
+                <h3>回测参数</h3>
+                {_strategy_parameter_list(item.backtest_parameters)}
+                <p class="strategy-boundary">
+                  回测仓位仅用于历史模拟，不代表实盘仓位或自动交易指令。
+                </p>
+              </section>
+            </div>
+            <dl class="strategy-record-metadata">
+              <div><dt>策略画像</dt>
+                <dd><code>{escape(item.profile_id)}</code></dd></div>
+              <div><dt>线上算法</dt>
+                <dd><code>{escape(profile.strategy_id)}</code></dd></div>
+              <div><dt>回测模型</dt>
+                <dd><code>{escape(backtest_model)}</code></dd></div>
+              <div><dt>创建时间</dt>
+                <dd>{escape(_strategy_datetime(item.created_at))}</dd></div>
+              <div><dt>启用时间</dt>
+                <dd>{escape(_strategy_datetime(item.enabled_at))}</dd></div>
+              <div><dt>弃用时间</dt>
+                <dd>{escape(_strategy_datetime(item.retired_at))}</dd></div>
+              <div class="strategy-fingerprint"><dt>参数指纹</dt>
+                <dd><code>{escape(item.parameters_fingerprint)}</code></dd></div>
+            </dl>
+          </div>
+        </details>
+    """.strip()
+
+
 def _strategy_page(
     settings: Settings,
     catalog: StrategyCatalog,
@@ -331,31 +465,11 @@ def _strategy_page(
             for symbol in item.symbols
         )
         rows.append(
-            f"""
-        <tr data-catalog-row
-          data-lifecycle="{item.lifecycle.value}"
-          data-validation="{item.validation_state.value}"
-          data-horizon="{item.horizon.value}">
-          <td><strong>{escape(item.name)}</strong>
-            <small>{escape(item.record_id)}</small></td>
-          <td>{escape(",".join(item.symbols))}</td>
-          <td>{escape(item.version)}</td>
-          <td>
-            <span class="status {_status_class(item.lifecycle.value)}">
-              {escape(_status(item.lifecycle.value))}
-            </span>
-          </td>
-          <td>{escape(_status(item.horizon.value))}</td>
-          <td>
-            <span class="status {_status_class(item.validation_state.value)}">
-              {escape(_status(item.validation_state.value))}
-            </span>
-          </td>
-          <td>{item.enabled_at or "未启用"}</td>
-          <td>{"一致" if bound else "配置不一致"}</td>
-          <td><code>{escape(profile.strategy_id)}</code></td>
-        </tr>
-            """.strip()
+            _strategy_record(
+                item,
+                profile,
+                bound=bound,
+            )
         )
     backtests = "".join(
         _backtest_row(item) for item in control["backtest_runs"]
@@ -373,11 +487,8 @@ def _strategy_page(
         ("期限", "horizon", ("short", "long")),
     ),
 )}
-      <div class="table-wrap">
-        <table class="management-table" data-catalog="strategies">
-          <thead><tr><th>策略</th><th>标的</th><th>版本</th><th>状态</th><th>期限</th><th>验证</th><th>启用时间</th><th>配置</th><th>算法</th></tr></thead>
-          <tbody>{"".join(rows)}</tbody>
-        </table>
+      <div class="strategy-record-list" data-catalog="strategies">
+        {"".join(rows)}
       </div>
     </section>
     <section class="section">

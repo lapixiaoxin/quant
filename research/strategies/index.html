@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>策略与回测 · Quant Monitor</title>
   <link rel="stylesheet"
-    href="../../docs/assets/docs.css?v=0.10.0">
+    href="../../docs/assets/docs.css?v=0.10.1">
 </head>
 <body class="module-page module-strategy">
   <header class="site-header">
@@ -57,33 +57,74 @@
         <button type="reset">重置</button>
         <output data-catalog-count="strategies"></output>
       </form>
-      <div class="table-wrap">
-        <table class="management-table" data-catalog="strategies">
-          <thead><tr><th>策略</th><th>标的</th><th>版本</th><th>状态</th><th>期限</th><th>验证</th><th>启用时间</th><th>配置</th><th>算法</th></tr></thead>
-          <tbody><tr data-catalog-row
+      <div class="strategy-record-list" data-catalog="strategies">
+        <details class="strategy-record" data-catalog-row
           data-lifecycle="active"
           data-validation="pending"
           data-horizon="long">
-          <td><strong>515100 红利低波中长线策略</strong>
-            <small>515100-dividend-low-vol-v1</small></td>
-          <td>515100</td>
-          <td>1.0.0</td>
-          <td>
-            <span class="status ok">
-              启用
+          <summary>
+            <span class="strategy-record-title">
+              <strong>515100 红利低波中长线策略</strong>
+              <small>515100-dividend-low-vol-v1</small>
             </span>
-          </td>
-          <td>长期</td>
-          <td>
-            <span class="status conditional">
-              待验证
+            <span class="strategy-record-facts">
+              <span><small>标的</small>
+                <strong>515100</strong></span>
+              <span><small>版本</small>
+                <strong>1.0.0</strong></span>
+              <span><small>期限</small>
+                <strong>长期</strong></span>
             </span>
-          </td>
-          <td>2026-08-15 00:00:00+08:00</td>
-          <td>一致</td>
-          <td><code>dividend_low_vol</code></td>
-        </tr></tbody>
-        </table>
+            <span class="strategy-record-state">
+              <span class="status ok">
+                启用
+              </span>
+              <span
+                class="status conditional">
+                待验证
+              </span>
+              <span class="status ok">
+                配置一致
+              </span>
+              <span class="strategy-expand">详情</span>
+            </span>
+          </summary>
+          <div class="strategy-record-body">
+            <section class="strategy-thesis">
+              <h3>策略逻辑</h3>
+              <p>以中长期回撤、60/120日均线和近期波动率识别研究关注区间；线上只输出研究判断，不自动下单。</p>
+            </section>
+            <div class="strategy-detail-columns">
+              <section>
+                <h3>线上判断参数</h3>
+                <dl class="strategy-parameters"><div><dt>深度回撤</dt><dd>-8.00%</dd></div><div><dt>关注回撤</dt><dd>-5.00%</dd></div><div><dt>温和回撤</dt><dd>-3.00%</dd></div><div><dt>接近高位</dt><dd>-1.00%</dd></div><div><dt>高波动率</dt><dd>25.00%</dd></div></dl>
+              </section>
+              <section>
+                <h3>回测参数</h3>
+                <dl class="strategy-parameters"><div><dt>线上策略</dt><dd>dividend_low_vol</dd></div><div><dt>高关注分数</dt><dd>68</dd></div><div><dt>观察分数</dt><dd>52</dd></div><div><dt>高关注回测仓位</dt><dd>100.00%</dd></div><div><dt>观察回测仓位</dt><dd>50.00%</dd></div></dl>
+                <p class="strategy-boundary">
+                  回测仓位仅用于历史模拟，不代表实盘仓位或自动交易指令。
+                </p>
+              </section>
+            </div>
+            <dl class="strategy-record-metadata">
+              <div><dt>策略画像</dt>
+                <dd><code>dividend_low_vol_default</code></dd></div>
+              <div><dt>线上算法</dt>
+                <dd><code>dividend_low_vol</code></dd></div>
+              <div><dt>回测模型</dt>
+                <dd><code>attention_score_allocation v1.0.0</code></dd></div>
+              <div><dt>创建时间</dt>
+                <dd>2026-08-14 20:00+08:00</dd></div>
+              <div><dt>启用时间</dt>
+                <dd>2026-08-15 00:00+08:00</dd></div>
+              <div><dt>弃用时间</dt>
+                <dd>未设置</dd></div>
+              <div class="strategy-fingerprint"><dt>参数指纹</dt>
+                <dd><code>f5ded45ee47832360d2a9960c0425a4b28ab07d42f11c9ed4bfbc86b529cfb32</code></dd></div>
+            </dl>
+          </div>
+        </details>
       </div>
     </section>
     <section class="section">
@@ -140,7 +181,7 @@
 
   </main>
   <script
-    src="../../docs/assets/navigation.js?v=0.10.0"></script>
-  <script src="../../docs/assets/catalog.js?v=0.10.0"></script>
+    src="../../docs/assets/navigation.js?v=0.10.1"></script>
+  <script src="../../docs/assets/catalog.js?v=0.10.1"></script>
 </body>
 </html>
