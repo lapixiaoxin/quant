@@ -43,7 +43,7 @@
           <div><dt>版本</dt><dd>1.0.0</dd></div>
           <div><dt>生命周期</dt><dd>draft</dd></div>
           <div><dt>验证状态</dt><dd>pending</dd></div>
-          <div><dt>事实日期</dt><dd>2026-08-14</dd></div>
+          <div><dt>事实日期</dt><dd>2026-08-26</dd></div>
           <div><dt>基线回测</dt><dd>已完成，仍待验证</dd></div>
         </dl>
       </aside>
@@ -239,33 +239,33 @@
         </div>
       </div>
       <div class="metric-row">
-        <div class="metric"><strong>2.08%</strong><span>策略总收益</span></div>
-        <div class="metric"><strong>6.13%</strong><span>同期持有收益</span></div>
-        <div class="metric"><strong>-4.06%</strong><span>策略最大回撤</span></div>
+        <div class="metric"><strong>4.30%</strong><span>策略总收益</span></div>
+        <div class="metric"><strong>17.67%</strong><span>同期持有收益</span></div>
+        <div class="metric"><strong>-3.53%</strong><span>策略最大回撤</span></div>
         <div class="metric"><strong>-14.39%</strong><span>持有最大回撤</span></div>
-        <div class="metric"><strong>23.88%</strong><span>平均目标仓位</span></div>
-        <div class="metric"><strong>-4.05%</strong><span>相对持有差额</span></div>
+        <div class="metric"><strong>22.54%</strong><span>平均目标仓位</span></div>
+        <div class="metric"><strong>-13.36%</strong><span>相对持有差额</span></div>
         <div class="metric"><strong>5</strong><span>交易次数</span></div>
-        <div class="metric"><strong>0.63x</strong><span>累计换手</span></div>
+        <div class="metric"><strong>0.62x</strong><span>累计换手</span></div>
       </div>
       <div class="table-wrap">
         <table>
           <thead><tr><th>项目</th><th>本次口径</th><th>结论边界</th></tr></thead>
           <tbody>
             <tr><td>估值输入</td><td>000151 市值加权股息率，727 个逐日时点分位</td><td>公开窗口仅三年</td></tr>
-            <tr><td>价格输入</td><td>510720 前复权日线，2024-07-24 至 2026-08-14</td><td>近似含分红表现，未单列现金分红</td></tr>
-            <tr><td>有效执行区间</td><td>2025-07-24 至 2026-08-14</td><td>先预留 242 日回撤窗口，仅约一年</td></tr>
-            <tr><td>仓位覆盖</td><td>20%：158 日；30%：100 日</td><td>没有触发 50%、75% 或 100% 增配档</td></tr>
+            <tr><td>价格输入</td><td>510720 全部前复权日线，2024-05-15 至 2026-08-26，共 557 根</td><td>近似含分红表现，腾讯历史接口不提供成交额和换手率</td></tr>
+            <tr><td>有效执行区间</td><td>2025-05-15 至 2026-08-26</td><td>先预留 242 日回撤窗口，仍不足一个完整周期</td></tr>
+            <tr><td>仓位覆盖</td><td>20%：235 日；30%：80 日</td><td>没有触发 50%、75% 或 100% 增配档</td></tr>
             <tr><td>基本面门禁</td><td>用指数连续分红与支付率选样规则代理</td><td>尚未逐日回放盈利、现金流和分红削减</td></tr>
           </tbody>
         </table>
       </div>
       <div class="notice">
         <strong>如何理解：</strong>策略最大回撤和波动显著低于持有，主要原因是平均仅使用
-        23.88% 的目标仓位，而不是已经证明存在择时超额收益。样本期没有覆盖股息率
+        22.54% 的目标仓位，而不是已经证明存在择时超额收益。样本期没有覆盖股息率
         70% 以上的增配区，因此本次最关键的“低估加仓”逻辑实际上尚未被检验。
       </div>
-      <p><a href="../../data/backtests/510720/20260817T001818-9a8b86af.html">查看 510720 完整基线回测报告</a></p>
+      <p><a href="../../data/backtests/510720/20260826T233320-5f91c4a3.html">查看 510720 完整基线回测报告</a></p>
       <p><strong>后续验收顺序：</strong></p>
       <ol>
         <li>补足五至十年估值历史，并使用指数或更长存续产品覆盖完整牛熊周期。</li>

@@ -294,6 +294,11 @@ def _parser() -> argparse.ArgumentParser:
         help="查看本地 SQLite 历史行情覆盖情况",
     )
     _add_target_options(history_parser)
+    history_sync_parser = subparsers.add_parser(
+        "history-sync",
+        help="独立同步历史行情并校验配置的覆盖首日",
+    )
+    _add_target_options(history_sync_parser)
     valuation_parser = subparsers.add_parser(
         "valuation-sync",
         help="按策略记录同步可回放的指数估值历史",
@@ -827,6 +832,18 @@ def main() -> int:
                 control_repository,
                 factors,
             )
+
+        if args.command == "history-sync":
+            for symbol in _symbols(args, settings):
+                result = monitoring.sync_history(symbol)
+                summary = result.summary
+                print(
+                    f"{symbol}\t{summary.bar_count} 根\t"
+                    f"{summary.first_date} 至 {summary.last_date}\t"
+                    f"{result.sync_mode}\t请求 {result.requested_bars} 根\t"
+                    f"来源：{result.bundle.source}"
+                )
+            return 0
 
         if args.command == "automate":
             if not settings.automation.enabled and not args.force:

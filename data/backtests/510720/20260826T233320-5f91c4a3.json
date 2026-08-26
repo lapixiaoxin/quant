@@ -1,0 +1,2242 @@
+{
+  "specification": {
+    "symbol": "510720",
+    "model_id": "dividend_yield_percentile_allocation",
+    "model_version": "1.0.0",
+    "parameters_fingerprint": "282ff081288fd85be40f610f8559ab469c132f01d2c332c1b7618a529078253e",
+    "start_date": "2024-05-15",
+    "end_date": "2026-08-26",
+    "initial_cash": 1000000.0,
+    "commission_bps": 3.0,
+    "slippage_bps": 2.0,
+    "benchmark_symbol": ""
+  },
+  "metrics": {
+    "total_return": 0.0430358796115764,
+    "annualized_return": 0.033431332397259705,
+    "max_drawdown": -0.035265143133564325,
+    "annualized_volatility": 0.03936731808305465,
+    "sharpe_ratio": 0.8550516187801779,
+    "turnover": 0.6164252152596985,
+    "trade_count": 5,
+    "benchmark_return": 0.17666303162486363,
+    "benchmark_max_drawdown": -0.14394661582459478,
+    "benchmark_annualized_volatility": 0.1567435118043106,
+    "excess_return": -0.13362715201328723
+  },
+  "equity_curve": [
+    {
+      "trading_date": "2025-05-15",
+      "equity": 999463.7949836423,
+      "cash": 799900.0,
+      "position_value": 199563.79498364232,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-05-16",
+      "equity": 998155.1799345693,
+      "cash": 799900.0,
+      "position_value": 198255.17993456926,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-05-19",
+      "equity": 998591.384950927,
+      "cash": 799900.0,
+      "position_value": 198691.38495092693,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-05-20",
+      "equity": 998591.384950927,
+      "cash": 799900.0,
+      "position_value": 198691.38495092693,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-05-21",
+      "equity": 1000990.5125408942,
+      "cash": 799900.0,
+      "position_value": 201090.51254089424,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-05-22",
+      "equity": 1001208.615049073,
+      "cash": 799900.0,
+      "position_value": 201308.61504907307,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-05-23",
+      "equity": 999900.0,
+      "cash": 799900.0,
+      "position_value": 200000.0,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-05-26",
+      "equity": 998809.4874591058,
+      "cash": 799900.0,
+      "position_value": 198909.4874591058,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-05-27",
+      "equity": 997937.0774263904,
+      "cash": 799900.0,
+      "position_value": 198037.0774263904,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-05-28",
+      "equity": 998155.1799345693,
+      "cash": 799900.0,
+      "position_value": 198255.17993456926,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-05-29",
+      "equity": 998809.4874591058,
+      "cash": 799900.0,
+      "position_value": 198909.4874591058,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-05-30",
+      "equity": 999463.7949836423,
+      "cash": 799900.0,
+      "position_value": 199563.79498364232,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-06-03",
+      "equity": 1000336.2050163577,
+      "cash": 799900.0,
+      "position_value": 200436.2050163577,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-06-04",
+      "equity": 1000990.5125408942,
+      "cash": 799900.0,
+      "position_value": 201090.51254089424,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-06-05",
+      "equity": 999245.6924754635,
+      "cash": 799900.0,
+      "position_value": 199345.69247546347,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-06-06",
+      "equity": 999463.7949836423,
+      "cash": 799900.0,
+      "position_value": 199563.79498364232,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-06-09",
+      "equity": 999681.8974918212,
+      "cash": 799900.0,
+      "position_value": 199781.89749182118,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-06-10",
+      "equity": 1000336.2050163577,
+      "cash": 799900.0,
+      "position_value": 200436.2050163577,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-06-11",
+      "equity": 1000990.5125408942,
+      "cash": 799900.0,
+      "position_value": 201090.51254089424,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-06-12",
+      "equity": 1000772.4100327154,
+      "cash": 799900.0,
+      "position_value": 200872.4100327154,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-06-13",
+      "equity": 999900.0,
+      "cash": 799900.0,
+      "position_value": 200000.0,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-06-16",
+      "equity": 1000336.2050163577,
+      "cash": 799900.0,
+      "position_value": 200436.2050163577,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-06-17",
+      "equity": 1000990.5125408942,
+      "cash": 799900.0,
+      "position_value": 201090.51254089424,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-06-18",
+      "equity": 1001208.615049073,
+      "cash": 799900.0,
+      "position_value": 201308.61504907307,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-06-19",
+      "equity": 1000118.1025081789,
+      "cash": 799900.0,
+      "position_value": 200218.10250817885,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-06-20",
+      "equity": 1001208.615049073,
+      "cash": 799900.0,
+      "position_value": 201308.61504907307,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-06-23",
+      "equity": 1002953.4351145038,
+      "cash": 799900.0,
+      "position_value": 203053.43511450384,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-06-24",
+      "equity": 1002735.3326063249,
+      "cash": 799900.0,
+      "position_value": 202835.33260632498,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-06-25",
+      "equity": 1003607.7426390403,
+      "cash": 799900.0,
+      "position_value": 203707.74263904037,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-06-26",
+      "equity": 1003825.8451472193,
+      "cash": 799900.0,
+      "position_value": 203925.8451472192,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-06-27",
+      "equity": 1002081.0250817884,
+      "cash": 799900.0,
+      "position_value": 202181.02508178845,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-06-30",
+      "equity": 1002299.1275899673,
+      "cash": 799900.0,
+      "position_value": 202399.1275899673,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-07-01",
+      "equity": 1003825.8451472193,
+      "cash": 799900.0,
+      "position_value": 203925.8451472192,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-07-02",
+      "equity": 1005570.66521265,
+      "cash": 799900.0,
+      "position_value": 205670.66521264994,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-07-03",
+      "equity": 1005788.7677208288,
+      "cash": 799900.0,
+      "position_value": 205888.7677208288,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-07-04",
+      "equity": 1007097.3827699019,
+      "cash": 799900.0,
+      "position_value": 207197.38276990186,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-07-07",
+      "equity": 1007315.4852780807,
+      "cash": 799900.0,
+      "position_value": 207415.48527808068,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-07-08",
+      "equity": 1006879.280261723,
+      "cash": 799900.0,
+      "position_value": 206979.280261723,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-07-09",
+      "equity": 1007969.7928026172,
+      "cash": 799900.0,
+      "position_value": 208069.79280261722,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-07-10",
+      "equity": 1009714.612868048,
+      "cash": 799900.0,
+      "position_value": 209814.612868048,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-07-11",
+      "equity": 1008842.2028353326,
+      "cash": 799900.0,
+      "position_value": 208942.2028353326,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-07-14",
+      "equity": 1009932.7153762268,
+      "cash": 799900.0,
+      "position_value": 210032.7153762268,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-07-15",
+      "equity": 1007315.4852780807,
+      "cash": 799900.0,
+      "position_value": 207415.48527808068,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-07-16",
+      "equity": 1006006.8702290077,
+      "cash": 799900.0,
+      "position_value": 206106.87022900762,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-07-17",
+      "equity": 1006006.8702290077,
+      "cash": 799900.0,
+      "position_value": 206106.87022900762,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-07-18",
+      "equity": 1006879.280261723,
+      "cash": 799900.0,
+      "position_value": 206979.280261723,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-07-21",
+      "equity": 1008842.2028353326,
+      "cash": 799900.0,
+      "position_value": 208942.2028353326,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-07-22",
+      "equity": 1014076.6630316249,
+      "cash": 799900.0,
+      "position_value": 214176.66303162486,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-07-23",
+      "equity": 1013422.3555070884,
+      "cash": 799900.0,
+      "position_value": 213522.35550708833,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-07-24",
+      "equity": 1014294.7655398038,
+      "cash": 799900.0,
+      "position_value": 214394.76553980372,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-07-25",
+      "equity": 1013204.2529989094,
+      "cash": 799900.0,
+      "position_value": 213304.25299890948,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-07-28",
+      "equity": 1010368.9203925845,
+      "cash": 799900.0,
+      "position_value": 210468.92039258452,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-07-29",
+      "equity": 1010368.9203925845,
+      "cash": 799900.0,
+      "position_value": 210468.92039258452,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-07-30",
+      "equity": 1010805.1254089422,
+      "cash": 799900.0,
+      "position_value": 210905.1254089422,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-07-31",
+      "equity": 1006879.280261723,
+      "cash": 799900.0,
+      "position_value": 206979.280261723,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-08-01",
+      "equity": 1006443.0752453653,
+      "cash": 799900.0,
+      "position_value": 206543.07524536533,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-08-04",
+      "equity": 1007315.4852780807,
+      "cash": 799900.0,
+      "position_value": 207415.48527808068,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-08-05",
+      "equity": 1009714.612868048,
+      "cash": 799900.0,
+      "position_value": 209814.612868048,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-08-06",
+      "equity": 1011241.3304252999,
+      "cash": 799900.0,
+      "position_value": 211341.33042529988,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-08-07",
+      "equity": 1011677.5354416575,
+      "cash": 799900.0,
+      "position_value": 211777.5354416576,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-08-08",
+      "equity": 1011459.4329334787,
+      "cash": 799900.0,
+      "position_value": 211559.43293347873,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-08-11",
+      "equity": 1010150.8178844056,
+      "cash": 799900.0,
+      "position_value": 210250.81788440567,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-08-12",
+      "equity": 1011459.4329334787,
+      "cash": 799900.0,
+      "position_value": 211559.43293347873,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-08-13",
+      "equity": 1009496.5103598691,
+      "cash": 799900.0,
+      "position_value": 209596.51035986913,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-08-14",
+      "equity": 1008187.8953107961,
+      "cash": 799900.0,
+      "position_value": 208287.89531079607,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-08-15",
+      "equity": 1007969.7928026172,
+      "cash": 799900.0,
+      "position_value": 208069.79280261722,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-08-18",
+      "equity": 1007315.4852780807,
+      "cash": 799900.0,
+      "position_value": 207415.48527808068,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-08-19",
+      "equity": 1006879.280261723,
+      "cash": 799900.0,
+      "position_value": 206979.280261723,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-08-20",
+      "equity": 1008405.9978189749,
+      "cash": 799900.0,
+      "position_value": 208505.99781897492,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-08-21",
+      "equity": 1009932.7153762268,
+      "cash": 799900.0,
+      "position_value": 210032.7153762268,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-08-22",
+      "equity": 1009278.4078516903,
+      "cash": 799900.0,
+      "position_value": 209378.40785169028,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-08-25",
+      "equity": 1011241.3304252999,
+      "cash": 799900.0,
+      "position_value": 211341.33042529988,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-08-26",
+      "equity": 1010150.8178844056,
+      "cash": 799900.0,
+      "position_value": 210250.81788440567,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-08-27",
+      "equity": 1006006.8702290077,
+      "cash": 799900.0,
+      "position_value": 206106.87022900762,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-08-28",
+      "equity": 1005570.66521265,
+      "cash": 799900.0,
+      "position_value": 205670.66521264994,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-08-29",
+      "equity": 1004043.947655398,
+      "cash": 799900.0,
+      "position_value": 204143.94765539805,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-09-01",
+      "equity": 1002735.3326063249,
+      "cash": 799900.0,
+      "position_value": 202835.33260632498,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-09-02",
+      "equity": 1004262.0501635768,
+      "cash": 799900.0,
+      "position_value": 204362.0501635769,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-09-03",
+      "equity": 1002299.1275899673,
+      "cash": 799900.0,
+      "position_value": 202399.1275899673,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-09-04",
+      "equity": 1003171.5376226826,
+      "cash": 799900.0,
+      "position_value": 203271.53762268266,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-09-05",
+      "equity": 1002517.2300981461,
+      "cash": 799900.0,
+      "position_value": 202617.23009814613,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-09-08",
+      "equity": 1002953.4351145038,
+      "cash": 799900.0,
+      "position_value": 203053.43511450384,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-09-09",
+      "equity": 1003389.6401308615,
+      "cash": 799900.0,
+      "position_value": 203489.64013086152,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-09-10",
+      "equity": 1002735.3326063249,
+      "cash": 799900.0,
+      "position_value": 202835.33260632498,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-09-11",
+      "equity": 1002953.4351145038,
+      "cash": 799900.0,
+      "position_value": 203053.43511450384,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-09-12",
+      "equity": 1002517.2300981461,
+      "cash": 799900.0,
+      "position_value": 202617.23009814613,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-09-15",
+      "equity": 1001862.9225736096,
+      "cash": 799900.0,
+      "position_value": 201962.9225736096,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-09-16",
+      "equity": 1002081.0250817884,
+      "cash": 799900.0,
+      "position_value": 202181.02508178845,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-09-17",
+      "equity": 1003171.5376226826,
+      "cash": 799900.0,
+      "position_value": 203271.53762268266,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-09-18",
+      "equity": 999463.7949836423,
+      "cash": 799900.0,
+      "position_value": 199563.79498364232,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-09-19",
+      "equity": 1000772.4100327154,
+      "cash": 799900.0,
+      "position_value": 200872.4100327154,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-09-22",
+      "equity": 999463.7949836423,
+      "cash": 799900.0,
+      "position_value": 199563.79498364232,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-09-23",
+      "equity": 1000554.3075245365,
+      "cash": 799900.0,
+      "position_value": 200654.30752453653,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-09-24",
+      "equity": 1000772.4100327154,
+      "cash": 799900.0,
+      "position_value": 200872.4100327154,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-09-25",
+      "equity": 999245.6924754635,
+      "cash": 799900.0,
+      "position_value": 199345.69247546347,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-09-26",
+      "equity": 999681.8974918212,
+      "cash": 799900.0,
+      "position_value": 199781.89749182118,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-09-29",
+      "equity": 999245.6924754635,
+      "cash": 799900.0,
+      "position_value": 199345.69247546347,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-09-30",
+      "equity": 998809.4874591058,
+      "cash": 799900.0,
+      "position_value": 198909.4874591058,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-10-09",
+      "equity": 1000336.2050163577,
+      "cash": 799900.0,
+      "position_value": 200436.2050163577,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-10-10",
+      "equity": 1002953.4351145038,
+      "cash": 799900.0,
+      "position_value": 203053.43511450384,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-10-13",
+      "equity": 1002953.4351145038,
+      "cash": 799900.0,
+      "position_value": 203053.43511450384,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-10-14",
+      "equity": 1007097.3827699019,
+      "cash": 799900.0,
+      "position_value": 207197.38276990186,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-10-15",
+      "equity": 1008187.8953107961,
+      "cash": 799900.0,
+      "position_value": 208287.89531079607,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-10-16",
+      "equity": 1011459.4329334787,
+      "cash": 799900.0,
+      "position_value": 211559.43293347873,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-10-17",
+      "equity": 1010368.9203925845,
+      "cash": 799900.0,
+      "position_value": 210468.92039258452,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-10-20",
+      "equity": 1013422.3555070884,
+      "cash": 799900.0,
+      "position_value": 213522.35550708833,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-10-21",
+      "equity": 1012549.945474373,
+      "cash": 799900.0,
+      "position_value": 212649.94547437294,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-10-22",
+      "equity": 1012331.8429661941,
+      "cash": 799900.0,
+      "position_value": 212431.84296619412,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-10-23",
+      "equity": 1014512.8680479826,
+      "cash": 799900.0,
+      "position_value": 214612.86804798254,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-10-24",
+      "equity": 1013204.2529989094,
+      "cash": 799900.0,
+      "position_value": 213304.25299890948,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-10-27",
+      "equity": 1014294.7655398038,
+      "cash": 799900.0,
+      "position_value": 214394.76553980372,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-10-28",
+      "equity": 1013422.3555070884,
+      "cash": 799900.0,
+      "position_value": 213522.35550708833,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-10-29",
+      "equity": 1012768.0479825519,
+      "cash": 799900.0,
+      "position_value": 212868.0479825518,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-10-30",
+      "equity": 1011677.5354416575,
+      "cash": 799900.0,
+      "position_value": 211777.5354416576,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-10-31",
+      "equity": 1011459.4329334787,
+      "cash": 799900.0,
+      "position_value": 211559.43293347873,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-11-03",
+      "equity": 1014949.0730643403,
+      "cash": 799900.0,
+      "position_value": 215049.07306434025,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-11-04",
+      "equity": 1016475.7906215922,
+      "cash": 799900.0,
+      "position_value": 216575.79062159214,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-11-05",
+      "equity": 1017566.3031624864,
+      "cash": 799900.0,
+      "position_value": 217666.30316248638,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-11-06",
+      "equity": 1017784.4056706652,
+      "cash": 799900.0,
+      "position_value": 217884.4056706652,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-11-07",
+      "equity": 1017566.3031624864,
+      "cash": 799900.0,
+      "position_value": 217666.30316248638,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-11-10",
+      "equity": 1019093.0207197382,
+      "cash": 799900.0,
+      "position_value": 219193.02071973827,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-11-11",
+      "equity": 1018220.6106870229,
+      "cash": 799900.0,
+      "position_value": 218320.61068702288,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-11-12",
+      "equity": 1019311.1232279171,
+      "cash": 799900.0,
+      "position_value": 219411.12322791712,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-11-13",
+      "equity": 1019747.3282442748,
+      "cash": 799900.0,
+      "position_value": 219847.3282442748,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-11-14",
+      "equity": 1018438.7131952017,
+      "cash": 799900.0,
+      "position_value": 218538.71319520174,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-11-17",
+      "equity": 1017784.4056706652,
+      "cash": 799900.0,
+      "position_value": 217884.4056706652,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-11-18",
+      "equity": 1014076.6630316249,
+      "cash": 799900.0,
+      "position_value": 214176.66303162486,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-11-19",
+      "equity": 1015385.2780806979,
+      "cash": 799900.0,
+      "position_value": 215485.27808069793,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-11-20",
+      "equity": 1014730.9705561614,
+      "cash": 799900.0,
+      "position_value": 214830.9705561614,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-11-21",
+      "equity": 1011895.6379498364,
+      "cash": 799900.0,
+      "position_value": 211995.6379498364,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-11-24",
+      "equity": 1009932.7153762268,
+      "cash": 799900.0,
+      "position_value": 210032.7153762268,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-11-25",
+      "equity": 1010587.0229007633,
+      "cash": 799900.0,
+      "position_value": 210687.02290076335,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-11-26",
+      "equity": 1009278.4078516903,
+      "cash": 799900.0,
+      "position_value": 209378.40785169028,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-11-27",
+      "equity": 1009932.7153762268,
+      "cash": 799900.0,
+      "position_value": 210032.7153762268,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-11-28",
+      "equity": 1009714.612868048,
+      "cash": 799900.0,
+      "position_value": 209814.612868048,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-12-01",
+      "equity": 1010587.0229007633,
+      "cash": 799900.0,
+      "position_value": 210687.02290076335,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-12-02",
+      "equity": 1010587.0229007633,
+      "cash": 799900.0,
+      "position_value": 210687.02290076335,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-12-03",
+      "equity": 1010368.9203925845,
+      "cash": 799900.0,
+      "position_value": 210468.92039258452,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-12-04",
+      "equity": 1009496.5103598691,
+      "cash": 799900.0,
+      "position_value": 209596.51035986913,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-12-05",
+      "equity": 1008405.9978189749,
+      "cash": 799900.0,
+      "position_value": 208505.99781897492,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-12-08",
+      "equity": 1007533.5877862596,
+      "cash": 799900.0,
+      "position_value": 207633.58778625954,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-12-09",
+      "equity": 1006006.8702290077,
+      "cash": 799900.0,
+      "position_value": 206106.87022900762,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-12-10",
+      "equity": 1005352.562704471,
+      "cash": 799900.0,
+      "position_value": 205452.5627044711,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-12-11",
+      "equity": 1003825.8451472193,
+      "cash": 799900.0,
+      "position_value": 203925.8451472192,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-12-12",
+      "equity": 1002953.4351145038,
+      "cash": 799900.0,
+      "position_value": 203053.43511450384,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-12-15",
+      "equity": 1004698.2551799346,
+      "cash": 799900.0,
+      "position_value": 204798.25517993455,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-12-16",
+      "equity": 1002081.0250817884,
+      "cash": 799900.0,
+      "position_value": 202181.02508178845,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-12-17",
+      "equity": 1002081.0250817884,
+      "cash": 799900.0,
+      "position_value": 202181.02508178845,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-12-18",
+      "equity": 1004698.2551799346,
+      "cash": 799900.0,
+      "position_value": 204798.25517993455,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-12-19",
+      "equity": 1004480.1526717558,
+      "cash": 799900.0,
+      "position_value": 204580.15267175573,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-12-22",
+      "equity": 1003825.8451472193,
+      "cash": 799900.0,
+      "position_value": 203925.8451472192,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-12-23",
+      "equity": 1003607.7426390403,
+      "cash": 799900.0,
+      "position_value": 203707.74263904037,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-12-24",
+      "equity": 1004043.947655398,
+      "cash": 799900.0,
+      "position_value": 204143.94765539805,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-12-25",
+      "equity": 1004480.1526717558,
+      "cash": 799900.0,
+      "position_value": 204580.15267175573,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-12-26",
+      "equity": 1005570.66521265,
+      "cash": 799900.0,
+      "position_value": 205670.66521264994,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-12-29",
+      "equity": 1005134.4601962923,
+      "cash": 799900.0,
+      "position_value": 205234.46019629226,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-12-30",
+      "equity": 1004698.2551799346,
+      "cash": 799900.0,
+      "position_value": 204798.25517993455,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2025-12-31",
+      "equity": 1003825.8451472193,
+      "cash": 799900.0,
+      "position_value": 203925.8451472192,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-01-05",
+      "equity": 1004043.947655398,
+      "cash": 799900.0,
+      "position_value": 204143.94765539805,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-01-06",
+      "equity": 1006006.8702290077,
+      "cash": 799900.0,
+      "position_value": 206106.87022900762,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-01-07",
+      "equity": 1008833.3279770992,
+      "cash": 704156.9615648855,
+      "position_value": 304676.36641221377,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-01-08",
+      "equity": 1008513.960716709,
+      "cash": 704156.9615648855,
+      "position_value": 304356.9991518236,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-01-09",
+      "equity": 1009152.6952374894,
+      "cash": 704156.9615648855,
+      "position_value": 304995.7336726039,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-01-12",
+      "equity": 1009472.0624978796,
+      "cash": 704156.9615648855,
+      "position_value": 305315.1009329941,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-01-13",
+      "equity": 1008194.5934563188,
+      "cash": 704156.9615648855,
+      "position_value": 304037.63189143344,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-01-14",
+      "equity": 1005959.0226335877,
+      "cash": 704156.9615648855,
+      "position_value": 301802.0610687023,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-01-15",
+      "equity": 1004042.8190712468,
+      "cash": 704156.9615648855,
+      "position_value": 299885.8575063613,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-01-16",
+      "equity": 1000849.1464673452,
+      "cash": 704156.9615648855,
+      "position_value": 296692.18490245973,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-01-19",
+      "equity": 1001487.8809881255,
+      "cash": 704156.9615648855,
+      "position_value": 297330.91942324006,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-01-20",
+      "equity": 1004362.186331637,
+      "cash": 704156.9615648855,
+      "position_value": 300205.2247667515,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-01-21",
+      "equity": 1002445.982769296,
+      "cash": 704156.9615648855,
+      "position_value": 298289.0212044106,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-01-22",
+      "equity": 1005000.9208524174,
+      "cash": 704156.9615648855,
+      "position_value": 300843.95928753185,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-01-23",
+      "equity": 1004042.8190712468,
+      "cash": 704156.9615648855,
+      "position_value": 299885.8575063613,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-01-26",
+      "equity": 1007236.4916751485,
+      "cash": 704156.9615648855,
+      "position_value": 303079.530110263,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-01-27",
+      "equity": 1003723.4518108566,
+      "cash": 704156.9615648855,
+      "position_value": 299566.4902459712,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-01-28",
+      "equity": 1009472.0624978796,
+      "cash": 704156.9615648855,
+      "position_value": 305315.1009329941,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-01-29",
+      "equity": 1014581.9386641221,
+      "cash": 704156.9615648855,
+      "position_value": 310424.9770992367,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-01-30",
+      "equity": 1012346.367841391,
+      "cash": 704156.9615648855,
+      "position_value": 308189.40627650556,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-02-02",
+      "equity": 1001807.2482485157,
+      "cash": 704156.9615648855,
+      "position_value": 297650.28668363026,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-02-03",
+      "equity": 1002445.982769296,
+      "cash": 704156.9615648855,
+      "position_value": 298289.0212044106,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-02-04",
+      "equity": 1015540.0404452926,
+      "cash": 704156.9615648855,
+      "position_value": 311383.07888040715,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-02-05",
+      "equity": 1012346.367841391,
+      "cash": 704156.9615648855,
+      "position_value": 308189.40627650556,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-02-06",
+      "equity": 1011388.2660602205,
+      "cash": 704156.9615648855,
+      "position_value": 307231.30449533503,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-02-09",
+      "equity": 1012665.7351017811,
+      "cash": 704156.9615648855,
+      "position_value": 308508.7735368957,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-02-10",
+      "equity": 1014581.9386641221,
+      "cash": 704156.9615648855,
+      "position_value": 310424.9770992367,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-02-11",
+      "equity": 1017136.8767472433,
+      "cash": 704156.9615648855,
+      "position_value": 312979.91518235795,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-02-12",
+      "equity": 1016817.5094868533,
+      "cash": 704156.9615648855,
+      "position_value": 312660.5479219678,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-02-13",
+      "equity": 1012985.1023621713,
+      "cash": 704156.9615648855,
+      "position_value": 308828.1407972859,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-02-24",
+      "equity": 1017775.6112680237,
+      "cash": 704156.9615648855,
+      "position_value": 313618.6497031383,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-02-25",
+      "equity": 1017456.2440076335,
+      "cash": 704156.9615648855,
+      "position_value": 313299.28244274814,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-02-26",
+      "equity": 1016817.5094868533,
+      "cash": 704156.9615648855,
+      "position_value": 312660.5479219678,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-02-27",
+      "equity": 1021288.6511323155,
+      "cash": 704156.9615648855,
+      "position_value": 317131.68956743006,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-03-02",
+      "equity": 1028314.730860899,
+      "cash": 704156.9615648855,
+      "position_value": 324157.7692960136,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-03-03",
+      "equity": 1035021.4433290925,
+      "cash": 704156.9615648855,
+      "position_value": 330864.481764207,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-03-04",
+      "equity": 1028953.4653816794,
+      "cash": 704156.9615648855,
+      "position_value": 324796.5038167939,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-03-05",
+      "equity": 1027675.9963401187,
+      "cash": 704156.9615648855,
+      "position_value": 323519.03477523325,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-03-06",
+      "equity": 1025759.7927777776,
+      "cash": 704156.9615648855,
+      "position_value": 321602.83121289226,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-03-09",
+      "equity": 1028953.4653816794,
+      "cash": 704156.9615648855,
+      "position_value": 324796.5038167939,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-03-10",
+      "equity": 1024162.9564758269,
+      "cash": 704156.9615648855,
+      "position_value": 320005.9949109415,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-03-11",
+      "equity": 1029272.8326420696,
+      "cash": 704156.9615648855,
+      "position_value": 325115.8710771841,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-03-12",
+      "equity": 1035979.5451102629,
+      "cash": 704156.9615648855,
+      "position_value": 331822.5835453775,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-03-13",
+      "equity": 1035021.4433290925,
+      "cash": 704156.9615648855,
+      "position_value": 330864.481764207,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-03-16",
+      "equity": 1031508.4034648007,
+      "cash": 704156.9615648855,
+      "position_value": 327351.44189991517,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-03-17",
+      "equity": 1028314.730860899,
+      "cash": 704156.9615648855,
+      "position_value": 324157.7692960136,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-03-18",
+      "equity": 1026398.527298558,
+      "cash": 704156.9615648855,
+      "position_value": 322241.5657336726,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-03-19",
+      "equity": 1027037.2618193384,
+      "cash": 704156.9615648855,
+      "position_value": 322880.3002544529,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-03-20",
+      "equity": 1026079.160038168,
+      "cash": 704156.9615648855,
+      "position_value": 321922.1984732825,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-03-23",
+      "equity": 1022246.752913486,
+      "cash": 704156.9615648855,
+      "position_value": 318089.7913486005,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-03-24",
+      "equity": 1024162.9564758269,
+      "cash": 704156.9615648855,
+      "position_value": 320005.9949109415,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-03-25",
+      "equity": 1022885.4874342664,
+      "cash": 704156.9615648855,
+      "position_value": 318728.52586938086,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-03-26",
+      "equity": 1025121.0582569975,
+      "cash": 704156.9615648855,
+      "position_value": 320964.096692112,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-03-27",
+      "equity": 1024162.9564758269,
+      "cash": 704156.9615648855,
+      "position_value": 320005.9949109415,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-03-30",
+      "equity": 1025759.7927777776,
+      "cash": 704156.9615648855,
+      "position_value": 321602.83121289226,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-03-31",
+      "equity": 1019691.8148303647,
+      "cash": 704156.9615648855,
+      "position_value": 315534.85326547927,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-04-01",
+      "equity": 1018733.7130491942,
+      "cash": 704156.9615648855,
+      "position_value": 314576.75148430874,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-04-02",
+      "equity": 1020011.1820907549,
+      "cash": 704156.9615648855,
+      "position_value": 315854.2205258694,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-04-03",
+      "equity": 1015220.6731849024,
+      "cash": 704156.9615648855,
+      "position_value": 311063.711620017,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-04-07",
+      "equity": 1017136.8767472433,
+      "cash": 704156.9615648855,
+      "position_value": 312979.91518235795,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-04-08",
+      "equity": 1018094.9785284139,
+      "cash": 704156.9615648855,
+      "position_value": 313938.01696352847,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-04-09",
+      "equity": 1015859.4077056828,
+      "cash": 704156.9615648855,
+      "position_value": 311702.4461407973,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-04-10",
+      "equity": 1016527.4824385587,
+      "cash": 812377.8948208384,
+      "position_value": 204149.5876177204,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-04-13",
+      "equity": 1017360.7460614882,
+      "cash": 812377.8948208384,
+      "position_value": 204982.85124064985,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-04-14",
+      "equity": 1016944.1142500235,
+      "cash": 812377.8948208384,
+      "position_value": 204566.21942918512,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-04-15",
+      "equity": 1017360.7460614882,
+      "cash": 812377.8948208384,
+      "position_value": 204982.85124064985,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-04-16",
+      "equity": 1017569.0619672206,
+      "cash": 812377.8948208384,
+      "position_value": 205191.1671463822,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-04-17",
+      "equity": 1015902.5347213616,
+      "cash": 812377.8948208384,
+      "position_value": 203524.63990052327,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-04-20",
+      "equity": 1016319.1665328264,
+      "cash": 812377.8948208384,
+      "position_value": 203941.27171198803,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-04-21",
+      "equity": 1018818.9574016148,
+      "cash": 812377.8948208384,
+      "position_value": 206441.06258077643,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-04-22",
+      "equity": 1018818.9574016148,
+      "cash": 812377.8948208384,
+      "position_value": 206441.06258077643,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-04-23",
+      "equity": 1021527.0641761356,
+      "cash": 812377.8948208384,
+      "position_value": 209149.1693552972,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-04-24",
+      "equity": 1021110.4323646708,
+      "cash": 812377.8948208384,
+      "position_value": 208732.53754383247,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-04-27",
+      "equity": 1021110.4323646708,
+      "cash": 812377.8948208384,
+      "position_value": 208732.53754383247,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-04-28",
+      "equity": 1024235.1709506563,
+      "cash": 812377.8948208384,
+      "position_value": 211857.27612981797,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-04-29",
+      "equity": 1026318.33000798,
+      "cash": 812377.8948208384,
+      "position_value": 213940.43518714164,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-04-30",
+      "equity": 1024860.1186678534,
+      "cash": 812377.8948208384,
+      "position_value": 212482.2238470151,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-05-06",
+      "equity": 1025693.3822907829,
+      "cash": 812377.8948208384,
+      "position_value": 213315.48746994458,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-05-07",
+      "equity": 1020693.8005532061,
+      "cash": 812377.8948208384,
+      "position_value": 208315.90573236774,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-05-08",
+      "equity": 1020068.852836009,
+      "cash": 812377.8948208384,
+      "position_value": 207690.95801517065,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-05-11",
+      "equity": 1020693.8005532061,
+      "cash": 812377.8948208384,
+      "position_value": 208315.90573236774,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-05-12",
+      "equity": 1020277.1687417413,
+      "cash": 812377.8948208384,
+      "position_value": 207899.273920903,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-05-13",
+      "equity": 1019235.5892130795,
+      "cash": 812377.8948208384,
+      "position_value": 206857.69439224116,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-05-14",
+      "equity": 1017569.0619672206,
+      "cash": 812377.8948208384,
+      "position_value": 205191.1671463822,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-05-15",
+      "equity": 1017569.0619672206,
+      "cash": 812377.8948208384,
+      "position_value": 205191.1671463822,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-05-18",
+      "equity": 1017777.377872953,
+      "cash": 812377.8948208384,
+      "position_value": 205399.48305211458,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-05-19",
+      "equity": 1018194.0096844176,
+      "cash": 812377.8948208384,
+      "position_value": 205816.11486357934,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-05-20",
+      "equity": 1016735.798344291,
+      "cash": 812377.8948208384,
+      "position_value": 204357.90352345275,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-05-21",
+      "equity": 1013402.7438525732,
+      "cash": 812377.8948208384,
+      "position_value": 201024.84903173486,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-05-22",
+      "equity": 1012777.7961353761,
+      "cash": 812377.8948208384,
+      "position_value": 200399.90131453777,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-05-25",
+      "equity": 1016110.850627094,
+      "cash": 812377.8948208384,
+      "position_value": 203732.95580625566,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-05-26",
+      "equity": 1015485.9029098969,
+      "cash": 812377.8948208384,
+      "position_value": 203108.00808905854,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-05-27",
+      "equity": 1015902.5347213616,
+      "cash": 812377.8948208384,
+      "position_value": 203524.63990052327,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-05-28",
+      "equity": 1015902.5347213616,
+      "cash": 812377.8948208384,
+      "position_value": 203524.63990052327,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-05-29",
+      "equity": 1019027.2733073472,
+      "cash": 812377.8948208384,
+      "position_value": 206649.3784865088,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-06-01",
+      "equity": 1027568.2254423742,
+      "cash": 812377.8948208384,
+      "position_value": 215190.33062153586,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-06-02",
+      "equity": 1027568.2254423742,
+      "cash": 812377.8948208384,
+      "position_value": 215190.33062153586,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-06-03",
+      "equity": 1029234.7526882332,
+      "cash": 812377.8948208384,
+      "position_value": 216856.8578673948,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-06-04",
+      "equity": 1030901.2799340921,
+      "cash": 812377.8948208384,
+      "position_value": 218523.38511325375,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-06-05",
+      "equity": 1029859.7004054303,
+      "cash": 812377.8948208384,
+      "position_value": 217481.80558459193,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-06-08",
+      "equity": 1029026.4367825008,
+      "cash": 812377.8948208384,
+      "position_value": 216648.54196166247,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-06-09",
+      "equity": 1027776.5413481066,
+      "cash": 812377.8948208384,
+      "position_value": 215398.64652726825,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-06-10",
+      "equity": 1024651.8027621211,
+      "cash": 812377.8948208384,
+      "position_value": 212273.9079412827,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-06-11",
+      "equity": 1023610.2232334593,
+      "cash": 812377.8948208384,
+      "position_value": 211232.3284126209,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-06-12",
+      "equity": 1026734.9618194448,
+      "cash": 812377.8948208384,
+      "position_value": 214357.06699860637,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-06-15",
+      "equity": 1022985.275516262,
+      "cash": 812377.8948208384,
+      "position_value": 210607.38069542375,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-06-16",
+      "equity": 1019235.5892130795,
+      "cash": 812377.8948208384,
+      "position_value": 206857.69439224116,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-06-17",
+      "equity": 1016527.4824385587,
+      "cash": 812377.8948208384,
+      "position_value": 204149.5876177204,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-06-18",
+      "equity": 1012152.848418179,
+      "cash": 812377.8948208384,
+      "position_value": 199774.95359734065,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-06-22",
+      "equity": 1014860.9551926998,
+      "cash": 812377.8948208384,
+      "position_value": 202483.06037186144,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-06-23",
+      "equity": 1012986.1120411085,
+      "cash": 812377.8948208384,
+      "position_value": 200608.21722027013,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-06-24",
+      "equity": 1009028.1098321935,
+      "cash": 812377.8948208384,
+      "position_value": 196650.21501135515,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-06-25",
+      "equity": 1005903.371246208,
+      "cash": 812377.8948208384,
+      "position_value": 193525.47642536965,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-06-26",
+      "equity": 1001945.369037293,
+      "cash": 812377.8948208384,
+      "position_value": 189567.47421645466,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-06-29",
+      "equity": 1003403.5803774196,
+      "cash": 812377.8948208384,
+      "position_value": 191025.68555658121,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-06-30",
+      "equity": 999445.5781685046,
+      "cash": 812377.8948208384,
+      "position_value": 187067.68334766623,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-07-01",
+      "equity": 1002778.6326602225,
+      "cash": 812377.8948208384,
+      "position_value": 190400.73783938412,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-07-02",
+      "equity": 1004653.4758118137,
+      "cash": 812377.8948208384,
+      "position_value": 192275.58099097543,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-07-03",
+      "equity": 1007778.2143977992,
+      "cash": 812377.8948208384,
+      "position_value": 195400.31957696093,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-07-06",
+      "equity": 1012152.848418179,
+      "cash": 812377.8948208384,
+      "position_value": 199774.95359734065,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-07-07",
+      "equity": 1009028.1098321935,
+      "cash": 812377.8948208384,
+      "position_value": 196650.21501135515,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-07-08",
+      "equity": 1010902.9529837848,
+      "cash": 812377.8948208384,
+      "position_value": 198525.05816294646,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-07-09",
+      "equity": 1007883.679229314,
+      "cash": 707287.9060856239,
+      "position_value": 300595.77314369014,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-07-10",
+      "equity": 1008521.2100313155,
+      "cash": 707287.9060856239,
+      "position_value": 301233.3039456916,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-07-13",
+      "equity": 1010433.8024373199,
+      "cash": 707287.9060856239,
+      "position_value": 303145.896351696,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-07-14",
+      "equity": 1017765.4066603368,
+      "cash": 707287.9060856239,
+      "position_value": 310477.5005747128,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-07-15",
+      "equity": 1023184.4184773492,
+      "cash": 707287.9060856239,
+      "position_value": 315896.51239172526,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-07-16",
+      "equity": 1018721.7028633389,
+      "cash": 707287.9060856239,
+      "position_value": 311433.79677771503,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-07-17",
+      "equity": 1017446.6412593359,
+      "cash": 707287.9060856239,
+      "position_value": 310158.7351737121,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-07-20",
+      "equity": 1027647.1340913593,
+      "cash": 707287.9060856239,
+      "position_value": 320359.2280057355,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-07-21",
+      "equity": 1023503.1838783498,
+      "cash": 707287.9060856239,
+      "position_value": 316215.277792726,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-07-22",
+      "equity": 1030197.2572993652,
+      "cash": 707287.9060856239,
+      "position_value": 322909.35121374135,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-07-23",
+      "equity": 1033703.6767103733,
+      "cash": 707287.9060856239,
+      "position_value": 326415.7706247494,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-07-24",
+      "equity": 1026372.0724873564,
+      "cash": 707287.9060856239,
+      "position_value": 319084.16640173254,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-07-27",
+      "equity": 1027965.8994923602,
+      "cash": 707287.9060856239,
+      "position_value": 320677.99340673623,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-07-28",
+      "equity": 1027328.3686903587,
+      "cash": 707287.9060856239,
+      "position_value": 320040.4626047348,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-07-29",
+      "equity": 1032109.8497053697,
+      "cash": 707287.9060856239,
+      "position_value": 324821.9436197457,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-07-30",
+      "equity": 1035297.503715377,
+      "cash": 707287.9060856239,
+      "position_value": 328009.59762975306,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-07-31",
+      "equity": 1035616.2691163777,
+      "cash": 707287.9060856239,
+      "position_value": 328328.3630307538,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-08-03",
+      "equity": 1032747.3805073712,
+      "cash": 707287.9060856239,
+      "position_value": 325459.4744217472,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-08-04",
+      "equity": 1028603.4302943617,
+      "cash": 707287.9060856239,
+      "position_value": 321315.5242087377,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-08-05",
+      "equity": 1028922.1956953623,
+      "cash": 707287.9060856239,
+      "position_value": 321634.2896097384,
+      "target_weight": 0.3
+    },
+    {
+      "trading_date": "2026-08-06",
+      "equity": 1034056.0083947207,
+      "cash": 822824.9468164144,
+      "position_value": 211231.06157830643,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-08-07",
+      "equity": 1034260.0963769221,
+      "cash": 822824.9468164144,
+      "position_value": 211435.1495605077,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-08-10",
+      "equity": 1037117.3281277397,
+      "cash": 822824.9468164144,
+      "position_value": 214292.3813113254,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-08-11",
+      "equity": 1035484.6242701297,
+      "cash": 822824.9468164144,
+      "position_value": 212659.6774537153,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-08-12",
+      "equity": 1034464.1843591233,
+      "cash": 822824.9468164144,
+      "position_value": 211639.23754270896,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-08-13",
+      "equity": 1032015.1285727082,
+      "cash": 822824.9468164144,
+      "position_value": 209190.1817562938,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-08-14",
+      "equity": 1034668.2723413246,
+      "cash": 822824.9468164144,
+      "position_value": 211843.32552491024,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-08-17",
+      "equity": 1035484.6242701297,
+      "cash": 822824.9468164144,
+      "position_value": 212659.6774537153,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-08-18",
+      "equity": 1037321.416109941,
+      "cash": 822824.9468164144,
+      "position_value": 214496.46929352664,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-08-19",
+      "equity": 1038137.768038746,
+      "cash": 822824.9468164144,
+      "position_value": 215312.82122233167,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-08-20",
+      "equity": 1039362.2959319536,
+      "cash": 822824.9468164144,
+      "position_value": 216537.34911553925,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-08-21",
+      "equity": 1039770.4718963562,
+      "cash": 822824.9468164144,
+      "position_value": 216945.52507994178,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-08-24",
+      "equity": 1042831.7916293751,
+      "cash": 822824.9468164144,
+      "position_value": 220006.84481296074,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-08-25",
+      "equity": 1040790.9118073625,
+      "cash": 822824.9468164144,
+      "position_value": 217965.9649909481,
+      "target_weight": 0.2
+    },
+    {
+      "trading_date": "2026-08-26",
+      "equity": 1043035.8796115763,
+      "cash": 822824.9468164144,
+      "position_value": 220210.93279516196,
+      "target_weight": 0.2
+    }
+  ],
+  "warnings": [
+    "信号使用前一交易日及更早数据，在下一交易日开盘执行",
+    "该目标仓位映射仅用于验证，不是线上自动交易指令",
+    "结果未包含涨跌停、停牌和申赎冲击",
+    "基本面门禁暂以指数编制规则代理，未逐日回放盈利、现金流和分红削减",
+    "价格使用前复权 ETF 日线近似含分红表现，未单列现金分红与再投资税费",
+    "公开估值窗口只有三年，且 ETF 成立较晚，本次有效验证区间不足一个完整周期"
+  ]
+}

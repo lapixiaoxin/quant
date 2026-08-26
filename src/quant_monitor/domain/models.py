@@ -37,6 +37,7 @@ class Instrument:
     research_profile_id: str
     notification_policy_id: str
     history_days: int
+    history_start_date: date | None = None
     enabled: bool = True
     research_focus: tuple[str, ...] = ()
     research_instructions: tuple[str, ...] = ()

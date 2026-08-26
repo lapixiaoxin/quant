@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+from datetime import date
 from pathlib import Path
 
 from quant_monitor.config import load_settings
@@ -111,6 +112,7 @@ strategy_profiles = ["dividend_default", "custom"]
 research_profile = "custom"
 notification_policy = "silent"
 history_days = 260
+history_start_date = 2024-05-15
 """
         )
 
@@ -122,6 +124,19 @@ history_days = 260
         self.assertEqual(instrument.research_profile_id, "custom")
         self.assertEqual(instrument.notification_policy_id, "silent")
         self.assertEqual(instrument.history_days, 260)
+        self.assertEqual(instrument.history_start_date, date(2024, 5, 15))
+
+    def test_rejects_invalid_history_start_date(self) -> None:
+        with self.assertRaisesRegex(ValueError, "history_start_date"):
+            self._load(
+                """
+[[instruments]]
+symbol = "510300"
+name = "测试 ETF"
+type = "etf"
+history_start_date = "2024/05/15"
+"""
+            )
 
     def test_rejects_missing_product_type(self) -> None:
         with self.assertRaisesRegex(ValueError, "product_types.stock"):

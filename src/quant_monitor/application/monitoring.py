@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Callable
@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 from ..config import Settings
 from ..domain.control_plane import AnalysisRequest
 from ..domain.metrics import calculate_metrics
-from ..domain.models import MarketBundle
+from ..domain.models import HistorySummary, Instrument, MarketBundle
 from ..domain.strategies import StrategyRegistry
 from ..infrastructure.strategy_catalog import (
     StrategyCatalog,
@@ -22,6 +22,17 @@ from .ports import (
     MarketHistoryRepository,
     ResearchRepository,
 )
+
+
+@dataclass(frozen=True)
+class HistorySyncResult:
+    """一次行情同步的可审计结果。"""
+
+    bundle: MarketBundle
+    summary: HistorySummary
+    sync_mode: str
+    requested_bars: int
+    repaired_dates: tuple[date, ...]
 
 
 class MonitoringService:
@@ -66,15 +77,27 @@ class MonitoringService:
             source=bundle.source,
         )
 
-    def _fetch_limit(self, symbol: str, history_days: int, now: datetime) -> int:
-        summary = self._history_repository.summarize(symbol)
+    def _fetch_plan(
+        self,
+        instrument: Instrument,
+        now: datetime,
+    ) -> tuple[int, str]:
+        summary = self._history_repository.summarize(instrument.symbol)
         if (
-            summary.bar_count < history_days
+            instrument.history_start_date is not None
+            and (
+                summary.first_date is None
+                or summary.first_date > instrument.history_start_date
+            )
+        ):
+            return max(instrument.history_days, 1_000), "full"
+        if (
+            summary.bar_count < instrument.history_days
             or summary.last_date is None
             or (now.date() - summary.last_date).days > 12
         ):
-            return history_days
-        return min(history_days, 40)
+            return instrument.history_days, "full"
+        return min(instrument.history_days, 40), "incremental"
 
     def _repaired_dates(
         self,
@@ -129,6 +152,38 @@ class MonitoringService:
             for profile_id in instrument.strategy_profile_ids
         ]
 
+    def sync_history(self, symbol: str) -> HistorySyncResult:
+        """同步一个标的的历史行情，不执行策略、报告或通知。"""
+
+        instrument = self._settings.instrument_for(symbol)
+        now = self._clock().replace(microsecond=0)
+        fetch_limit, sync_mode = self._fetch_plan(instrument, now)
+        bundle = self._market_data.fetch(instrument, fetch_limit)
+        bundle = self._repair_intraday_amount(bundle, now)
+        repaired_dates = self._repaired_dates(symbol, bundle)
+        self._history_repository.save_bundle(instrument, bundle, now)
+        summary = self._history_repository.summarize(symbol)
+        if (
+            instrument.history_start_date is not None
+            and (
+                summary.first_date is None
+                or summary.first_date > instrument.history_start_date
+            )
+        ):
+            actual = summary.first_date.isoformat() if summary.first_date else "无"
+            raise ValueError(
+                f"{symbol} 历史仍不完整：期望从 "
+                f"{instrument.history_start_date.isoformat()} 开始，"
+                f"实际首日为 {actual}"
+            )
+        return HistorySyncResult(
+            bundle=bundle,
+            summary=summary,
+            sync_mode=sync_mode,
+            requested_bars=fetch_limit,
+            repaired_dates=repaired_dates,
+        )
+
     def prepare(
         self,
         symbol: str,
@@ -136,14 +191,8 @@ class MonitoringService:
     ) -> tuple[Path, dict[str, Any]]:
         instrument = self._settings.instrument_for(symbol)
         now = self._clock().replace(microsecond=0)
-        fetch_limit = self._fetch_limit(symbol, instrument.history_days, now)
-        bundle = self._market_data.fetch(
-            instrument,
-            fetch_limit,
-        )
-        bundle = self._repair_intraday_amount(bundle, now)
-        repaired_dates = self._repaired_dates(symbol, bundle)
-        self._history_repository.save_bundle(instrument, bundle, now)
+        sync = self.sync_history(symbol)
+        bundle = sync.bundle
         stored_bars = self._history_repository.load_bars(
             symbol,
             limit=instrument.history_days,
@@ -210,12 +259,10 @@ class MonitoringService:
                 "market_source": bundle.source,
                 "market_timestamp": bundle.quote.quote_time,
                 "history_bars": len(bundle.bars),
-                "sync_mode": (
-                    "full" if fetch_limit == instrument.history_days else "incremental"
-                ),
-                "requested_bars": fetch_limit,
+                "sync_mode": sync.sync_mode,
+                "requested_bars": sync.requested_bars,
                 "repaired_history_dates": [
-                    item.isoformat() for item in repaired_dates
+                    item.isoformat() for item in sync.repaired_dates
                 ],
                 "quote_available": bundle.quote.price is not None,
                 "limitations": [

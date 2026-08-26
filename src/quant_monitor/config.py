@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import shutil
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 from string import Formatter
 from typing import Any
@@ -519,6 +520,19 @@ def _load_instruments(
         history_days = int(item.get("history_days", defaults.history_days))
         if history_days < 20:
             raise ValueError(f"标的 {symbol}.history_days 不能小于 20")
+        raw_history_start_date = item.get("history_start_date")
+        try:
+            history_start_date = (
+                raw_history_start_date
+                if isinstance(raw_history_start_date, date)
+                else date.fromisoformat(str(raw_history_start_date))
+                if raw_history_start_date
+                else None
+            )
+        except ValueError as error:
+            raise ValueError(
+                f"标的 {symbol}.history_start_date 必须是 YYYY-MM-DD"
+            ) from error
         instruments.append(
             Instrument(
                 symbol=symbol,
@@ -536,6 +550,7 @@ def _load_instruments(
                     )
                 ),
                 history_days=history_days,
+                history_start_date=history_start_date,
                 enabled=bool(item.get("enabled", True)),
                 research_focus=_strings(
                     item.get("research_focus", []),

@@ -108,7 +108,8 @@ research_focus = ["分红与股息可持续性"]
 ```
 
 单个标的可覆盖 `strategy_profiles`、`research_profile`、
-`notification_policy` 和 `history_days`，并通过 `research_focus`、
+`notification_policy` 和 `history_days`；已知上市首日时可配置
+`history_start_date`，用于阻止历史窗口静默截断。通过 `research_focus`、
 `research_instructions` 追加个性需求。完整配置见
 [`config/config.example.toml`](config/config.example.toml)。
 
@@ -137,6 +138,7 @@ export FEISHU_RECEIVE_ID="<群聊 chat_id>"
 ./quant doctor
 ./quant instruments
 ./quant history --all
+./quant history-sync --symbol <标的代码>
 ./quant strategies
 ./quant valuation-sync \
   --strategy-record dividend-yield-dynamic-v1

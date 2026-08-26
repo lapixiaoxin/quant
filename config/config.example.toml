@@ -124,6 +124,7 @@ tracking_index_code = "000151"
 strategy_profiles = ["dividend_yield_dynamic_v1"]
 notification_policy = "silent"
 history_days = 500
+history_start_date = 2024-05-15
 enabled = false
 research_focus = [
   "股息率历史分位与目标仓位变化",

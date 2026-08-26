@@ -267,6 +267,60 @@ class MonitoringTest(unittest.TestCase):
             )
             self.assertIn(missing_date, stored_dates)
 
+    def test_repairs_history_to_configured_start_then_resumes_incremental(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source_bundle = market_bundle(557)
+            history_start = source_bundle.bars[0].trading_date
+            config_path = root / "config.toml"
+            config_path.write_text(
+                CONFIG.replace(
+                    'type = "etf"\n',
+                    f'type = "etf"\nhistory_start_date = {history_start}\n',
+                ),
+                encoding="utf-8",
+            )
+            settings = load_settings(root, config_path)
+            provider = WindowedMarketData(source_bundle)
+            repository = FileResearchRepository(settings.data_dir)
+            history_repository = SQLiteMarketHistoryRepository(
+                settings.data_dir / "history" / "market.sqlite3"
+            )
+            now = datetime(
+                2026,
+                8,
+                15,
+                14,
+                0,
+                tzinfo=timezone(timedelta(hours=8)),
+            )
+            history_repository.save_bundle(
+                settings.instrument_for("510300"),
+                MarketBundle(
+                    quote=source_bundle.quote,
+                    bars=source_bundle.bars[-300:],
+                    source=source_bundle.source,
+                ),
+                now,
+            )
+            service = MonitoringService(
+                settings=settings,
+                market_data=provider,
+                history_repository=history_repository,
+                repository=repository,
+                strategies=StrategyRegistry.default(),
+                clock=lambda: now,
+            )
+
+            first = service.sync_history("510300")
+            second = service.sync_history("510300")
+
+            self.assertEqual(provider.calls, [("510300", 1_000), ("510300", 40)])
+            self.assertEqual(first.sync_mode, "full")
+            self.assertEqual(first.summary.first_date, history_start)
+            self.assertEqual(first.summary.bar_count, 557)
+            self.assertEqual(second.sync_mode, "incremental")
+
 
 if __name__ == "__main__":
     unittest.main()
