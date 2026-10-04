@@ -1,0 +1,101 @@
+{
+  "study_schema_version": 2,
+  "study_id": "601985-capital-study-v1",
+  "symbol": "601985",
+  "name": "中国核电",
+  "exchange": "SH",
+  "model_id": "cash_equity_swing",
+  "model_version": "1.0.0",
+  "history_path": "data/analysis/snapshots/2026-10-04/601985-weekly-study/prices.csv",
+  "history_sha256": "374d924081642cfec2c08337514a589982d7927213153ba9018cb39189ac2ddf",
+  "method_path": "research/strategies/601985-capital-study-method.md",
+  "start": "2025-10-09",
+  "train_end": "2026-03-31",
+  "validation_start": "2026-04-01",
+  "validation_end": "2026-06-30",
+  "holdout_start": "2026-07-01",
+  "end": "2026-09-30",
+  "initial_cash_yuan": 20000,
+  "reference_configuration": "legacy",
+  "components": {
+    "legacy": {"mode": "fixed", "entry": 8.8, "take": 0.3, "stop": 0.2, "max_hold": 20, "weight": 0.4, "risk_fraction": 0.005},
+    "standard": {"mode": "fixed", "entry": 8.8, "take": 0.3, "stop": 0.2, "max_hold": 20, "weight": 1.0, "risk_fraction": 1.0},
+    "core": {"mode": "fixed", "entry": 8.9, "take": 0.6, "stop": 0.4, "max_hold": 60, "weight": 1.0, "risk_fraction": 1.0},
+    "add": {"mode": "fixed", "entry": 8.65, "take": 0.3, "stop": 0.2, "max_hold": 20, "weight": 1.0, "risk_fraction": 1.0},
+    "fast": {"mode": "fixed", "entry": 8.8, "take": 0.2, "stop": 0.2, "max_hold": 20, "weight": 1.0, "risk_fraction": 1.0},
+    "slow": {"mode": "fixed", "entry": 8.8, "take": 0.4, "stop": 0.2, "max_hold": 20, "weight": 1.0, "risk_fraction": 1.0},
+    "passive": {"mode": "hold", "weight": 1.0}
+  },
+  "configurations": [
+    {"id": "legacy", "label": "原v0.2风险预算", "sleeves": [
+      {"id": "swing", "component": "legacy", "fraction": 1.0}
+    ]},
+    {"id": "swing40", "label": "波段40%＋现金60%", "sleeves": [
+      {"id": "swing", "component": "standard", "fraction": 0.4}
+    ]},
+    {"id": "swing60", "label": "波段60%＋现金40%", "sleeves": [
+      {"id": "swing", "component": "standard", "fraction": 0.6}
+    ]},
+    {"id": "swing80", "label": "波段80%＋现金20%", "sleeves": [
+      {"id": "swing", "component": "standard", "fraction": 0.8}
+    ]},
+    {"id": "swing100", "label": "波段全部预算", "sleeves": [
+      {"id": "swing", "component": "standard", "fraction": 1.0}
+    ]},
+    {"id": "core20_swing40", "label": "核心20%＋波段40%＋现金40%", "sleeves": [
+      {"id": "core", "component": "core", "fraction": 0.2},
+      {"id": "swing", "component": "standard", "fraction": 0.4}
+    ]},
+    {"id": "core20_swing60", "label": "核心20%＋波段60%＋现金20%", "sleeves": [
+      {"id": "core", "component": "core", "fraction": 0.2},
+      {"id": "swing", "component": "standard", "fraction": 0.6}
+    ]},
+    {"id": "three70", "label": "核心20%＋波段30%＋低吸20%", "sleeves": [
+      {"id": "core", "component": "core", "fraction": 0.2},
+      {"id": "swing", "component": "standard", "fraction": 0.3},
+      {"id": "add", "component": "add", "fraction": 0.2, "requires_previous_holding": "swing"}
+    ]},
+    {"id": "three80", "label": "核心20%＋波段40%＋低吸20%", "sleeves": [
+      {"id": "core", "component": "core", "fraction": 0.2},
+      {"id": "swing", "component": "standard", "fraction": 0.4},
+      {"id": "add", "component": "add", "fraction": 0.2, "requires_previous_holding": "swing"}
+    ]},
+    {"id": "split60", "label": "两档止盈各30%＋现金40%", "sleeves": [
+      {"id": "fast", "component": "fast", "fraction": 0.3},
+      {"id": "slow", "component": "slow", "fraction": 0.3}
+    ]},
+    {"id": "passive20_swing60", "label": "被动底仓20%＋波段60%＋现金20%", "sleeves": [
+      {"id": "passive", "component": "passive", "fraction": 0.2},
+      {"id": "swing", "component": "standard", "fraction": 0.6}
+    ]},
+    {"id": "hold100", "label": "近满仓买入持有", "sleeves": [
+      {"id": "passive", "component": "passive", "fraction": 1.0}
+    ]}
+  ],
+  "costs": {
+    "slippage_yuan": 0.01,
+    "commission_rate": 0.0003,
+    "minimum_commission_yuan": 5.0,
+    "transfer_rate": 0.00001,
+    "sell_stamp_rate": 0.0005,
+    "dividend_tax_rate": 0.2
+  },
+  "dividends": [
+    {"ex_date": "2025-07-18", "per_share": 0.16, "source": "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601985&tabActive=1"},
+    {"ex_date": "2026-01-13", "per_share": 0.02, "source": "https://4g.stockstar.com/detail/AN2026010500035478"},
+    {"ex_date": "2026-07-17", "per_share": 0.16, "source": "https://static.sse.com.cn/disclosure/listedinfo/announcement/c/new/2026-07-09/601985_20260709_5T10.pdf"}
+  ],
+  "limitations": [
+    "已查看全期走势；资金规则和固定价位均有事后观察偏差。不是前瞻或盲测。",
+    "241个交易日不覆盖完整牛熊周期；达到20%的历史结果不代表未来目标可实现。",
+    "腾讯冻结不复权日线，关键价位已抽样交叉核验，未实现全量双源核对。",
+    "现金股息统一预扣20%，到账按除息日简化；无送转模型。日线无法还原分钟顺序、排队、真实冲击成本。",
+    "前轮口头提及的60日均线过滤不在选出的固定价模型中；本轮同样没有开启。新增过滤后的收益需要另行验证。",
+    "盈利、分红与公告门禁没有逐日回放；组合止损和实盘暂停规则也没有包含在回测收益内。",
+    "各子账户独立滚存盈亏，初始百分比不是永久仓位上限。已持有的第二批有独立退出规则，主仓退出不自动卖出它。",
+    "分批止盈是各子账户独立循环，成交批数不能当成独立行情机会数量；单子账户连续两次亏损后暂停10个交易日。",
+    "峰值仓位采用收盘时点，可能低于盘中峰值；10%和19%冲击仅为无法卖出时的假设损失，不是最大亏损上限。",
+    "2万元是该标的专项预算，不代表用户全部资产。尚不知道用户可承受亏损，不能据高收益自动推荐满仓。",
+    "费用为佣金万3、最低5元、过户费十万分1、卖方印花税万5；滑点已反映在成交价，不重复计入费用字段。"
+  ]
+}

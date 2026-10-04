@@ -145,6 +145,7 @@ export FEISHU_RECEIVE_ID="<群聊 chat_id>"
 ./quant backtest \
   --strategy-record dividend-yield-dynamic-v1 --symbol 510720
 ./quant backtest --study research/strategies/601985-swing-study.json
+./quant backtest --study research/strategies/601985-capital-study.json
 ./quant select \
   --universe research/universes/china-dividend-low-vol-monthly-etf.toml
 ./quant analyze --symbol <标的代码> \
@@ -287,9 +288,15 @@ data/selections/             候选程序筛选 JSON 与不可变快照
 按训练、验证、留出顺序比较有限候选，并输出完整交易账本。
 规格绑定策略目录的草稿版本；日期或参数变动必须新建规格并更新指纹，
 不能与 `--symbol/--start/--end` 混用。研究产物不启用标的、策略或通知。
-这不是通用参数寻优平台，也不模拟完整涨跌停排队、分红再投资和冲击成本。
+这不是通用参数寻优平台，也不模拟完整涨跌停排队、除息日自动再投资和冲击成本。
 已看过走势的时间留出不等于严格盲测；详见
 `research/strategies/601985-swing-study-method.md`。
+
+同一入口支持 `study_schema_version=2` 的固定资金配置比较：子账户独立持有
+现金与盈亏，第二批开仓只能依据前日持仓，保留现金不得补亏；输出完整分账、
+分段稳定性、成本压力和假设价格冲击。全期按含首末日的日历天数折算年化，
+短期分段不年化。资金规则并未经过前瞻验证，不能把仓位放大后的历史收益
+当作未来收益目标的保证；详见 `research/strategies/601985-capital-study-method.md`。
 
 股息率动态配置策略 `dividend-yield-dynamic-v1` 当前登记为 `draft/pending`。
 本地已保存 000151 最近三年的逐日股息率分位，并完成 510720 有限基线回测；

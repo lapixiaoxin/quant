@@ -64,3 +64,24 @@ study_path = "research/strategies/601985-swing-study.json"
 method_path = "research/strategies/601985-swing-study-method.md"
 validation_policy = "chronological_train_validate_holdout"
 activation_policy = "research_only"
+
+[[strategies]]
+record_id = "601985-capital-study-v1"
+profile_id = "cash_equity_capital_research"
+version = "1.0.0"
+name = "中国核电专项预算配置研究"
+symbols = ["601985"]
+horizon = "short"
+lifecycle = "draft"
+validation_state = "pending"
+created_at = 2026-10-04T20:23:15+08:00
+thesis = "以2万元独立分账比较固定波段、核心仓、低吸与分批止盈，观察20%目标对资金利用率及风险的依赖；属于事后敏感性研究，不能证明未来年化收益。"
+parameters_fingerprint = "f6a19c9c80de5d6db3c00ebe68cc591e172e4bfd8856c91d0e463a33e9c82fe6"
+backtest_model_id = "cash_equity_swing"
+backtest_model_version = "1.0.0"
+
+[strategies.backtest_parameters]
+study_path = "research/strategies/601985-capital-study.json"
+method_path = "research/strategies/601985-capital-study-method.md"
+validation_policy = "post_hoc_capital_sensitivity"
+activation_policy = "research_only"

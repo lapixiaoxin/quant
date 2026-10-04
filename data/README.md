@@ -139,6 +139,17 @@ SQLite 负责跨日期查询和回测输入，两者不能相互替代。
 股息税计入 `net_dividends_yuan`。`open_shares` 非零表示样本末清算被阻断。
 研究运行写入 `backtest_runs`，保持策略 `draft/pending`，不发送通知。
 
+`study_schema_version=2` 用于固定资金组合，v1 读取和执行仍保留。
+规格新增 `components`、`configurations` 和 `reference_configuration`；
+后者只指定运行索引展示的对照，不是回测后选出的最优方案。
+`comparisons` 与 `slippage_stress` 按方案和分段组织，保存组合与各子账户的
+指标、权益及成交，`initial_orders` 保留各子账户首次成交与计划止损损失。
+`annualized_return` 仅全期有值，按含首末日的日历天数折算；分段为 `null`。
+`reserve_cash_yuan` 不参与子账户补亏；`blocked_sale_shock_10pct/19pct`
+是收盘峰值仓位下无法卖出的假设冲击，不是历史最大回撤或损失上限。
+各子账户任一日期不一致、现金透支、账本不守恒或期末无法清算时整项失败，
+不得遗漏失败子账户后输出组合收益。日常 schema v4 和 SQLite schema 均不变。
+
 历史库已保存 000151 最近三年的逐日市值加权股息率和来源提供的时点分位，
 可供 `dividend_yield_dynamic` 做有限基线回测。当前仍不保存逐日可见的盈利、
 现金流和分红削减快照，基本面门禁只能使用指数编制规则代理；缺少同日估值时

@@ -225,6 +225,7 @@ def simulate_swing(
     dividends: tuple[CashDividend, ...] = (),
     costs: ExecutionCosts | None = None,
     initial_cash: float = 100_000.0,
+    allowed_entry_dates: frozenset[date] | None = None,
 ) -> SwingResult:
     """纯函数；所有行情、日期、参数与费用由调用者显式提供。"""
     costs = costs or ExecutionCosts()
@@ -350,6 +351,10 @@ def simulate_swing(
         can_enter = (
             not last_day and not exited and tradable and not dividend
             and not cooling and signal.entry_limit is not None
+            and (
+                allowed_entry_dates is None
+                or bar.trading_date in allowed_entry_dates
+            )
         )
         if can_enter:
             available = [("swing", signal.target_weight)]

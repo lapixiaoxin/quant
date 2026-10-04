@@ -12,11 +12,13 @@ from pathlib import Path
 from typing import Any
 
 from ..application.backtest_study import BacktestStudyService, fingerprint
+from ..application.capital_study import CapitalStudyService
 from ..application.ports import ControlPlaneRepository
 from ..domain.control_plane import BacktestRunRecord
 from ..domain.models import Instrument, InstrumentType
 from ..infrastructure.frozen_history import FrozenCSVHistoryRepository
 from ..infrastructure.strategy_catalog import StrategyCatalog
+from .capital_study import build_capital_report
 from .site_navigation import ASSET_VERSION, build_site_header
 
 LABELS = {
@@ -159,12 +161,20 @@ def run_study(
 ) -> Path:
     """装配冻结仓储、登记运行，并写出结果与报告。"""
     specification = json.loads(path.read_text(encoding="utf-8"))
+    handlers = {
+        1: (BacktestStudyService, build_study_report),
+        2: (CapitalStudyService, build_capital_report),
+    }
     required = {
         "study_id", "symbol", "name", "exchange", "model_id", "model_version",
         "history_path", "history_sha256",
     }
     if not isinstance(specification, dict) or not required <= specification.keys():
         raise ValueError("冻结研究规格必须是对象，并包含身份、模型及行情来源字段")
+    version = specification.get("study_schema_version")
+    if type(version) is not int or version not in handlers:
+        raise ValueError("不支持的冻结研究规格版本")
+    service, renderer = handlers[version]
     study_id = str(specification["study_id"])
     symbol = str(specification["symbol"])
     if (
@@ -198,7 +208,7 @@ def run_study(
             root / specification["history_path"],
             symbol, specification["history_sha256"],
         )
-        packet = BacktestStudyService(history).run(instrument, specification)
+        packet = service(history).run(instrument, specification)
         packet["generated_at"] = started_at.isoformat()
         packet["source_sha256"] = {
             str(source.relative_to(root)): hashlib.sha256(
@@ -208,6 +218,8 @@ def run_study(
                 root / "src/quant_monitor/domain/backtesting/swing.py",
                 root / "src/quant_monitor/application/backtest_study.py",
                 root / "src/quant_monitor/infrastructure/frozen_history.py",
+                root / "src/quant_monitor/domain/backtesting/capital.py",
+                root / "src/quant_monitor/application/capital_study.py",
             )
         }
         directory.mkdir(parents=True, exist_ok=True)
@@ -218,7 +230,7 @@ def run_study(
             encoding="utf-8",
         )
         html_path.write_text(
-            build_study_report(packet, json_path.name), encoding="utf-8",
+            renderer(packet, json_path.name), encoding="utf-8",
         )
     except (OSError, RuntimeError, ValueError, KeyError, TypeError) as error:
         control.save_backtest(replace(
@@ -226,7 +238,10 @@ def run_study(
             error=str(error),
         ))
         raise ValueError(f"冻结研究回测失败：{error}") from error
-    metrics = packet["comparisons"]["selected"]["full"]["metrics"]
+    reference = (
+        "selected" if version == 1 else specification["reference_configuration"]
+    )
+    metrics = packet["comparisons"][reference]["full"]["metrics"]
     control.save_backtest(replace(
         pending, status="completed", completed_at=datetime.now().astimezone(),
         total_return=metrics["total_return"], max_drawdown=metrics["max_drawdown"],
