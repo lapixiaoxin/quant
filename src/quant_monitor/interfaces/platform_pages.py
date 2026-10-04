@@ -347,6 +347,10 @@ def _strategy_parameter_list(
         "full_add_drawdown": "充分回撤确认",
         "dividend_cut_limit": "分红削减失效线",
         "rebalance_interval_days": "最短再平衡交易日",
+        "study_path": "冻结研究规格",
+        "method_path": "研究方法",
+        "validation_policy": "验证顺序",
+        "activation_policy": "启用边界",
     }
     percentage_keys = {
         "deep_drawdown",
@@ -383,6 +387,10 @@ def _strategy_parameter_list(
             )
         else:
             rendered = str(value)
+        rendered = {
+            "chronological_train_validate_holdout": "按时间训练、验证、留出",
+            "research_only": "仅研究，不自动启用",
+        }.get(rendered, rendered)
         rows.append(
             "<div>"
             f"<dt>{escape(labels.get(key, key))}</dt>"

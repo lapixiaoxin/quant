@@ -1,0 +1,61 @@
+{
+  "study_schema_version": 1,
+  "study_id": "601985-swing-study-v1",
+  "symbol": "601985",
+  "name": "中国核电",
+  "exchange": "SH",
+  "model_id": "cash_equity_swing",
+  "model_version": "1.0.0",
+  "history_path": "data/analysis/snapshots/2026-10-04/601985-weekly-study/prices.csv",
+  "history_sha256": "374d924081642cfec2c08337514a589982d7927213153ba9018cb39189ac2ddf",
+  "method_path": "research/strategies/601985-swing-study-method.md",
+  "start": "2025-10-09",
+  "train_end": "2026-03-31",
+  "validation_start": "2026-04-01",
+  "validation_end": "2026-06-30",
+  "holdout_start": "2026-07-01",
+  "end": "2026-09-30",
+  "initial_cash_yuan": 100000,
+  "grid": {
+    "entry": [8.7, 8.8, 8.9],
+    "take": [0.2, 0.3],
+    "max_hold": [5, 20],
+    "pullback_atr": [0.5, 1.0],
+    "take_atr": [2.0, 3.0]
+  },
+  "costs": {
+    "slippage_yuan": 0.01,
+    "commission_rate": 0.0003,
+    "minimum_commission_yuan": 5.0,
+    "transfer_rate": 0.00001,
+    "sell_stamp_rate": 0.0005,
+    "dividend_tax_rate": 0.2
+  },
+  "dividends": [
+    {
+      "ex_date": "2025-07-18",
+      "per_share": 0.16,
+      "source": "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601985&tabActive=1"
+    },
+    {
+      "ex_date": "2026-01-13",
+      "per_share": 0.02,
+      "source": "https://4g.stockstar.com/detail/AN2026010500035478"
+    },
+    {
+      "ex_date": "2026-07-17",
+      "per_share": 0.16,
+      "source": "https://static.sse.com.cn/disclosure/listedinfo/announcement/c/new/2026-07-09/601985_20260709_5T10.pdf"
+    }
+  ],
+  "limitations": [
+    "已查看全期走势；时间留出不是盲测，固定价位本身带有事后观察偏差。",
+    "全期 241 个交易日，历史区间未包含完整牛熊周期，不能证明未来收益。",
+    "腾讯冻结不复权日线，缺历史成交额和换手率；关键价位已抽样交叉核验，未实现全量双源核对。",
+    "现金股息统一预扣 20%，不是按个人逐笔持股期限进行的精确税务回放。",
+    "仅现金分红，无送转模型；日线无法复原分钟顺序、排队和冲击成本。",
+    "原草案的公告与基本面门禁没有逐日回放，本研究只验证价格和资金规则。",
+    "平均仓位匹配基准使用事后暴露，仅作风险解释；模拟资金不是个人投资建议。",
+    "样本段末清算已计退出成本；滑点包含在成交价中，费用字段只计佣金和税费。"
+  ]
+}

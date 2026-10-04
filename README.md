@@ -144,6 +144,7 @@ export FEISHU_RECEIVE_ID="<群聊 chat_id>"
   --strategy-record dividend-yield-dynamic-v1
 ./quant backtest \
   --strategy-record dividend-yield-dynamic-v1 --symbol 510720
+./quant backtest --study research/strategies/601985-swing-study.json
 ./quant select \
   --universe research/universes/china-dividend-low-vol-monthly-etf.toml
 ./quant analyze --symbol <标的代码> \
@@ -278,9 +279,17 @@ data/selections/             候选程序筛选 JSON 与不可变快照
 收盘价；研究前必须检查 `as_of`、交易日和 `data_quality`。
 
 当前 SQLite 适合单机、日线和中长线研究，无需部署数据库服务。系统已提供
-长线目标仓位回测、成本、基准、回撤、波动、换手和交易次数；尚未实现参数优化、
-严格样本外评估、涨跌停、停牌、分红再投资和申赎冲击，因此不能把当前关注度
-映射当作已验证的买卖信号。
+长线目标仓位回测、成本、基准、回撤、波动、换手和交易次数，因此可以复核
+关注度映射，但不能把它直接当作已验证的买卖信号。
+
+`backtest --study` 另提供冻结现金股票研究：从 SHA256 校验的 CSV 读取不复权
+日线，计入整手、T+1、最低佣金、卖出税费、现金分红和保守限价撮合；
+按训练、验证、留出顺序比较有限候选，并输出完整交易账本。
+规格绑定策略目录的草稿版本；日期或参数变动必须新建规格并更新指纹，
+不能与 `--symbol/--start/--end` 混用。研究产物不启用标的、策略或通知。
+这不是通用参数寻优平台，也不模拟完整涨跌停排队、分红再投资和冲击成本。
+已看过走势的时间留出不等于严格盲测；详见
+`research/strategies/601985-swing-study-method.md`。
 
 股息率动态配置策略 `dividend-yield-dynamic-v1` 当前登记为 `draft/pending`。
 本地已保存 000151 最近三年的逐日股息率分位，并完成 510720 有限基线回测；

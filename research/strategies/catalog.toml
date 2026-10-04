@@ -43,3 +43,24 @@ first_add_drawdown = -0.05
 second_add_drawdown = -0.10
 full_add_drawdown = -0.15
 dividend_cut_limit = -0.15
+
+[[strategies]]
+record_id = "601985-swing-study-v1"
+profile_id = "cash_equity_swing_research"
+version = "1.0.0"
+name = "中国核电周度波段研究"
+symbols = ["601985"]
+horizon = "short"
+lifecycle = "draft"
+validation_state = "pending"
+created_at = 2026-10-04T12:00:00+08:00
+thesis = "比较固定价低吸与均线/ATR低吸；按时间划分训练、验证与留出，现金撮合计整手、T+1、佣金、税费和分红。仅研究价格规则，未接入启用策略画像与公告门禁。"
+parameters_fingerprint = "d41a819c9bb60b4730c656e669410243ea59039af2dc9e6a79481481e93bb2e9"
+backtest_model_id = "cash_equity_swing"
+backtest_model_version = "1.0.0"
+
+[strategies.backtest_parameters]
+study_path = "research/strategies/601985-swing-study.json"
+method_path = "research/strategies/601985-swing-study-method.md"
+validation_policy = "chronological_train_validate_holdout"
+activation_policy = "research_only"

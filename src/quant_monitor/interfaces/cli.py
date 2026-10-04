@@ -46,6 +46,7 @@ from ..infrastructure.strategy_catalog import (
     load_strategy_catalog,
 )
 from .backtest_reporting import write_backtest_report
+from .backtest_study import run_study
 from .dashboard import write_dashboard
 from .markdown_viewer import write_markdown_viewer
 from .platform_pages import write_platform_pages
@@ -279,13 +280,14 @@ def _parser() -> argparse.ArgumentParser:
     strategies_parser.add_argument("--symbol", help="只查看指定标的")
     backtest_parser = subparsers.add_parser(
         "backtest",
-        help="使用本地 SQLite 历史库回测一个策略版本",
+        help="使用本地历史库或冻结研究快照回测",
     )
-    backtest_parser.add_argument(
+    backtest_source = backtest_parser.add_mutually_exclusive_group(required=True)
+    backtest_source.add_argument(
         "--strategy-record",
-        required=True,
         help="策略目录 record_id",
     )
+    backtest_source.add_argument("--study", type=Path, help="冻结研究规格 JSON")
     backtest_parser.add_argument("--symbol", help="覆盖策略记录中的首个标的")
     backtest_parser.add_argument("--start", type=date.fromisoformat)
     backtest_parser.add_argument("--end", type=date.fromisoformat)
@@ -635,6 +637,19 @@ def main() -> int:
             return 0
 
         if args.command == "backtest":
+            if args.study:
+                if args.symbol or args.start or args.end:
+                    raise ValueError("冻结研究不能覆盖标的或日期；请创建新版本规格")
+                report_path = run_study(
+                    root, args.study, settings.data_dir, control_repository,
+                    strategy_catalog,
+                )
+                _write_site(
+                    root, settings, repository, strategy_catalog,
+                    control_repository, factors,
+                )
+                print(f"研究回测报告：{report_path}")
+                return 0
             record = strategy_catalog.record(args.strategy_record)
             symbol = args.symbol or record.symbols[0]
             instrument = settings.instrument_for(symbol)

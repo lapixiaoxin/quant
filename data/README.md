@@ -126,6 +126,19 @@ SQLite 负责跨日期查询和回测输入，两者不能相互替代。
 回测使用现有历史库，不会额外联网。报告生成和渠道发送分别记账；发送失败时，
 报告文件仍保留并在控制面显示 `partial` 或 `failed`。
 
+`backtest --study` 使用 `FrozenCSVHistoryRepository` 适配同一历史仓储协议。
+源快照保留不复权 OHLC 与成交量；缺失成交额、换手率不当作零，不写入日常主库。
+研究规格在 `research/strategies/` 绑定模型版本、SHA256、分红来源、日期划分、
+费用及有限网格，并通过策略目录指纹校验。
+每次执行追加 `data/backtests/<代码>/<研究ID>-<运行时间>.json/html`，
+独立使用 `study_schema_version=1`，包含规格和代码指纹、全部候选分段指标、
+选参路径、压力测试、完整对照权益及逐笔成交；不替代 schema v4 分析数据包。
+`trade_count` 是买卖成交笔数，`completed_rounds` 是子仓完整平仓轮次，
+有底仓时不能将底仓和波段合并轮次解读为独立择时机会。
+`fees_yuan` 包括佣金、过户费和卖出印花税；滑点已在成交价中扣除，
+股息税计入 `net_dividends_yuan`。`open_shares` 非零表示样本末清算被阻断。
+研究运行写入 `backtest_runs`，保持策略 `draft/pending`，不发送通知。
+
 历史库已保存 000151 最近三年的逐日市值加权股息率和来源提供的时点分位，
 可供 `dividend_yield_dynamic` 做有限基线回测。当前仍不保存逐日可见的盈利、
 现金流和分红削减快照，基本面门禁只能使用指数编制规则代理；缺少同日估值时
