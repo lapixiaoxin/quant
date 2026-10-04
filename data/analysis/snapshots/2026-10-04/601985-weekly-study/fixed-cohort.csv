@@ -1,0 +1,10 @@
+first_touch_date,observation_end,sessions_after_touch,outcome,minimum_price_yuan
+2025-11-19,2025-12-17,20,timeout,8.56
+2025-12-18,2026-01-07,12,target_first,8.63
+2026-01-27,2026-02-03,5,stop_first,8.5
+2026-02-05,2026-02-25,8,stop_first,8.46
+2026-03-03,2026-03-09,4,target_first,8.52
+2026-04-07,2026-04-22,11,target_first,8.64
+2026-05-22,2026-05-29,5,target_first,8.66
+2026-07-07,2026-07-20,9,target_first,8.7
+2026-08-21,2026-09-02,8,target_first,8.7
