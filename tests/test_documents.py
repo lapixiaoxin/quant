@@ -90,6 +90,20 @@ class DocumentsTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "超出工作区"):
             self.registry.register({**self.record, "local_path": "../outside.md"})
 
+    def test_temporary_or_overwritable_sources_cannot_be_registered(self):
+        for source in (
+            "research/scratch/draft.md",
+            "data/latest/601985.json",
+            "data/selections/latest/universe.json",
+        ):
+            with self.subTest(source=source):
+                path = self.root / source
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("{}", encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "可覆盖文件"):
+                    self.registry.register({**self.record, "source_paths": [source]})
+                self.assertEqual(self.registry.list(), [])
+
     def test_child_documents_require_matching_instrument_parent(self):
         child = {
             **self.record,
@@ -105,22 +119,3 @@ class DocumentsTest(unittest.TestCase):
             self.registry.register(
                 {**child, "symbol": "510720", "document_id": "wrong"}
             )
-
-
-class MigrationArtifactTest(unittest.TestCase):
-    def test_markdown_report_body_is_preserved_beyond_html_loading_shell(self):
-        root = Path(__file__).resolve().parents[1]
-        records = DocumentRegistry(root).list()
-        for record in records:
-            if record["kind"] == "instrument":
-                continue
-            with self.subTest(document_id=record["document_id"]):
-                draft = (root / record["local_path"]).read_text(encoding="utf-8")
-                self.assertGreater(len(draft.split("\n\n", 1)[-1]), 100)
-                for source in record["source_paths"]:
-                    if source.startswith("data/reports/") and source.endswith(".md"):
-                        original = (root / source).read_text(encoding="utf-8")
-                        body = "\n".join(
-                            line.rstrip() for line in original.splitlines()
-                        )
-                        self.assertIn(body, draft)

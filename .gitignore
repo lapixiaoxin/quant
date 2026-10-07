@@ -14,5 +14,5 @@ data/**/*.sqlite3-shm
 data/**/*.sqlite3-wal
 data/**/*.sqlite3-journal
 research/documents.lock
-logs/*
-!logs/.gitkeep
+research/scratch/
+logs/

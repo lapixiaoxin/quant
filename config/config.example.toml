@@ -2,73 +2,14 @@
 timezone = "Asia/Shanghai"
 data_dir = "data"
 
-# 产品大类定义共性默认值；单个标的可覆盖这些字段。
-[product_types.etf]
+# 先采集和研究；形成明确规则后再添加策略画像和版本记录。
+[[instruments]]
+symbol = "601985"
+name = "中国核电"
+exchange = "SH"
+type = "stock"
+history_days = 500
 strategy_profiles = []
-research_profile = "etf_core"
-history_days = 500
-
-[product_types.stock]
-history_days = 500
-
-[product_types.index]
-history_days = 500
-
-# 策略画像绑定代码中的策略实现，并只暴露确有业务意义的参数。
-[strategy_profiles.dividend_low_vol_default]
-strategy = "dividend_low_vol"
-
-[strategy_profiles.dividend_low_vol_default.parameters]
-deep_drawdown = -0.08
-attention_drawdown = -0.05
-mild_drawdown = -0.03
-near_high = -0.01
-high_volatility = 0.25
-
-# 动态股息率策略仍为 draft；510720 通过显式代码研究和回测。
-[strategy_profiles.dividend_yield_dynamic_v1]
-strategy = "dividend_yield_dynamic"
-
-[strategy_profiles.dividend_yield_dynamic_v1.parameters]
-minimum_history_observations = 726
-expensive_percentile = 0.20
-first_add_percentile = 0.70
-second_add_percentile = 0.85
-full_add_percentile = 0.95
-minimum_weight = 0.20
-base_weight = 0.30
-first_add_weight = 0.50
-second_add_weight = 0.75
-full_weight = 1.00
-first_add_drawdown = -0.05
-second_add_drawdown = -0.10
-full_add_drawdown = -0.15
-dividend_cut_limit = -0.15
-
-# 研究画像定义“想了解什么”，可被多个同类标的复用。
-[research_profiles.etf_core]
-sections = [
-  "数据可靠性",
-  "价格位置与趋势",
-  "估值与基本面",
-  "风险与失效条件",
-  "后续情景",
-]
-focus = [
-  "规模、份额、费率和跟踪误差",
-  "跟踪指数估值、股息率和历史分位",
-  "成分股、行业权重与集中度变化",
-]
-source_priorities = [
-  "基金管理人和基金公告",
-  "指数编制机构",
-  "证券交易所",
-  "权威金融数据网站",
-]
-instructions = [
-  "区分盘中事实、低频基本面和分析判断",
-  "不因单日涨跌直接给出方向性结论",
-]
 
 [[instruments]]
 symbol = "510720"
@@ -77,21 +18,6 @@ exchange = "SH"
 type = "etf"
 tracking_index = "上证国有企业红利指数"
 tracking_index_code = "000151"
-strategy_profiles = ["dividend_yield_dynamic_v1"]
 history_days = 500
 history_start_date = 2024-05-15
-enabled = false
-research_focus = [
-  "股息率历史分位与目标仓位变化",
-  "月度分红稳定性与行业集中风险",
-]
-research_instructions = [
-  "区分指数股息率、ETF现金分红和前复权价格收益",
-]
-
-# 最小标的示例，不要求策略或研究画像。
-[[instruments]]
-symbol = "601985"
-name = "中国核电"
-exchange = "SH"
-type = "stock"
+strategy_profiles = []

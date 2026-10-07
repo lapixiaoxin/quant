@@ -124,26 +124,22 @@ class CapitalTests(unittest.TestCase):
             )
 
     def test_v1_frozen_fills_and_metrics_remain_unchanged(self):
-        spec = json.loads(
-            (ROOT / "research/strategies/601985-swing-study.json").read_text(),
+        fixture = json.loads(
+            (ROOT / "tests/fixtures/cash-swing-v1.json").read_text(encoding="utf-8"),
         )
-        frozen = json.loads((ROOT / (
-            "data/backtests/601985/"
-            "601985-swing-study-v1-20261004T195524795487.json"
-        )).read_text())
         history = FrozenCSVHistoryRepository(
-            ROOT / spec["history_path"], "601985", spec["history_sha256"],
+            ROOT / fixture["history_path"], "601985", fixture["history_sha256"],
         )
         result = simulate_swing(
             INSTRUMENT, history.load_bars("601985"),
-            date.fromisoformat(spec["start"]), date.fromisoformat(spec["end"]),
-            frozen["selection"]["parameters"], initial_cash=spec["initial_cash_yuan"],
-            costs=ExecutionCosts(**spec["costs"]),
+            date.fromisoformat(fixture["start"]), date.fromisoformat(fixture["end"]),
+            fixture["parameters"], initial_cash=fixture["initial_cash_yuan"],
+            costs=ExecutionCosts(**fixture["costs"]),
             dividends=tuple(CashDividend(
                 date.fromisoformat(item["ex_date"]), item["per_share"], item["source"],
-            ) for item in spec["dividends"]),
+            ) for item in fixture["dividends"]),
         )
-        expected = frozen["comparisons"]["selected"]["full"]
+        expected = fixture["expected"]
         self.assertEqual(result.metrics, expected["metrics"])
         self.assertEqual(
             [{**asdict(fill), "trading_date": fill.trading_date.isoformat()}

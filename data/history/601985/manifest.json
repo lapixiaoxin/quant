@@ -1,0 +1,19 @@
+{
+  "symbol": "601985",
+  "data_as_of": "2026-09-30",
+  "collected_on": "2026-10-04",
+  "source_urls": {
+    "tencent_qfq": "https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param=sh601985,day,,,500,qfq",
+    "tencent_raw": "https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param=sh601985,day,,,500,"
+  },
+  "columns": "prices.csv 中 raw_* 为不复权价格，qfq_close_yuan 为前复权收盘价；价格单位元，volume_lots 单位手，amount_yuan 缺失。",
+  "limitations": [
+    "原记录仅保留采集日期，无精确采集时刻。",
+    "尚未完成全部交易日的独立双源核验。"
+  ],
+  "sha256": {
+    "prices.csv": "374d924081642cfec2c08337514a589982d7927213153ba9018cb39189ac2ddf",
+    "tencent-qfq.json": "5ea7e618f59219bca3f8f30047f17227b9a42d4dd8702cd908921dea81b330a7",
+    "tencent-raw.json": "ce77e7f713aeaf638ad4da09c80b0aa788671a1ca469cda7a349ae77bf62568f"
+  }
+}

@@ -291,7 +291,7 @@ class SQLiteControlPlaneRepository:
         return self._list("backtest_runs", "started_at DESC")
 
     def export_snapshot(self) -> dict[str, Any]:
-        """提供给静态网页生成器的结构化只读快照。"""
+        """导出供研究工具查询和核验的结构化快照。"""
 
         return {
             "schema_version": self.schema_version,

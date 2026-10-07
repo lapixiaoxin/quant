@@ -31,11 +31,16 @@ class DocumentRegistry:
             raise ValueError("文档引用不能超出工作区")
         relative = path.relative_to(self.root)
         if (
+            relative.parts[:2] == ("research", "scratch")
+            or "latest" in relative.parts
+        ):
+            raise ValueError("文档引用不能使用 scratch 临时稿或 latest 可覆盖文件")
+        if (
             not relative.parts
             or relative.parts[0] not in {"research", "data"}
             or (
                 path.suffix.lower()
-                not in {".md", ".json", ".csv", ".html", ".svg", ".png"}
+                not in {".md", ".json", ".csv", ".svg", ".png"}
             )
         ):
             raise ValueError("文档引用只允许 research/data 中的研究文件")

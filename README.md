@@ -32,6 +32,9 @@ history_days = 500
 `strategy_profiles = []` 可清空类别默认策略。研究画像仅提供参考，不限制
 Agent 使用的工具、来源数量与分析方法。
 
+当前模板仅保留 `601985 中国核电`、`510720 红利国企ETF国泰` 两个研究对象，
+均未绑定策略；报告与策略目录从空索引开始。
+
 ## 常用路径
 
 ```bash
@@ -46,37 +49,31 @@ Agent 使用的工具、来源数量与分析方法。
 ./quant analyze --symbols 601985,510720 --cycle daily --cycle moving_average
 ./quant base-report --symbol 601985
 
-# 冻结模型和实验
+# 查看模型与登记状态
 ./quant models
-./quant backtest --study research/strategies/601985-swing-study.json
-./quant backtest --study research/strategies/601985-capital-study.json
-./quant valuation-sync --strategy-record dividend-yield-dynamic-v1
-./quant backtest --strategy-record dividend-yield-dynamic-v1 --symbol 510720
-
-# 候选池及文档索引
-./quant select --universe research/universes/china-dividend-low-vol-monthly-etf.toml
 ./quant reports --symbol 601985
-./quant report-register research/private/601985/report-metadata.json
 ```
 
 `prepare` 不执行策略，不因未启用策略而失败；`analyze` 评估当前绑定的启用版本，
 缺少启用版本或参数漂移会明确失败。`--all` 只包含启用标的，显式指定代码可以
 研究停用标的。批量命令保留部分成功；存在任一失败时返回非零。
 `history --output` 不覆盖已有 CSV；前复权价格不能直接当作真实成交价回放。
-模板保留停用的 510720 股息率策略草案，需通过显式代码研究。
 
 Agent 可直接使用 Python、SQL、联网研究和临时实验，无需先注册每个假设。
-形成可复用规则后再固化策略版本与模型。回测结果保存 JSON，由 Agent 解释、
-撰写飞书报告，不能把程序评分直接当作投资建议。
+形成可复用规则后再固化策略版本与模型：`backtest --study` 读取已登记的冻结
+实验规格，`backtest --strategy-record` 读取策略版本；`select --universe` 读取
+新建的候选池。使用前先保存相应规格与来源，不附带旧投资方案作为默认值。
+回测结果保存 JSON，由 Agent 解释、撰写飞书报告。
 
-## 归档与旧版迁移
+## 归档与清理
 
-先查询 `research/documents.json`，复用标的主页，再创建子文档。先存草稿、
-证据和实验路径；发布后回读核验，再登记 `published` 和链接。
+飞书是正式报告的唯一阅读入口。本地 `research/scratch/` 放临时探索并忽略提交；
+决定保留后，仅归档一份定稿、必要证据和回读凭据。先查询 `research/documents.json`
+与远端节点，复用标的主页；发布后回读核验，再登记 `published` 和链接。
 具体字段、流程和失败处理见 [research/README.md](research/README.md)。
 
-历史报告已准备为 `research/migration/` 草稿；原 HTML/图表暂存作核验依据。
-尚未远端核验的记录保持 `pending`。原工作台与网页生成命令已移除。
+旧报告、策略草案、迁移稿与过程文件已清理，历史数据及计算模型继续保留。
+后续目录按需创建，不积累空模板或待迁移材料。
 旧电脑的后台服务需执行 `sh scripts/stop_legacy_services.sh`，详见
 [install.md](install.md)。不要用旧运行副本覆盖当前数据库。
 

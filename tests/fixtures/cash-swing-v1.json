@@ -1,0 +1,371 @@
+{
+  "purpose": "cash_equity_swing@1.0.0 历史成交与指标回归样本，不代表当前策略或投资建议。",
+  "provenance": "从提交 3202ef0 的 601985-swing-study-v1-20261004T195524795487.json 提取 selected/full 的原始指标和完整成交。",
+  "history_path": "data/history/601985/prices.csv",
+  "history_sha256": "374d924081642cfec2c08337514a589982d7927213153ba9018cb39189ac2ddf",
+  "start": "2025-10-09",
+  "end": "2026-09-30",
+  "initial_cash_yuan": 100000,
+  "costs": {
+    "slippage_yuan": 0.01,
+    "commission_rate": 0.0003,
+    "minimum_commission_yuan": 5.0,
+    "transfer_rate": 1e-05,
+    "sell_stamp_rate": 0.0005,
+    "dividend_tax_rate": 0.2
+  },
+  "dividends": [
+    {
+      "ex_date": "2025-07-18",
+      "per_share": 0.16,
+      "source": "https://www.sse.com.cn/assortment/stock/list/info/company/index.shtml?COMPANY_CODE=601985&tabActive=1"
+    },
+    {
+      "ex_date": "2026-01-13",
+      "per_share": 0.02,
+      "source": "https://4g.stockstar.com/detail/AN2026010500035478"
+    },
+    {
+      "ex_date": "2026-07-17",
+      "per_share": 0.16,
+      "source": "https://static.sse.com.cn/disclosure/listedinfo/announcement/c/new/2026-07-09/601985_20260709_5T10.pdf"
+    }
+  ],
+  "parameters": {
+    "mode": "fixed",
+    "entry": 8.8,
+    "take": 0.3,
+    "stop": 0.2,
+    "max_hold": 20,
+    "weight": 0.4,
+    "risk_fraction": 0.005
+  },
+  "expected": {
+    "metrics": {
+      "total_return": 0.06636531970000048,
+      "max_drawdown": -0.007714461339094814,
+      "annualized_volatility": 0.019035520844685707,
+      "average_weight": 0.09526445090995436,
+      "max_weight": 0.2029803866338209,
+      "trade_count": 28,
+      "completed_rounds": 14,
+      "win_rate": 0.8571428571428571,
+      "average_holding_days": 8.428571428571429,
+      "fees_yuan": 316.8680299999998,
+      "net_dividends_yuan": 294.40000000000003,
+      "turnover": 5.62863,
+      "ending_equity_yuan": 106636.53197000004,
+      "open_shares": 0
+    },
+    "fills": [
+      {
+        "trading_date": "2025-11-18",
+        "side": "buy",
+        "sleeve": "swing",
+        "quantity": 2200,
+        "price": 8.8,
+        "fee": 6.0016,
+        "reason": "固定限价",
+        "net_pnl": null,
+        "holding_days": null
+      },
+      {
+        "trading_date": "2025-11-27",
+        "side": "sell",
+        "sleeve": "swing",
+        "quantity": 2200,
+        "price": 8.6,
+        "fee": 15.325199999999999,
+        "reason": "止损",
+        "net_pnl": -461.3268000000023,
+        "holding_days": 7
+      },
+      {
+        "trading_date": "2025-11-28",
+        "side": "buy",
+        "sleeve": "swing",
+        "quantity": 2200,
+        "price": 8.61,
+        "fee": 5.87202,
+        "reason": "固定限价",
+        "net_pnl": null,
+        "holding_days": null
+      },
+      {
+        "trading_date": "2025-12-26",
+        "side": "sell",
+        "sleeve": "swing",
+        "quantity": 2200,
+        "price": 8.76,
+        "fee": 15.61032,
+        "reason": "时间退出",
+        "net_pnl": 308.5176600000008,
+        "holding_days": 20
+      },
+      {
+        "trading_date": "2025-12-29",
+        "side": "buy",
+        "sleeve": "swing",
+        "quantity": 2200,
+        "price": 8.78,
+        "fee": 5.987959999999999,
+        "reason": "固定限价",
+        "net_pnl": null,
+        "holding_days": null
+      },
+      {
+        "trading_date": "2026-01-08",
+        "side": "sell",
+        "sleeve": "swing",
+        "quantity": 2200,
+        "price": 9.08,
+        "fee": 16.18056,
+        "reason": "止盈",
+        "net_pnl": 637.8314800000015,
+        "holding_days": 6
+      },
+      {
+        "trading_date": "2026-01-27",
+        "side": "buy",
+        "sleeve": "swing",
+        "quantity": 2200,
+        "price": 8.8,
+        "fee": 6.0016,
+        "reason": "固定限价",
+        "net_pnl": null,
+        "holding_days": null
+      },
+      {
+        "trading_date": "2026-01-29",
+        "side": "sell",
+        "sleeve": "swing",
+        "quantity": 2200,
+        "price": 8.59,
+        "fee": 15.30738,
+        "reason": "止损",
+        "net_pnl": -483.3089800000019,
+        "holding_days": 2
+      },
+      {
+        "trading_date": "2026-01-30",
+        "side": "buy",
+        "sleeve": "swing",
+        "quantity": 2200,
+        "price": 8.62,
+        "fee": 5.878839999999999,
+        "reason": "固定限价",
+        "net_pnl": null,
+        "holding_days": null
+      },
+      {
+        "trading_date": "2026-03-09",
+        "side": "sell",
+        "sleeve": "swing",
+        "quantity": 2200,
+        "price": 8.92,
+        "fee": 15.89544,
+        "reason": "止盈",
+        "net_pnl": 638.2257200000016,
+        "holding_days": 20
+      },
+      {
+        "trading_date": "2026-03-10",
+        "side": "buy",
+        "sleeve": "swing",
+        "quantity": 2200,
+        "price": 8.8,
+        "fee": 6.0016,
+        "reason": "固定限价",
+        "net_pnl": null,
+        "holding_days": null
+      },
+      {
+        "trading_date": "2026-03-12",
+        "side": "sell",
+        "sleeve": "swing",
+        "quantity": 2200,
+        "price": 9.1,
+        "fee": 16.2162,
+        "reason": "止盈",
+        "net_pnl": 637.7821999999976,
+        "holding_days": 2
+      },
+      {
+        "trading_date": "2026-03-20",
+        "side": "buy",
+        "sleeve": "swing",
+        "quantity": 2300,
+        "price": 8.8,
+        "fee": 6.274399999999999,
+        "reason": "固定限价",
+        "net_pnl": null,
+        "holding_days": null
+      },
+      {
+        "trading_date": "2026-03-23",
+        "side": "sell",
+        "sleeve": "swing",
+        "quantity": 2300,
+        "price": 9.1,
+        "fee": 16.9533,
+        "reason": "止盈",
+        "net_pnl": 666.7722999999975,
+        "holding_days": 1
+      },
+      {
+        "trading_date": "2026-04-03",
+        "side": "buy",
+        "sleeve": "swing",
+        "quantity": 2300,
+        "price": 8.8,
+        "fee": 6.274399999999999,
+        "reason": "固定限价",
+        "net_pnl": null,
+        "holding_days": null
+      },
+      {
+        "trading_date": "2026-04-23",
+        "side": "sell",
+        "sleeve": "swing",
+        "quantity": 2300,
+        "price": 9.1,
+        "fee": 16.9533,
+        "reason": "止盈",
+        "net_pnl": 666.7722999999975,
+        "holding_days": 13
+      },
+      {
+        "trading_date": "2026-04-30",
+        "side": "buy",
+        "sleeve": "swing",
+        "quantity": 2300,
+        "price": 8.8,
+        "fee": 6.274399999999999,
+        "reason": "固定限价",
+        "net_pnl": null,
+        "holding_days": null
+      },
+      {
+        "trading_date": "2026-05-08",
+        "side": "sell",
+        "sleeve": "swing",
+        "quantity": 2300,
+        "price": 9.1,
+        "fee": 16.9533,
+        "reason": "止盈",
+        "net_pnl": 666.7722999999975,
+        "holding_days": 3
+      },
+      {
+        "trading_date": "2026-05-21",
+        "side": "buy",
+        "sleeve": "swing",
+        "quantity": 2300,
+        "price": 8.8,
+        "fee": 6.274399999999999,
+        "reason": "固定限价",
+        "net_pnl": null,
+        "holding_days": null
+      },
+      {
+        "trading_date": "2026-05-29",
+        "side": "sell",
+        "sleeve": "swing",
+        "quantity": 2300,
+        "price": 9.1,
+        "fee": 16.9533,
+        "reason": "止盈",
+        "net_pnl": 666.7722999999975,
+        "holding_days": 6
+      },
+      {
+        "trading_date": "2026-06-24",
+        "side": "buy",
+        "sleeve": "swing",
+        "quantity": 2300,
+        "price": 8.8,
+        "fee": 6.274399999999999,
+        "reason": "固定限价",
+        "net_pnl": null,
+        "holding_days": null
+      },
+      {
+        "trading_date": "2026-06-26",
+        "side": "sell",
+        "sleeve": "swing",
+        "quantity": 2300,
+        "price": 9.1,
+        "fee": 16.9533,
+        "reason": "止盈",
+        "net_pnl": 666.7722999999975,
+        "holding_days": 2
+      },
+      {
+        "trading_date": "2026-07-02",
+        "side": "buy",
+        "sleeve": "swing",
+        "quantity": 2300,
+        "price": 8.8,
+        "fee": 6.274399999999999,
+        "reason": "固定限价",
+        "net_pnl": null,
+        "holding_days": null
+      },
+      {
+        "trading_date": "2026-07-20",
+        "side": "sell",
+        "sleeve": "swing",
+        "quantity": 2300,
+        "price": 8.94,
+        "fee": 16.65522,
+        "reason": "止盈",
+        "net_pnl": 593.4703799999972,
+        "holding_days": 12
+      },
+      {
+        "trading_date": "2026-07-28",
+        "side": "buy",
+        "sleeve": "swing",
+        "quantity": 2300,
+        "price": 8.8,
+        "fee": 6.274399999999999,
+        "reason": "固定限价",
+        "net_pnl": null,
+        "holding_days": null
+      },
+      {
+        "trading_date": "2026-08-03",
+        "side": "sell",
+        "sleeve": "swing",
+        "quantity": 2300,
+        "price": 9.13,
+        "fee": 17.00919,
+        "reason": "开盘止盈",
+        "net_pnl": 735.7164100000001,
+        "holding_days": 4
+      },
+      {
+        "trading_date": "2026-08-06",
+        "side": "buy",
+        "sleeve": "swing",
+        "quantity": 2400,
+        "price": 8.8,
+        "fee": 6.547199999999999,
+        "reason": "固定限价",
+        "net_pnl": null,
+        "holding_days": null
+      },
+      {
+        "trading_date": "2026-09-03",
+        "side": "sell",
+        "sleeve": "swing",
+        "quantity": 2400,
+        "price": 9.1,
+        "fee": 17.6904,
+        "reason": "止盈",
+        "net_pnl": 695.7623999999976,
+        "holding_days": 20
+      }
+    ]
+  }
+}

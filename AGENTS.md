@@ -26,8 +26,12 @@ https://icnxcxzl7hll.feishu.cn/wiki/Nr1Aw5d6Li5cnjkyAuAcZ4x8nag
   本地登记器校验凭据一致性，不代替 Agent 对远端内容的实际核验。
 - 报告登记协议见 `research/README.md`；正文或研究结论变更创建新版本记录。
 - 飞书登录或权限失败时继续保存草稿，不伪造链接，不自动转为 IM 消息。
-- 历史 HTML 和图表仅保留作迁移证据，不维护网页、样式或导航；核验迁移完整后
-  才能另行清理。新研究不生成 HTML。
+- 报告只维护飞书正式版；本地每版本仅留定稿、必要证据和回读凭据用于审计。
+  不生成 HTML、网页导航、重复排版或迁移副本。
+- 临时笔记、试验脚本和中间稿放 `research/scratch/`，Git 忽略；结束后清理。
+  有价值的证据移入正式目录再引用，已登记内容不得引用 scratch。
+- 目录按需创建，不为尚未开展的研究建立空主页、空报告或待迁移清单。
+  放弃的未发布研究可连同索引和独占中间产物删除；共享数据、已发布证据保留。
 
 ## 目录与依赖
 
@@ -37,13 +41,13 @@ src/quant_monitor/application/     研究用例、数据与仓储协议
 src/quant_monitor/infrastructure/  行情适配、SQLite、文件与文档登记
 src/quant_monitor/interfaces/      CLI、基础 Markdown 草稿与冻结实验入口
 config/config.example.toml        可提交模板；策略和研究画像均可选
-research/strategies/               策略版本目录、冻结研究规格与方法
+research/strategies/               策略版本目录、保留实验的冻结规格
 research/universes/                候选池、硬门槛、低频事实及来源
 research/documents.json            标的主页与报告版本、发布状态、飞书映射
-research/migration/                历史研究迁移稿，尚未核验前保留原文
-research/private/                 私人研究草稿、回读凭据与个人语境
+research/private/                 每版本一份定稿、回读凭据与个人语境
+research/scratch/                 临时探索与未定稿内容，不提交
 research/library/                 经过复核与脱敏的通用研究经验
-data/history/                     日线与历史估值 SQLite
+data/history/                     日线与历史估值 SQLite、原始行情及来源
 data/control/                     分析、候选、回测与基础草稿的运行索引
 data/latest/                      最新数据包与研究提示，可覆盖
 data/snapshots/                    追加的行情与指标快照
@@ -51,7 +55,7 @@ data/analysis/                     分析请求及冻结快照
 data/backtests/                    冻结实验 JSON、权益与完整账本
 data/selections/                   候选池指标与证据缺口 JSON
 data/reports/                      基础研究 Markdown 草稿
-scripts/                          工作区安装、检查与一次性迁移工具
+scripts/                          工作区安装、检查与旧服务停用工具
 ```
 
 业务只放在 `quant_monitor`；不建立平行命名空间。领域计算不访问文件、网络、
@@ -69,8 +73,9 @@ scripts/                          工作区安装、检查与一次性迁移工�
    指定代码允许研究停用标的。
 2. 原始证据注明来源、数据时点、采集时点、单位、复权口径与缺失状态。
    Agent 可直接导出 CSV、使用 Python/SQL 探索，不要求所有试验先进入正式策略。
-3. 新假设先保存研究规格和验证规则，再执行实验；保留负面结果、失败区间和
-   备选方案。形成可复用规则后才注册正式策略或模型。
+3. 新假设先保存研究规格和验证规则，再执行实验；纳入正式研究的实验必须保留
+   负面结果、失败区间和备选方案，不能只归档好结果。无继续价值的探索可整体
+   丢弃，不长期积累过程文件。形成可复用规则后才注册正式策略或模型。
 4. 策略目录记录 `record_id`、版本、期限、生命周期、论点、参数指纹与模型绑定。
    同标的允许多套策略；同标的同画像只允许一个 active 版本。不得覆盖旧版本。
    参数漂移必须阻断对应策略评估和回测，不阻断独立数据探索。
@@ -109,8 +114,9 @@ scripts/                          工作区安装、检查与一次性迁移工�
 
 ## 验收与交付
 
-复杂修改先记录问题、边界、失败模式与可执行验收标准；用户已授权时直接完成，
-不因常规实现选择反复请求批准。每次变更执行：
+复杂修改先在任务计划中记录问题、边界、失败模式与可执行验收标准；用户已授权
+时直接完成，不因常规实现选择反复请求批准。完成后将长期规则写入对应工程文档，
+不长期保留重复的计划、交接稿或验收日志。每次变更执行：
 
 ```bash
 ./scripts/check.sh

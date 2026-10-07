@@ -18,8 +18,6 @@ from quant_monitor.infrastructure.strategy_catalog import (
     strategy_profile_fingerprint,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
-
 CONFIG = """
 [app]
 
@@ -116,22 +114,16 @@ class StrategyCatalogTest(unittest.TestCase):
                 ),
             )
 
-    def test_repository_draft_fingerprint_matches_config_template(self) -> None:
-        settings = load_settings(
-            ROOT,
-            ROOT / "config" / "config.example.toml",
-        )
-        catalog = load_strategy_catalog(
-            ROOT / "research" / "strategies" / "catalog.toml"
-        )
-        draft = catalog.record("dividend-yield-dynamic-v1")
-        profile = settings.strategy_profiles[draft.profile_id]
+    def test_loads_empty_catalog_for_fresh_workspace(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "catalog.toml"
+            path.write_text("schema_version = 1\nstrategies = []\n", encoding="utf-8")
+            catalog = load_strategy_catalog(path)
 
-        self.assertEqual(draft.lifecycle, StrategyLifecycle.DRAFT)
-        self.assertEqual(
-            draft.parameters_fingerprint,
-            strategy_profile_fingerprint(profile),
-        )
+        self.assertEqual(catalog.records, ())
+        self.assertEqual(catalog.active_for("601985", ()), ())
+        with self.assertRaisesRegex(ValueError, "不存在记录"):
+            catalog.record("unregistered")
 
 
 if __name__ == "__main__":
