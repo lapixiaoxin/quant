@@ -1,14 +1,17 @@
 [app]
 timezone = "Asia/Shanghai"
-report_time = "14:00"
 data_dir = "data"
-log_dir = "logs"
 
 # 产品大类定义共性默认值；单个标的可覆盖这些字段。
 [product_types.etf]
-strategy_profiles = ["dividend_low_vol_default"]
+strategy_profiles = []
 research_profile = "etf_core"
-notification_policy = "daily_research"
+history_days = 500
+
+[product_types.stock]
+history_days = 500
+
+[product_types.index]
 history_days = 500
 
 # 策略画像绑定代码中的策略实现，并只暴露确有业务意义的参数。
@@ -22,7 +25,7 @@ mild_drawdown = -0.03
 near_high = -0.01
 high_volatility = 0.25
 
-# 动态股息率策略仍为 draft；510720 只用于研究和回测，不参与自动化。
+# 动态股息率策略仍为 draft；510720 通过显式代码研究和回测。
 [strategy_profiles.dividend_yield_dynamic_v1]
 strategy = "dividend_yield_dynamic"
 
@@ -44,7 +47,6 @@ dividend_cut_limit = -0.15
 
 # 研究画像定义“想了解什么”，可被多个同类标的复用。
 [research_profiles.etf_core]
-skill = "instrument-analyst"
 sections = [
   "数据可靠性",
   "价格位置与趋势",
@@ -63,56 +65,10 @@ source_priorities = [
   "证券交易所",
   "权威金融数据网站",
 ]
-max_sources = 6
 instructions = [
   "区分盘中事实、低频基本面和分析判断",
   "不因单日涨跌直接给出方向性结论",
 ]
-
-# 通知策略定义“什么事件发到哪里”，标的可引用不同策略。
-[notification_policies.daily_research]
-enabled = true
-channels = ["feishu_primary"]
-events = ["manual", "base_report", "agent_report", "scheduled_report"]
-title_template = "{symbol} {name} 研究简报"
-
-[notification_policies.silent]
-enabled = false
-channels = []
-events = []
-title_template = "{symbol} {name} 研究简报"
-
-# 通知通道定义实际发送机制。模板默认关闭，避免初始化后误发消息。
-[notification_channels.feishu_primary]
-type = "feishu"
-enabled = false
-mode = "app"
-app_id = ""
-app_secret_env = "FEISHU_APP_SECRET"
-receive_id_env = "FEISHU_RECEIVE_ID"
-receive_id = ""
-receive_id_type = "chat_id"
-keychain_service = "quant-monitor.feishu-app-secret"
-webhook_env = "FEISHU_WEBHOOK_URL"
-
-# 定时任务默认关闭。traecli 模式执行完整联网研究；不可用时可降级基础分析。
-[automation]
-enabled = false
-mode = "traecli"
-send = true
-fallback_to_base = true
-traecli_path = "traecli"
-query_timeout_seconds = 900
-allowed_tools = ["Bash", "Read", "Write", "WebSearch"]
-
-# 飞书长连接命令默认关闭。启用时至少配置一个发送人或群聊白名单。
-[remote]
-enabled = false
-prefix = "/quant"
-allowed_sender_ids = []
-allowed_chat_ids = []
-allowed_channel_targets = []
-lark_cli_path = "lark-cli"
 
 [[instruments]]
 symbol = "510720"
@@ -122,7 +78,6 @@ type = "etf"
 tracking_index = "上证国有企业红利指数"
 tracking_index_code = "000151"
 strategy_profiles = ["dividend_yield_dynamic_v1"]
-notification_policy = "silent"
 history_days = 500
 history_start_date = 2024-05-15
 enabled = false
@@ -133,3 +88,10 @@ research_focus = [
 research_instructions = [
   "区分指数股息率、ETF现金分红和前复权价格收益",
 ]
+
+# 最小标的示例，不要求策略或研究画像。
+[[instruments]]
+symbol = "601985"
+name = "中国核电"
+exchange = "SH"
+type = "stock"

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import unittest
 
-from quant_monitor.interfaces.dashboard import build_dashboard
 from quant_monitor.interfaces.reporting import build_base_report
 
 
@@ -133,20 +132,13 @@ class InterfaceTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "schema_version=3"):
             build_base_report(packet(version=2))
 
-    def test_dashboard_escapes_content(self) -> None:
-        content = build_dashboard([packet()])
+    def test_schema_v5_without_strategy_stays_descriptive(self) -> None:
+        value = packet(version=5)
+        value["assessments"] = []
+        content = build_base_report(value)
 
-        self.assertIn("投资观察台", content)
-        self.assertIn("红利&lt;测试&gt;", content)
-        self.assertNotIn("红利<测试>", content)
-        self.assertIn("标的关注", content)
-        self.assertIn("风险约束", content)
-
-    def test_dashboard_handles_empty_data(self) -> None:
-        content = build_dashboard([])
-
-        self.assertIn("暂无可展示的数据", content)
-        self.assertIn("./quant daily", content)
+        self.assertIn("未执行策略评估", content)
+        self.assertNotIn("可以观察", content)
 
 
 if __name__ == "__main__":

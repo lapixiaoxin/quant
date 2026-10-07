@@ -1,156 +1,75 @@
-# 运行数据目录
+# 数据契约
 
-本目录只保存可再生成或需要审计的运行产物，不是配置源。
-面向人的统一入口位于项目根目录 `index.html`；工作台只收录可阅读报告，
-不会把本目录中的原始 JSON 快照或 SQLite 直接当作导航页面。
+人的研究报告位于 `AGENTS.md` 指定的飞书 Wiki。本目录保存程序输入输出、
+审计证据和草稿，不提供网页导航。
 
-```text
-latest/                 每个标的最新的 schema v4 数据包、代理提示和基础报告
-snapshots/YYYY-MM-DD/   每次采集的带时间戳快照
-reports/YYYY-MM-DD/     标的报告 Markdown 推送源和同名 HTML 网页
-dashboard/              从 latest 数据包生成的静态看板
-history/market.sqlite3  标准化日线与指数估值历史库，供查询和回测使用
-control/research.sqlite3 选择、分析、回测、报告和发布状态索引
-analysis/latest/        标准分析请求
-analysis/snapshots/     按日期保存的分析请求快照
-backtests/<代码>/       冻结回测 JSON 和 HTML 验证报告
-selections/latest/      每个候选池最新的程序筛选 JSON
-selections/snapshots/   带时间戳的程序筛选快照
-```
+| 路径 | 职责 |
+|---|---|
+| latest/ | 每标的最新数据包、提示和基础草稿，可覆盖 |
+| snapshots/日期/ | 时间和唯一 ID 命名的行情/指标快照 |
+| history/market.sqlite3 | 日线、估值、来源与同步记录，schema v2 |
+| control/research.sqlite3 | 分析、筛选、回测、基础草稿索引，schema v1 |
+| analysis/latest/、analysis/snapshots/ | 显式分析请求及冻结副本 |
+| backtests/代码/ | 追加的实验 JSON、权益、参数、限制与账本 |
+| selections/latest/、selections/snapshots/ | 候选指标、硬门槛和证据缺口 |
+| reports/日期/ | 独立命名的基础 Markdown 草稿 |
 
-## schema v4
+## 研究数据包 v5
 
-最新数据包包含：
+`as_of` 为带时区采集时间；市场数据时点另见 quote、metrics 和 data_quality。
 
-- `instrument`：标的身份和最终解析后的画像引用。
-- `strategy_plan`：当前启用策略版本、生命周期、指纹和回测绑定。
-- `analysis_plan`：请求 ID、触发入口、周期、因子、模式和发送要求。
-- `metrics`：与策略无关的确定性指标。
-- `assessments`：各策略画像独立给出的基线判断。
-- `research_plan`：TRAE 应执行的章节、关注点、来源与个性指令。
-- `notification_plan`：不含凭证的事件与通道路由摘要。
-- `data_quality`：来源、交易日、时间戳和限制。
+- `instrument`：身份与解析后的可选策略、研究画像。
+- `strategy_plan` / `assessments`：仅显式评估策略时填充，数据探索时为空数组。
+- `analysis_plan`：请求、周期与因子；新请求 mode 为 `research`，无发送要求。
+- `quote` / `metrics`：原始报价和程序计算结果。
+- `research_plan`：可选参考关注点，不指定 Skill 或来源数量上限。
+- `portfolio`：本机可选的个人语境，发布时需按具体授权处理。
+- `data_quality`：行情来源、时间、样本量、增量模式、缺口修复、
+  `strategy_evaluated` 与局限。
 
-若要改变策略、研究内容或通知行为，请修改 `config/config.toml`，然后重新运行：
+v5 移除 `notification_plan`、标的通知引用和请求发送字段。
+基础报告兼容读取 v4/v3；旧分析请求可读取，但旧自动化模式不能执行。
+不要手改最新 JSON 来修改规则，改配置/策略版本后重新采集。
 
-```bash
-./quant prepare --symbol <标的代码>
-```
+## 历史仓储
 
-不要手工修改 `latest/*.json`。当前远端仓库是私有仓库，日线数据库、快照、
-报告和看板会进入 Git，便于跨设备复用和审计；SQLite 的 `-wal`、`-shm`
-和 `-journal` 临时文件仍被忽略。
+SQLite 日线按标的与交易日去重，保留前复权 OHLC、成交量、成交额（元）、
+百分比字段、数据来源和采集时间。旧模型里的日线百分比字段沿用来源百分数口径；
+quote 和计算指标里的收益比例使用小数，调用时检查字段定义。
+降级源缺失成交额、换手等信息时，不用零覆盖已有有效值。
 
-提交前必须确认数据包不含凭证、真实通知接收 ID 或不准备跨设备同步的个人信息。
-若未来仓库改为公开，必须先从 Git 历史中清理个人研究数据，而不只是修改
-`.gitignore`。
+正常采集使用最多 40 根重叠窗口，首次、样本不足、陈旧超过 12 天或未覆盖
+`history_start_date` 时回补。若来源范围不足，显式报告历史不完整。
+`history --output` 导出当前主库，不能用该前复权导出冒充不复权现金撮合数据。
 
-标的报告 Markdown 只用于通知和审计。运行 `./quant site` 后生成同名 HTML，
-工作台和报告中心只链接 HTML；HTML 页面保留图表扩展区，不要把工程说明混入
-标的报告目录。
+估值表保存指数代码、事实日期、指标、加权口径、历史窗口、来源及其可得时点。
+股息率回测必须使用真实的当时可得历史，缺失时拒绝，不使用价格代理。
 
-LaunchAgent 写入的是 `~/.local/share/quant-monitor` 运行副本。由主写设备执行
-`./scripts/sync_runtime_data.sh`，脚本会暂停服务、使用 SQLite 在线备份生成一致
-主库并复制研究产物，再恢复原先已加载的服务。SQLite 二进制文件不支持 Git
-自动合并，同一时刻只能有一台设备负责写入和导出；交接步骤见 `install.md`。
+## 实验与候选
 
-## 历史数据职责
+普通回测规格固定模型版本、参数指纹、日期、成本与基准。
+现金研究规格 v1/v2 另固定不复权 CSV 的 SHA256、分红来源和分段：
 
-`history/market.sqlite3` 使用 Python 标准库 SQLite，不需要单独部署数据库服务。
-每次 `prepare` 或 `daily` 采集成功后，程序会按标的代码和交易日幂等写入日线：
+- v1：训练选候选、验证选择、留出和全期诊断，保留全部候选与比较账本。
+- v2：组件和资金方案独立分账，前日持仓决定后续开仓资格，不透支保留现金。
+  任一子账户日期、现金守恒或末日清算失败时整项失败。
 
-- OHLC、成交量、成交额、振幅、涨跌幅和换手率。
-- 前复权口径 `qfq`。
-- 最近一次数据来源和采集时间。
-- 每次同步的来源、日期范围和条数。
-- 指数股息率、日期对应历史分位、20/50/80 分位线及估值来源。
+每次 `backtest --study` 追加 JSON，保留原始规格与代码哈希。
+`trade_count` 是成交笔数，`completed_rounds` 是完整平仓轮次；
+`fees_yuan` 包含佣金、过户和卖出税费，滑点反映在成交价；
+`net_dividends_yuan` 是税后现金股息。未清算份额、成本压力、平均仓位必须披露。
+v2 全期按含首末日的日历天数年化，短期分段不年化；假设冲击不代表历史最大损失。
 
-当降级行情源缺少成交额或换手率时，更新不会用零值覆盖历史库中已有的非零值。
-正常更新只请求最多 40 根重叠日线；首次、条数不足、明显陈旧或尚未覆盖标的
-`history_start_date` 时请求完整窗口。完整窗口最多请求 1000 根；若数据源返回后
-仍晚于配置首日，同步会明确失败，不能把截断历史记为完整。
-增量响应中补回的近期历史日期记录在
-`data_quality.repaired_history_dates`。JSON 快照继续保留一次任务的审计上下文；
-SQLite 负责跨日期查询和回测输入，两者不能相互替代。
+候选数据保持 `selection_schema_version=2`：`eligible`、`needs_research`、
+`excluded`、`data_error` 分开。硬门槛通过且必要证据完整才能成为研究短名单。
+市场分数仅比较流动性、波动和回撤，不代表适配性、收益预测或买入顺序。
 
-查看覆盖范围：
+## 审计与兼容
 
-```bash
-./quant history --all
-./quant history-sync --symbol 510720
-```
+旧运行索引和原有证据不迁移、不删除。历史 HTML 路径继续存在作迁移依据；
+新实验索引直接指向 JSON，新基础报告状态为 `draft`。
+飞书链接、文档状态及来源哈希由 `research/documents.json` 维护。
 
-按策略记录同步指数估值：
-
-```bash
-./quant valuation-sync \
-  --strategy-record dividend-yield-dynamic-v1
-```
-
-当前历史数据库 schema v2 新增 `valuation_observations`。估值表按指数代码、
-事实日期、指标、加权口径和历史窗口幂等保存；网络同步失败时可以通过 `--input`
-导入已下载的同源 `window.pageData` 脚本。
-
-## 候选筛选数据
-
-候选池配置位于 `research/universes/`。执行：
-
-```bash
-./quant select --universe research/universes/<候选池 ID>.toml
-```
-
-会生成独立的 `selection_schema_version = 2` 数据包，候选池额外记录投资期限、
-主题和创建日期。候选状态包括：
-
-- `eligible`：硬门槛和必需证据完整。
-- `needs_research`：硬门槛未失败，但仍缺少费率、规模或跟踪质量等证据。
-- `excluded`：已知事实明确违反硬门槛。
-- `data_error`：单个候选采集或计算失败，保留错误而不拖垮整个候选池。
-
-`market_score` 只比较流动性、近期波动和一年最大回撤，不代表最终适配性、
-收益预测或买入顺序。
-
-程序筛选不再生成独立 HTML。Agent 读取该 JSON 后，在
-`research/selections/<候选池 ID>/<日期>-selection.html` 补齐深度比较；
-这份选择报告同时承载硬门槛、证据缺口和最终短名单，是唯一用户可见入口。
-
-## 控制面与回测
-
-`control/research.sqlite3` 只保存运行索引，不保存报告正文。当前表包括：
-
-- `selection_runs`：候选池、期限、主题、候选数和短名单数。
-- `analysis_runs`：触发入口、标的范围、周期、因子、模式和完成状态。
-- `backtest_runs`：策略版本、结果路径、收益、回撤和交易次数。
-- `report_records`：标的、策略版本、周期、因子、渠道和发布状态。
-
-回测使用现有历史库，不会额外联网。报告生成和渠道发送分别记账；发送失败时，
-报告文件仍保留并在控制面显示 `partial` 或 `failed`。
-
-`backtest --study` 使用 `FrozenCSVHistoryRepository` 适配同一历史仓储协议。
-源快照保留不复权 OHLC 与成交量；缺失成交额、换手率不当作零，不写入日常主库。
-研究规格在 `research/strategies/` 绑定模型版本、SHA256、分红来源、日期划分、
-费用及有限网格，并通过策略目录指纹校验。
-每次执行追加 `data/backtests/<代码>/<研究ID>-<运行时间>.json/html`，
-独立使用 `study_schema_version=1`，包含规格和代码指纹、全部候选分段指标、
-选参路径、压力测试、完整对照权益及逐笔成交；不替代 schema v4 分析数据包。
-`trade_count` 是买卖成交笔数，`completed_rounds` 是子仓完整平仓轮次，
-有底仓时不能将底仓和波段合并轮次解读为独立择时机会。
-`fees_yuan` 包括佣金、过户费和卖出印花税；滑点已在成交价中扣除，
-股息税计入 `net_dividends_yuan`。`open_shares` 非零表示样本末清算被阻断。
-研究运行写入 `backtest_runs`，保持策略 `draft/pending`，不发送通知。
-
-`study_schema_version=2` 用于固定资金组合，v1 读取和执行仍保留。
-规格新增 `components`、`configurations` 和 `reference_configuration`；
-后者只指定运行索引展示的对照，不是回测后选出的最优方案。
-`comparisons` 与 `slippage_stress` 按方案和分段组织，保存组合与各子账户的
-指标、权益及成交，`initial_orders` 保留各子账户首次成交与计划止损损失。
-`annualized_return` 仅全期有值，按含首末日的日历天数折算；分段为 `null`。
-`reserve_cash_yuan` 不参与子账户补亏；`blocked_sale_shock_10pct/19pct`
-是收盘峰值仓位下无法卖出的假设冲击，不是历史最大回撤或损失上限。
-各子账户任一日期不一致、现金透支、账本不守恒或期末无法清算时整项失败，
-不得遗漏失败子账户后输出组合收益。日常 schema v4 和 SQLite schema 均不变。
-
-历史库已保存 000151 最近三年的逐日市值加权股息率和来源提供的时点分位，
-可供 `dividend_yield_dynamic` 做有限基线回测。当前仍不保存逐日可见的盈利、
-现金流和分红削减快照，基本面门禁只能使用指数编制规则代理；缺少同日估值时
-必须明确失败，不得用价格回撤替代。
+当前私有 Git 允许同步主库与研究资产。提交前核验敏感信息、文件体积和数据库
+完整性；同一时间只允许一台主写设备，交接参考 `install.md`。
+不得提交 SQLite 事务边车、配置、日志或凭证。

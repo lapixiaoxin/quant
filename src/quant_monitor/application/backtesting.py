@@ -21,8 +21,8 @@ from ..domain.backtesting import (
 from ..domain.models import DailyBar, Instrument
 from ..domain.strategies import StrategyRegistry
 from ..domain.strategies.etf import DividendYieldDynamicStrategy
-from ..infrastructure.strategy_catalog import StrategyCatalog
 from .ports import MarketHistoryRepository
+from .strategy_catalog import StrategyCatalog
 
 
 def _max_drawdown(values: list[float]) -> float:

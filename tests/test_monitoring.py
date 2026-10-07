@@ -18,6 +18,7 @@ from quant_monitor.domain.models import (
 from quant_monitor.domain.strategies import StrategyRegistry
 from quant_monitor.infrastructure.history import SQLiteMarketHistoryRepository
 from quant_monitor.infrastructure.storage import FileResearchRepository
+from quant_monitor.infrastructure.strategy_catalog import StrategyCatalog
 
 CONFIG = """
 [app]
@@ -118,7 +119,7 @@ def market_bundle(count: int = 30) -> MarketBundle:
 
 
 class MonitoringTest(unittest.TestCase):
-    def test_prepares_schema_v4_and_persists_atomically(self) -> None:
+    def test_prepares_schema_v5_and_persists_atomically(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             config_path = root / "config.toml"
@@ -145,11 +146,11 @@ class MonitoringTest(unittest.TestCase):
                 ),
             )
 
-            latest_path, packet = service.prepare("510300")
+            latest_path, packet = service.prepare("510300", evaluate_strategies=True)
             persisted = json.loads(latest_path.read_text(encoding="utf-8"))
 
             self.assertEqual(provider.calls, [("510300", 300)])
-            self.assertEqual(packet["schema_version"], 4)
+            self.assertEqual(packet["schema_version"], 5)
             self.assertEqual(
                 packet["strategy_plan"][0]["profile_id"],
                 "dividend_default",
@@ -176,10 +177,7 @@ class MonitoringTest(unittest.TestCase):
                 packet["research_plan"]["focus"],
                 ["大类默认关注", "标的个性关注"],
             )
-            self.assertEqual(
-                packet["notification_plan"]["policy_id"],
-                "silent",
-            )
+            self.assertNotIn("notification_plan", packet)
             self.assertEqual(
                 packet["metrics"]["liquidity"]["latest_amount"],
                 23_000_000,
@@ -190,9 +188,7 @@ class MonitoringTest(unittest.TestCase):
             self.assertEqual(persisted, packet)
             snapshots = list((root / "data" / "snapshots").rglob("*.json"))
             self.assertEqual(len(snapshots), 1)
-            self.assertTrue(
-                (root / "data" / "latest" / "510300.prompt.txt").exists()
-            )
+            self.assertTrue((root / "data" / "latest" / "510300.prompt.txt").exists())
 
     def test_uses_incremental_overlap_and_repairs_recent_gap(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -266,6 +262,33 @@ class MonitoringTest(unittest.TestCase):
                 [missing_date.isoformat()],
             )
             self.assertIn(missing_date, stored_dates)
+            self.assertEqual(
+                len(list((settings.data_dir / "snapshots").rglob("*.json"))),
+                2,
+            )
+
+    def test_data_preparation_is_independent_of_strategy_activation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            config = root / "config.toml"
+            config.write_text(CONFIG, encoding="utf-8")
+            settings = load_settings(root, config)
+            provider = FakeMarketData(market_bundle())
+            service = MonitoringService(
+                settings,
+                provider,
+                SQLiteMarketHistoryRepository(root / "market.sqlite3"),
+                FileResearchRepository(settings.data_dir),
+                StrategyRegistry.default(),
+                StrategyCatalog(1, ()),
+            )
+            _, packet = service.prepare("510300")
+            self.assertEqual(packet["assessments"], [])
+            self.assertEqual(packet["strategy_plan"], [])
+            self.assertFalse(packet["data_quality"]["strategy_evaluated"])
+            with self.assertRaisesRegex(ValueError, "启用版本"):
+                service.prepare("510300", evaluate_strategies=True)
+            self.assertEqual(len(provider.calls), 1)
 
     def test_repairs_history_to_configured_start_then_resumes_incremental(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

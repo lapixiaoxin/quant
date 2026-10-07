@@ -5,8 +5,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-CURRENT_SCHEMA_VERSION = 4
-SUPPORTED_SCHEMA_VERSIONS = {3, 4}
+CURRENT_SCHEMA_VERSION = 5
+SUPPORTED_SCHEMA_VERSIONS = {3, 4, 5}
 
 
 def _validate_schema(packet: dict[str, Any]) -> None:
@@ -14,7 +14,7 @@ def _validate_schema(packet: dict[str, Any]) -> None:
     if version not in SUPPORTED_SCHEMA_VERSIONS:
         raise ValueError(
             f"不支持的数据包版本 {version!r}，"
-            f"当前支持 schema_version=3 或 {CURRENT_SCHEMA_VERSION}"
+            f"当前支持 schema_version=3、4 或 {CURRENT_SCHEMA_VERSION}"
         )
 
 
@@ -35,7 +35,6 @@ def assessments_view(packet: dict[str, Any]) -> list[dict[str, Any]]:
     assessments = packet.get("assessments")
     if (
         isinstance(assessments, list)
-        and assessments
         and all(isinstance(item, dict) for item in assessments)
     ):
         return assessments
@@ -69,7 +68,7 @@ def build_base_report(packet: dict[str, Any]) -> str:
     returns = metrics["returns"]
 
     lines = [
-        f"# {instrument['name']}（{instrument['symbol']}）盘中决策简报",
+        f"# {instrument['name']}（{instrument['symbol']}）确定性研究基线",
         "",
         f"> 采集时间：{packet['as_of']}；"
         f"行情交易日：{metrics['latest_trading_date']}",
@@ -78,6 +77,8 @@ def build_base_report(packet: dict[str, Any]) -> str:
         "",
         f"- 趋势状态：**{metrics['trend_state']}**",
     ]
+    if not assessments:
+        lines.append("- 本次只准备数据，未执行策略评估。")
     for assessment in assessments:
         name = assessment.get("name", assessment.get("id", "未标注"))
         lines.append(
@@ -148,7 +149,7 @@ def build_base_report(packet: dict[str, Any]) -> str:
                 "## 后续研究计划",
                 "",
                 f"- 研究画像：{research_plan.get('profile_id', '未标注')}",
-                f"- 报告章节：{'、'.join(research_plan.get('sections', []))}",
+                f"- 参考维度：{'、'.join(research_plan.get('sections', []))}",
             ]
         )
         lines.extend(

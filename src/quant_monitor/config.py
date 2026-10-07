@@ -1,26 +1,24 @@
-"""分层配置加载、引用校验与敏感信息边界。"""
+"""研究配置：标的、采集窗口、可选策略和研究关注点。"""
 
 from __future__ import annotations
 
-import os
 import shutil
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
-from string import Formatter
 from typing import Any
 
 from .domain.models import Instrument, InstrumentType
 
 try:
     import tomllib
-except ModuleNotFoundError:  # Python 3.9-3.10 使用兼容包
+except ModuleNotFoundError:  # Python 3.9-3.10
     import tomli as tomllib
 
 
 @dataclass(frozen=True)
 class PortfolioConfig:
-    """单个标的的持仓上下文。"""
+    """仅保存在本机的可选资金语境。"""
 
     enabled: bool = False
     shares: float = 0.0
@@ -30,31 +28,17 @@ class PortfolioConfig:
 
 @dataclass(frozen=True)
 class ProductTypeConfig:
-    """产品大类提供的默认行为，可被单个标的覆盖。"""
+    """类别默认值不强制绑定策略或研究流程。"""
 
     instrument_type: InstrumentType
-    strategy_profile_ids: tuple[str, ...]
-    research_profile_id: str
-    notification_policy_id: str
-    history_days: int
-
-
-@dataclass(frozen=True)
-class ResearchProfileConfig:
-    """研究代理需要遵循的内容画像。"""
-
-    profile_id: str
-    skill: str
-    sections: tuple[str, ...]
-    focus: tuple[str, ...]
-    source_priorities: tuple[str, ...]
-    max_sources: int
-    instructions: tuple[str, ...]
+    strategy_profile_ids: tuple[str, ...] = ()
+    research_profile_id: str = ""
+    history_days: int = 500
 
 
 @dataclass(frozen=True)
 class StrategyProfileConfig:
-    """策略实现及其业务可调参数。"""
+    """算法标识与一组业务参数。"""
 
     profile_id: str
     strategy_id: str
@@ -63,116 +47,56 @@ class StrategyProfileConfig:
 
 @dataclass(frozen=True)
 class ResearchPlan:
-    """合并研究画像与标的个性化关注点后的执行计划。"""
+    """提供给 Agent 的可选研究提示，不限制工具、章节或来源数量。"""
 
-    profile_id: str
-    skill: str
-    sections: tuple[str, ...]
-    focus: tuple[str, ...]
-    source_priorities: tuple[str, ...]
-    max_sources: int
-    instructions: tuple[str, ...]
+    profile_id: str = ""
+    sections: tuple[str, ...] = ()
+    focus: tuple[str, ...] = ()
+    source_priorities: tuple[str, ...] = ()
+    instructions: tuple[str, ...] = ()
 
     def to_packet(self) -> dict[str, Any]:
         return {
             "profile_id": self.profile_id,
-            "skill": self.skill,
             "sections": list(self.sections),
             "focus": list(self.focus),
             "source_priorities": list(self.source_priorities),
-            "max_sources": self.max_sources,
             "instructions": list(self.instructions),
         }
 
 
 @dataclass(frozen=True)
-class NotificationChannelConfig:
-    """一个通知通道及其适配器参数，敏感值只保存环境变量名。"""
-
-    channel_id: str
-    channel_type: str
-    enabled: bool
-    options: dict[str, Any]
-
-
-@dataclass(frozen=True)
-class NotificationPolicyConfig:
-    """通知事件与通道的路由规则。"""
-
-    policy_id: str
-    enabled: bool
-    channels: tuple[str, ...]
-    events: tuple[str, ...]
-    title_template: str
-
-    def to_packet(self) -> dict[str, Any]:
-        return {
-            "policy_id": self.policy_id,
-            "enabled": self.enabled,
-            "channels": list(self.channels),
-            "events": list(self.events),
-            "title_template": self.title_template,
-        }
-
-
-@dataclass(frozen=True)
-class AutomationConfig:
-    """无人值守研究任务配置。"""
-
-    enabled: bool
-    mode: str
-    send: bool
-    fallback_to_base: bool
-    traecli_path: str
-    query_timeout_seconds: int
-    allowed_tools: tuple[str, ...]
-
-
-@dataclass(frozen=True)
-class RemoteConfig:
-    """飞书长连接命令入口配置。"""
-
-    enabled: bool
-    prefix: str
-    allowed_sender_ids: tuple[str, ...]
-    allowed_chat_ids: tuple[str, ...]
-    allowed_channel_targets: tuple[str, ...]
-    lark_cli_path: str
-
-    def is_allowed(self, sender_id: str, chat_id: str) -> bool:
-        return (
-            sender_id in self.allowed_sender_ids
-            or chat_id in self.allowed_chat_ids
-        )
-
-
-@dataclass(frozen=True)
 class Settings:
-    """经过继承解析和交叉引用校验的运行配置。"""
+    """保留原始本机配置但不执行旧自动化与通知字段。"""
 
     root: Path
     config_path: Path
     raw: dict[str, Any]
     product_types: dict[InstrumentType, ProductTypeConfig]
     strategy_profiles: dict[str, StrategyProfileConfig]
-    research_profiles: dict[str, ResearchProfileConfig]
-    notification_policies: dict[str, NotificationPolicyConfig]
-    notification_channels: dict[str, NotificationChannelConfig]
-    automation: AutomationConfig
-    remote: RemoteConfig
+    research_profiles: dict[str, ResearchPlan]
     instruments: tuple[Instrument, ...]
 
     @property
     def data_dir(self) -> Path:
-        return self.root / self.raw["app"].get("data_dir", "data")
-
-    @property
-    def log_dir(self) -> Path:
-        return self.root / self.raw["app"].get("log_dir", "logs")
+        return self.root / self.raw.get("app", {}).get("data_dir", "data")
 
     @property
     def timezone(self) -> str:
-        return str(self.raw["app"].get("timezone", "Asia/Shanghai"))
+        return str(self.raw.get("app", {}).get("timezone", "Asia/Shanghai"))
+
+    @property
+    def ignored_legacy_sections(self) -> tuple[str, ...]:
+        return tuple(
+            key
+            for key in (
+                "automation",
+                "remote",
+                "notification_channels",
+                "notification_policies",
+            )
+            if key in self.raw
+        )
 
     @property
     def enabled_instruments(self) -> tuple[Instrument, ...]:
@@ -194,461 +118,152 @@ class Settings:
         )
 
     def research_plan_for(self, symbol: str) -> ResearchPlan:
-        instrument = self.instrument_for(symbol)
-        profile = self.research_profiles[instrument.research_profile_id]
+        item = self.instrument_for(symbol)
+        profile = self.research_profiles.get(item.research_profile_id, ResearchPlan())
         return ResearchPlan(
             profile_id=profile.profile_id,
-            skill=profile.skill,
             sections=profile.sections,
-            focus=_unique(profile.focus + instrument.research_focus),
+            focus=tuple(dict.fromkeys(profile.focus + item.research_focus)),
             source_priorities=profile.source_priorities,
-            max_sources=profile.max_sources,
-            instructions=_unique(
-                profile.instructions + instrument.research_instructions
+            instructions=tuple(
+                dict.fromkeys(
+                    profile.instructions + item.research_instructions,
+                )
             ),
         )
 
-    def notification_policy_for(self, symbol: str) -> NotificationPolicyConfig:
-        instrument = self.instrument_for(symbol)
-        return self.notification_policies[instrument.notification_policy_id]
 
-
-def _unique(values: tuple[str, ...]) -> tuple[str, ...]:
-    return tuple(dict.fromkeys(values))
-
-
-def _strings(
-    value: Any,
-    field: str,
-    *,
-    allow_empty: bool = False,
-) -> tuple[str, ...]:
-    if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
+def _strings(value: Any, field: str) -> tuple[str, ...]:
+    if not isinstance(value, list) or any(not isinstance(v, str) for v in value):
         raise ValueError(f"{field} 必须是字符串数组")
-    normalized = tuple(item.strip() for item in value if item.strip())
-    if not normalized and not allow_empty:
-        raise ValueError(f"{field} 不能为空")
-    return normalized
+    return tuple(dict.fromkeys(v.strip() for v in value if v.strip()))
 
 
-def _required_string(values: dict[str, Any], field: str, owner: str) -> str:
+def _required(values: dict[str, Any], field: str, owner: str) -> str:
     value = str(values.get(field, "")).strip()
     if not value:
         raise ValueError(f"{owner} 必须配置 {field}")
     return value
 
 
-def _title_template(value: Any, owner: str) -> str:
-    template = str(value)
-    allowed = {"symbol", "name", "type", "event"}
-    try:
-        fields = {
-            field_name
-            for _, field_name, _, _ in Formatter().parse(template)
-            if field_name
-        }
-    except ValueError as error:
-        raise ValueError(f"{owner}.title_template 格式无效") from error
-    unknown = sorted(fields - allowed)
-    if unknown:
-        raise ValueError(
-            f"{owner}.title_template 使用了未知字段：{'、'.join(unknown)}"
-        )
-    return template
-
-
 def ensure_user_config(root: Path) -> Path:
-    config_path = root / "config" / "config.toml"
-    if config_path.exists():
-        return config_path
-    example_path = root / "config" / "config.example.toml"
-    if not example_path.exists():
-        raise FileNotFoundError(f"缺少配置模板：{example_path}")
-    shutil.copyfile(example_path, config_path)
-    return config_path
-
-
-def _load_product_types(raw: dict[str, Any]) -> dict[InstrumentType, ProductTypeConfig]:
-    result: dict[InstrumentType, ProductTypeConfig] = {}
-    for type_name, values in raw.get("product_types", {}).items():
-        instrument_type = InstrumentType.parse(type_name)
-        owner = f"product_types.{type_name}"
-        result[instrument_type] = ProductTypeConfig(
-            instrument_type=instrument_type,
-            strategy_profile_ids=_strings(
-                values.get("strategy_profiles"),
-                f"{owner}.strategy_profiles",
-            ),
-            research_profile_id=_required_string(
-                values, "research_profile", owner
-            ),
-            notification_policy_id=_required_string(
-                values, "notification_policy", owner
-            ),
-            history_days=int(values.get("history_days", 500)),
-        )
-    if not result:
-        raise ValueError("至少需要一个 [product_types.<type>] 配置")
-    return result
-
-
-def _load_strategy_profiles(
-    raw: dict[str, Any],
-) -> dict[str, StrategyProfileConfig]:
-    result: dict[str, StrategyProfileConfig] = {}
-    for profile_id, values in raw.get("strategy_profiles", {}).items():
-        owner = f"strategy_profiles.{profile_id}"
-        parameters = values.get("parameters", {})
-        if not isinstance(parameters, dict):
-            raise ValueError(f"{owner}.parameters 必须是键值表")
-        result[profile_id] = StrategyProfileConfig(
-            profile_id=profile_id,
-            strategy_id=_required_string(values, "strategy", owner),
-            parameters=dict(parameters),
-        )
-    if not result:
-        raise ValueError("至少需要一个 [strategy_profiles.<id>] 配置")
-    return result
-
-
-def _load_research_profiles(
-    raw: dict[str, Any],
-) -> dict[str, ResearchProfileConfig]:
-    result: dict[str, ResearchProfileConfig] = {}
-    for profile_id, values in raw.get("research_profiles", {}).items():
-        owner = f"research_profiles.{profile_id}"
-        max_sources = int(values.get("max_sources", 6))
-        if max_sources <= 0:
-            raise ValueError(f"{owner}.max_sources 必须大于 0")
-        result[profile_id] = ResearchProfileConfig(
-            profile_id=profile_id,
-            skill=_required_string(values, "skill", owner),
-            sections=_strings(values.get("sections"), f"{owner}.sections"),
-            focus=_strings(
-                values.get("focus", []),
-                f"{owner}.focus",
-                allow_empty=True,
-            ),
-            source_priorities=_strings(
-                values.get("source_priorities"),
-                f"{owner}.source_priorities",
-            ),
-            max_sources=max_sources,
-            instructions=_strings(
-                values.get("instructions", []),
-                f"{owner}.instructions",
-                allow_empty=True,
-            ),
-        )
-    if not result:
-        raise ValueError("至少需要一个 [research_profiles.<id>] 配置")
-    return result
-
-
-def _load_notification_channels(
-    raw: dict[str, Any],
-) -> dict[str, NotificationChannelConfig]:
-    result: dict[str, NotificationChannelConfig] = {}
-    for channel_id, values in raw.get("notification_channels", {}).items():
-        result[channel_id] = NotificationChannelConfig(
-            channel_id=channel_id,
-            channel_type=_required_string(
-                values,
-                "type",
-                f"notification_channels.{channel_id}",
-            ),
-            enabled=bool(values.get("enabled", True)),
-            options={
-                key: value
-                for key, value in values.items()
-                if key not in {"type", "enabled"}
-            },
-        )
-    return result
-
-
-def _load_notification_policies(
-    raw: dict[str, Any],
-) -> dict[str, NotificationPolicyConfig]:
-    result: dict[str, NotificationPolicyConfig] = {}
-    for policy_id, values in raw.get("notification_policies", {}).items():
-        owner = f"notification_policies.{policy_id}"
-        result[policy_id] = NotificationPolicyConfig(
-            policy_id=policy_id,
-            enabled=bool(values.get("enabled", True)),
-            channels=_strings(
-                values.get("channels", []),
-                f"{owner}.channels",
-                allow_empty=True,
-            ),
-            events=_strings(
-                values.get("events", []),
-                f"{owner}.events",
-                allow_empty=True,
-            ),
-            title_template=_title_template(
-                values.get("title_template", "{symbol} {name} 研究简报"),
-                owner,
-            ),
-        )
-    if not result:
-        raise ValueError("至少需要一个 [notification_policies.<id>] 配置")
-    return result
-
-
-def _load_automation(raw: dict[str, Any]) -> AutomationConfig:
-    values = raw.get("automation", {})
-    mode = str(values.get("mode", "base")).strip().lower()
-    if mode not in {"base", "traecli"}:
-        raise ValueError("automation.mode 仅支持 base 或 traecli")
-    timeout = int(values.get("query_timeout_seconds", 900))
-    if timeout <= 0:
-        raise ValueError("automation.query_timeout_seconds 必须大于 0")
-    return AutomationConfig(
-        enabled=bool(values.get("enabled", False)),
-        mode=mode,
-        send=bool(values.get("send", False)),
-        fallback_to_base=bool(values.get("fallback_to_base", True)),
-        traecli_path=str(values.get("traecli_path", "traecli")).strip()
-        or "traecli",
-        query_timeout_seconds=timeout,
-        allowed_tools=_strings(
-            values.get(
-                "allowed_tools",
-                ["Bash", "Read", "Write", "WebSearch"],
-            ),
-            "automation.allowed_tools",
-        ),
-    )
-
-
-def _load_remote(
-    raw: dict[str, Any],
-    channels: dict[str, NotificationChannelConfig],
-) -> RemoteConfig:
-    values = raw.get("remote", {})
-    prefix = str(values.get("prefix", "/quant")).strip()
-    if not prefix or any(character.isspace() for character in prefix):
-        raise ValueError("remote.prefix 必须是无空格的非空字符串")
-    channel_targets = _strings(
-        values.get("allowed_channel_targets", []),
-        "remote.allowed_channel_targets",
-        allow_empty=True,
-    )
-    resolved_chat_ids: list[str] = list(
-        _strings(
-            values.get("allowed_chat_ids", []),
-            "remote.allowed_chat_ids",
-            allow_empty=True,
-        )
-    )
-    for channel_id in channel_targets:
-        try:
-            channel = channels[channel_id]
-        except KeyError as error:
-            raise ValueError(
-                f"remote 引用了不存在的通知通道 {channel_id}"
-            ) from error
-        if channel.channel_type != "feishu":
-            raise ValueError(
-                f"remote 只能从飞书通道继承 chat_id：{channel_id}"
-            )
-        receive_id_type = str(
-            channel.options.get("receive_id_type", "chat_id")
-        )
-        if receive_id_type != "chat_id":
-            raise ValueError(
-                f"通道 {channel_id} 的 receive_id_type 不是 chat_id"
-            )
-        receive_id = str(channel.options.get("receive_id", "")).strip()
-        if not receive_id:
-            env_name = str(
-                channel.options.get("receive_id_env", "FEISHU_RECEIVE_ID")
-            )
-            receive_id = os.environ.get(env_name, "").strip()
-        if not receive_id:
-            raise ValueError(f"通道 {channel_id} 未配置可继承的 chat_id")
-        resolved_chat_ids.append(receive_id)
-
-    config = RemoteConfig(
-        enabled=bool(values.get("enabled", False)),
-        prefix=prefix,
-        allowed_sender_ids=_strings(
-            values.get("allowed_sender_ids", []),
-            "remote.allowed_sender_ids",
-            allow_empty=True,
-        ),
-        allowed_chat_ids=_unique(tuple(resolved_chat_ids)),
-        allowed_channel_targets=channel_targets,
-        lark_cli_path=str(values.get("lark_cli_path", "lark-cli")).strip()
-        or "lark-cli",
-    )
-    if (
-        config.enabled
-        and not config.allowed_sender_ids
-        and not config.allowed_chat_ids
-    ):
-        raise ValueError(
-            "启用 remote 时必须配置 allowed_sender_ids 或 allowed_chat_ids"
-        )
-    return config
-
-
-def _load_instruments(
-    raw: dict[str, Any],
-    product_types: dict[InstrumentType, ProductTypeConfig],
-) -> tuple[Instrument, ...]:
-    instruments: list[Instrument] = []
-    for item in raw.get("instruments", []):
-        symbol = _required_string(item, "symbol", "instruments")
-        name = _required_string(item, "name", f"标的 {symbol}")
-        instrument_type = InstrumentType.parse(str(item.get("type", "")))
-        try:
-            defaults = product_types[instrument_type]
-        except KeyError as error:
-            raise ValueError(
-                f"标的 {symbol} 缺少 product_types.{instrument_type.value} 默认配置"
-            ) from error
-        strategy_profile_ids = (
-            _strings(
-                item["strategy_profiles"],
-                f"标的 {symbol}.strategy_profiles",
-            )
-            if "strategy_profiles" in item
-            else defaults.strategy_profile_ids
-        )
-        history_days = int(item.get("history_days", defaults.history_days))
-        if history_days < 20:
-            raise ValueError(f"标的 {symbol}.history_days 不能小于 20")
-        raw_history_start_date = item.get("history_start_date")
-        try:
-            history_start_date = (
-                raw_history_start_date
-                if isinstance(raw_history_start_date, date)
-                else date.fromisoformat(str(raw_history_start_date))
-                if raw_history_start_date
-                else None
-            )
-        except ValueError as error:
-            raise ValueError(
-                f"标的 {symbol}.history_start_date 必须是 YYYY-MM-DD"
-            ) from error
-        instruments.append(
-            Instrument(
-                symbol=symbol,
-                name=name,
-                exchange=str(item.get("exchange", "SH")).upper(),
-                instrument_type=instrument_type,
-                strategy_profile_ids=strategy_profile_ids,
-                research_profile_id=str(
-                    item.get("research_profile", defaults.research_profile_id)
-                ),
-                notification_policy_id=str(
-                    item.get(
-                        "notification_policy",
-                        defaults.notification_policy_id,
-                    )
-                ),
-                history_days=history_days,
-                history_start_date=history_start_date,
-                enabled=bool(item.get("enabled", True)),
-                research_focus=_strings(
-                    item.get("research_focus", []),
-                    f"标的 {symbol}.research_focus",
-                    allow_empty=True,
-                ),
-                research_instructions=_strings(
-                    item.get("research_instructions", []),
-                    f"标的 {symbol}.research_instructions",
-                    allow_empty=True,
-                ),
-                tracking_index=str(item.get("tracking_index", "")),
-                tracking_index_code=str(item.get("tracking_index_code", "")),
-            )
-        )
-    symbols = [item.symbol for item in instruments]
-    duplicates = sorted({symbol for symbol in symbols if symbols.count(symbol) > 1})
-    if duplicates:
-        raise ValueError(f"标的代码重复：{'、'.join(duplicates)}")
-    return tuple(instruments)
-
-
-def _validate_references(settings: Settings) -> None:
-    for product_type in settings.product_types.values():
-        for profile_id in product_type.strategy_profile_ids:
-            if profile_id not in settings.strategy_profiles:
-                raise ValueError(
-                    f"产品类型 {product_type.instrument_type.value} 引用了不存在的"
-                    f"策略画像 {profile_id}"
-                )
-        if product_type.research_profile_id not in settings.research_profiles:
-            raise ValueError(
-                f"产品类型 {product_type.instrument_type.value} 引用了不存在的"
-                f"研究画像 {product_type.research_profile_id}"
-            )
-        if product_type.notification_policy_id not in settings.notification_policies:
-            raise ValueError(
-                f"产品类型 {product_type.instrument_type.value} 引用了不存在的"
-                f"通知策略 {product_type.notification_policy_id}"
-            )
-    for instrument in settings.instruments:
-        for profile_id in instrument.strategy_profile_ids:
-            if profile_id not in settings.strategy_profiles:
-                raise ValueError(
-                    f"标的 {instrument.symbol} 引用了不存在的策略画像 "
-                    f"{profile_id}"
-                )
-        if instrument.research_profile_id not in settings.research_profiles:
-            raise ValueError(
-                f"标的 {instrument.symbol} 引用了不存在的研究画像 "
-                f"{instrument.research_profile_id}"
-            )
-        if instrument.notification_policy_id not in settings.notification_policies:
-            raise ValueError(
-                f"标的 {instrument.symbol} 引用了不存在的通知策略 "
-                f"{instrument.notification_policy_id}"
-            )
-    for policy in settings.notification_policies.values():
-        for channel_id in policy.channels:
-            if channel_id not in settings.notification_channels:
-                raise ValueError(
-                    f"通知策略 {policy.policy_id} 引用了不存在的通道 {channel_id}"
-                )
+    path = root / "config" / "config.toml"
+    if not path.exists():
+        template = root / "config" / "config.example.toml"
+        if not template.exists():
+            raise FileNotFoundError(f"缺少配置模板：{template}")
+        shutil.copyfile(template, path)
+        path.chmod(0o600)
+    return path
 
 
 def load_settings(root: Path, config_path: Path | None = None) -> Settings:
-    """读取 TOML，应用产品类别默认值并校验全部引用。"""
+    """应用类别默认值；旧本机配置可读取，但不恢复已移除的能力。"""
 
     path = (config_path or ensure_user_config(root)).resolve()
     with path.open("rb") as handle:
         raw = tomllib.load(handle)
-
-    app = raw.setdefault("app", {})
-    app.setdefault("data_dir", "data")
-    app.setdefault("log_dir", "logs")
-
-    product_types = _load_product_types(raw)
-    strategy_profiles = _load_strategy_profiles(raw)
-    research_profiles = _load_research_profiles(raw)
-    notification_channels = _load_notification_channels(raw)
-    notification_policies = _load_notification_policies(raw)
-    automation = _load_automation(raw)
-    remote = _load_remote(raw, notification_channels)
-    instruments = _load_instruments(raw, product_types)
-    settings = Settings(
-        root=root.resolve(),
-        config_path=path,
-        raw=raw,
-        product_types=product_types,
-        strategy_profiles=strategy_profiles,
-        research_profiles=research_profiles,
-        notification_policies=notification_policies,
-        notification_channels=notification_channels,
-        automation=automation,
-        remote=remote,
-        instruments=instruments,
+    products = {}
+    for name, values in raw.get("product_types", {}).items():
+        kind = InstrumentType.parse(name)
+        days = int(values.get("history_days", 500))
+        if days < 20:
+            raise ValueError(f"product_types.{name}.history_days 不能小于 20")
+        products[kind] = ProductTypeConfig(
+            kind,
+            _strings(values.get("strategy_profiles", []), f"{name}.strategy_profiles"),
+            str(values.get("research_profile", "")),
+            days,
+        )
+    profiles = {}
+    for name, values in raw.get("strategy_profiles", {}).items():
+        parameters = values.get("parameters", {})
+        if not isinstance(parameters, dict):
+            raise ValueError(f"strategy_profiles.{name}.parameters 必须是键值表")
+        profiles[name] = StrategyProfileConfig(
+            name,
+            _required(values, "strategy", name),
+            dict(parameters),
+        )
+    research = {}
+    for name, values in raw.get("research_profiles", {}).items():
+        research[name] = ResearchPlan(
+            profile_id=name,
+            **{
+                key: _strings(values.get(key, []), f"{name}.{key}")
+                for key in (
+                    "sections",
+                    "focus",
+                    "source_priorities",
+                    "instructions",
+                )
+            },
+        )
+    instruments = []
+    for values in raw.get("instruments", []):
+        symbol = _required(values, "symbol", "instruments")
+        kind = InstrumentType.parse(_required(values, "type", symbol))
+        defaults = products.get(kind, ProductTypeConfig(kind))
+        days = int(values.get("history_days", defaults.history_days))
+        if days < 20:
+            raise ValueError(f"标的 {symbol}.history_days 不能小于 20")
+        start = values.get("history_start_date")
+        try:
+            start_date = date.fromisoformat(str(start)) if start else None
+        except ValueError as error:
+            raise ValueError(
+                f"标的 {symbol}.history_start_date 必须是 YYYY-MM-DD"
+            ) from error
+        exchange = str(values.get("exchange", "SH")).upper()
+        if exchange not in {"SH", "SZ"} or len(symbol) != 6 or not symbol.isdigit():
+            raise ValueError(f"标的 {symbol} 必须是六位代码，exchange 仅支持 SH/SZ")
+        instruments.append(
+            Instrument(
+                symbol=symbol,
+                name=_required(values, "name", symbol),
+                exchange=exchange,
+                instrument_type=kind,
+                strategy_profile_ids=_strings(
+                    values.get(
+                        "strategy_profiles", list(defaults.strategy_profile_ids)
+                    ),
+                    f"{symbol}.strategy_profiles",
+                ),
+                research_profile_id=str(
+                    values.get(
+                        "research_profile",
+                        defaults.research_profile_id,
+                    )
+                ),
+                notification_policy_id="",  # 旧构造协议保留，运行和 v5 数据包不使用
+                history_days=days,
+                history_start_date=start_date,
+                enabled=bool(values.get("enabled", True)),
+                research_focus=_strings(
+                    values.get("research_focus", []), f"{symbol}.focus"
+                ),
+                research_instructions=_strings(
+                    values.get("research_instructions", []),
+                    f"{symbol}.instructions",
+                ),
+                tracking_index=str(values.get("tracking_index", "")),
+                tracking_index_code=str(values.get("tracking_index_code", "")),
+            )
+        )
+    if len({item.symbol for item in instruments}) != len(instruments):
+        raise ValueError("标的代码重复")
+    for owner in [*products.values(), *instruments]:
+        for profile_id in owner.strategy_profile_ids:
+            if profile_id not in profiles:
+                raise ValueError(f"引用了不存在的策略画像 {profile_id}")
+        if owner.research_profile_id and owner.research_profile_id not in research:
+            raise ValueError(f"引用了不存在的研究画像 {owner.research_profile_id}")
+    return Settings(
+        root.resolve(),
+        path,
+        raw,
+        products,
+        profiles,
+        research,
+        tuple(instruments),
     )
-    _validate_references(settings)
-    settings.data_dir.mkdir(parents=True, exist_ok=True)
-    settings.log_dir.mkdir(parents=True, exist_ok=True)
-    return settings

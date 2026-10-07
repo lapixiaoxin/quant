@@ -7,6 +7,7 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 
 class FileResearchRepository:
@@ -35,7 +36,7 @@ class FileResearchRepository:
             self._data_dir
             / "snapshots"
             / now.strftime("%Y-%m-%d")
-            / f"{symbol}-{now.strftime('%H%M%S')}.json"
+            / f"{symbol}-{now.strftime('%H%M%S')}-{uuid4().hex}.json"
         )
         content = json.dumps(packet, ensure_ascii=False, indent=2) + "\n"
         self._atomic_write(latest_path, content)
@@ -55,15 +56,13 @@ class FileResearchRepository:
         self._atomic_write(path, prompt.rstrip() + "\n")
         return path
 
-    def save_base_report(
-        self, symbol: str, as_of: str, content: str
-    ) -> Path:
+    def save_base_report(self, symbol: str, as_of: str, content: str) -> Path:
         now = datetime.fromisoformat(as_of)
         report_path = (
             self._data_dir
             / "reports"
             / now.strftime("%Y-%m-%d")
-            / f"{symbol}-base.md"
+            / f"{symbol}-{now.strftime('%H%M%S')}-{uuid4().hex[:12]}-base.md"
         )
         self._atomic_write(report_path, content)
         self._atomic_write(
@@ -90,18 +89,13 @@ class FileResearchRepository:
         packet: dict[str, Any],
     ) -> Path:
         now = datetime.fromisoformat(str(packet["as_of"]))
-        latest_path = (
-            self._data_dir
-            / "selections"
-            / "latest"
-            / f"{universe_id}.json"
-        )
+        latest_path = self._data_dir / "selections" / "latest" / f"{universe_id}.json"
         snapshot_path = (
             self._data_dir
             / "selections"
             / "snapshots"
             / now.strftime("%Y-%m-%d")
-            / f"{universe_id}-{now.strftime('%H%M%S')}.json"
+            / f"{universe_id}-{now.strftime('%H%M%S')}-{uuid4().hex}.json"
         )
         content = json.dumps(packet, ensure_ascii=False, indent=2) + "\n"
         self._atomic_write(latest_path, content)
@@ -114,12 +108,7 @@ class FileResearchRepository:
         packet: dict[str, Any],
     ) -> Path:
         requested_at = datetime.fromisoformat(str(packet["requested_at"]))
-        latest_path = (
-            self._data_dir
-            / "analysis"
-            / "latest"
-            / f"{request_id}.json"
-        )
+        latest_path = self._data_dir / "analysis" / "latest" / f"{request_id}.json"
         snapshot_path = (
             self._data_dir
             / "analysis"
@@ -128,6 +117,12 @@ class FileResearchRepository:
             / f"{request_id}.json"
         )
         content = json.dumps(packet, ensure_ascii=False, indent=2) + "\n"
+        snapshot_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            with snapshot_path.open("x", encoding="utf-8") as handle:
+                handle.write(content)
+        except FileExistsError:
+            if snapshot_path.read_text(encoding="utf-8") != content:
+                raise ValueError(f"不能覆盖已冻结的分析请求：{request_id}") from None
         self._atomic_write(latest_path, content)
-        self._atomic_write(snapshot_path, content)
         return latest_path

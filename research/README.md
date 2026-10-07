@@ -1,73 +1,90 @@
-# 研究知识库
+# 研究资产与飞书归档
 
-本目录保存人与 Agent 讨论后整理出的长期研究资产。它与 `data/` 的运行产物分开：
+根目录：https://icnxcxzl7hll.feishu.cn/wiki/Nr1Aw5d6Li5cnjkyAuAcZ4x8nag
 
-- `data/` 回答“系统这次采集和计算出了什么”。
-- `research/` 回答“我们如何理解、决策，以及哪些经验可以复用”。
+每标的一篇 `代码 名称` 主页，研究、策略与回测文档分别为该主页的子节点。
+跨标的比较、通用方法直接挂根节点。Agent 先查本地索引与远端子节点，
+复用现有主页，不重复创建。新报告不维护本地 HTML。
 
-## 目录
+## 研究步骤
 
-```text
-index.html                 研究知识库入口
-instruments/               标的档案的组织说明
-library/                   可提交、可复用、已脱敏的方法与经验
-methods/                   数据、策略和回测方法说明
-selections/                统一候选选择报告
-strategies/                策略版本、生命周期、参数指纹和回测绑定
-templates/                 HTML 研究报告模板
-private/                   私有仓库内同步的标的讨论与个人语境
-universes/                 候选池、硬门槛、低频事实和来源日期
+1. 自主确定问题、来源和方法；检查行情时点、复权、单位与数据质量。
+2. 保存本地 Markdown 草稿和所用证据，关联策略版本、模型和实验。
+3. 在飞书创建对应子文档，上传必要图表并维护可读表格、来源链接和限制。
+4. 回读节点、父节点、标题与正文，核对关键数值、图片和来源；保存回读凭据。
+5. 使用 `./quant report-register <元数据.json>` 登记状态与链接。
+   查看用 `./quant reports [--symbol 代码]`。
+
+Agent 可以自由组织报告，但事实、假设、预测、反例、数据时间与失效条件必须可辨。
+策略和回测文档应包含版本、费用、时点、平均仓位、风险指标、失败结果与验证局限。
+实战交易由人完成，复盘记录预期和实际差异。
+
+## 本地目录
+
+`strategies/` 保存版本目录、冻结规格与方法；`universes/` 保存候选和证据；
+`private/` 保存具体标的草稿及回读凭据；`library/` 保存脱敏通用经验。
+`migration/` 为旧报告迁移稿。`documents.json` 是文档版本和飞书映射索引。
+
+本地草稿是已发布版本的审计副本。后续更新先创建新的草稿路径与 document_id，
+关联新证据；可以新建飞书版本文档，或更新原远端文档后记录新的回读凭据。
+不要在原索引中覆盖已发布版本或修改已冻结来源。发布状态表明该版本曾被回读
+核验，不证明远端文档此后从未被人工编辑。
+
+## 元数据协议
+
+例如保存 `research/private/601985/research-v1-metadata.json`：
+
+```json
+{
+  "document_id": "601985-research-v1",
+  "symbol": "601985",
+  "kind": "research",
+  "title": "中国核电研究 v1",
+  "parent_id": "instrument-601985",
+  "local_path": "research/private/601985/research-v1.md",
+  "source_paths": ["data/analysis/snapshots/2026-10-04/601985-weekly-study/prices.csv"],
+  "data_as_of": "2026-09-30",
+  "generated_at": "2026-10-07T12:00:00+08:00",
+  "status": "pending",
+  "strategy_record_ids": [],
+  "model": "",
+  "experiment": ""
+}
 ```
 
-## 讨论归档规则
+- kind：`instrument/research/strategy/backtest/selection/method`。
+- 标的主页 kind 为 `instrument`、parent_id 为 `root`；具体标的其他文档必须
+  引用已登记的对应主页。跨标的文档 symbol 为空、parent_id 为 `root`。
+- source_paths 填不可变证据路径，不引用会覆盖的 latest；model 填 `ID@版本`，
+  experiment 填冻结规格或结果路径，无关联时明确留空。
+- 文件必须位于工作区 research/data 内；登记器计算正文和来源 SHA256。
+- pending 不能填写 wiki_url。首次建稿即应登记，失败时保留 pending。
 
-后续围绕具体股票、ETF 或指数讨论后，默认整理为：
+发布成功后保持原元数据，status 改为 `published`，补充 `wiki_url` 与
+`verification_path`，后者指向如下结构的回读凭据 JSON：
 
-```text
-research/private/<标的代码>/<YYYY-MM-DD>-<主题>.html
+```json
+{
+  "wiki_url": "https://icnxcxzl7hll.feishu.cn/wiki/真实子节点Token",
+  "remote_document_id": "真实DocxToken",
+  "parent_node_token": "真实父Wiki节点Token",
+  "local_sha256": "本地正文SHA256",
+  "verified_at": "2026-10-07T12:30:00+08:00",
+  "remote_content": "飞书实际回读的正文或完整响应"
+}
 ```
 
-报告至少包含：
+先核验并登记主页，再登记子文档。登记器检查链接、来源指纹、父节点与凭据字段；
+远端内容的真实性、格式和数值一致性必须由 Agent 实际回读确认。
+不允许生成虚构凭据以绕过发布失败。
 
-1. 讨论问题与数据时点。
-2. 已确认事实及来源。
-3. 假设、推断和仍缺失的信息。
-4. 形成的研究结论与适用范围。
-5. 风险、反例和结论失效条件。
-6. 后续要验证的事项。
+## 迁移与隐私
 
-不要把整段聊天原文直接归档。只保留经过整理、可追溯且未来仍有价值的内容。
+`migration/` 已准备的旧研究草稿全部为 pending，具体状态以索引为准。
+原 HTML、图表和历史索引路径保留为证据，迁移不改历史结论或重新标为当前建议。
+草稿转换不保证复杂布局完整；发布时核对原文中的表格、图表和全部关键数值。
+全部对应内容在飞书核验后，才评估清理历史本地展示文件。
 
-## 隐私边界
-
-- 当前远端仓库是私有仓库，`private/` 会随 Git 跨设备同步。
-- `private/` 可以保存标的讨论、成本语境和个人计划，但仍禁止保存密码、Token、
-  App Secret、钥匙串内容和完整身份凭证。
-- `library/` 只保存经过复核与脱敏、适合长期复用的通用经验。
-- 某条私有经验经过脱敏和复核后，可以整理为独立 HTML 页面移入 `library/`。
-- 若未来仓库改为公开，必须先审计并清理 Git 历史中的 `private/` 和 `data/`
-  内容，再调整忽略规则；仅删除工作区文件不能消除历史泄露。
-
-## 使用入口
-
-启动本地文档服务后访问：
-
-```text
-http://127.0.0.1:8765/
-```
-
-根路径工作台会链接最近报告、候选筛选和研究中心。新增报告后运行
-`./quant site`，不得要求用户通过文件目录或 JSON 快照寻找内容。
-
-## 策略归档规则
-
-`strategies/catalog.toml` 是策略生命周期事实源，运行参数仍来自配置中的
-`strategy_profiles`。两者通过参数指纹绑定：
-
-- `draft`：尚未启用，不得影响线上分析。
-- `active`：当前分析必须注入的版本；同标的同画像只能有一个。
-- `retired`：保留历史启用和弃用时间，不再参与新分析。
-- `validation_state`：独立记录 `pending`、`passed` 或 `failed`。
-
-不要手工修改生成的策略管理页面。修改目录或配置后运行 `./quant doctor` 和
-`./quant site`；指纹漂移时系统必须拒绝继续。
+私人持仓、成本和计划不进入通用 library。当前私有仓库允许同步 private，
+仍禁止密码、Token、App Secret、钥匙串内容和完整身份凭据。飞书文档继承的
+可见范围需适合其内容；不扩大分享范围。公开仓库前先清理历史个人数据。

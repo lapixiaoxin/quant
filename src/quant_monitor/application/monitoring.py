@@ -13,15 +13,12 @@ from ..domain.control_plane import AnalysisRequest
 from ..domain.metrics import calculate_metrics
 from ..domain.models import HistorySummary, Instrument, MarketBundle
 from ..domain.strategies import StrategyRegistry
-from ..infrastructure.strategy_catalog import (
-    StrategyCatalog,
-    strategy_profile_fingerprint,
-)
 from .ports import (
     MarketDataProvider,
     MarketHistoryRepository,
     ResearchRepository,
 )
+from .strategy_catalog import StrategyCatalog, strategy_profile_fingerprint
 
 
 @dataclass(frozen=True)
@@ -36,7 +33,7 @@ class HistorySyncResult:
 
 
 class MonitoringService:
-    """可被 CLI、定时任务和未来远程命令入口共同调用的应用服务。"""
+    """供 CLI 与任意研究 Agent 复用的行情工具。"""
 
     def __init__(
         self,
@@ -188,8 +185,12 @@ class MonitoringService:
         self,
         symbol: str,
         analysis_request: AnalysisRequest | None = None,
+        *,
+        evaluate_strategies: bool = False,
     ) -> tuple[Path, dict[str, Any]]:
+        """采集与计算默认独立于策略；正式评估显式校验策略版本。"""
         instrument = self._settings.instrument_for(symbol)
+        strategy_plan = self._strategy_plan(symbol) if evaluate_strategies else []
         now = self._clock().replace(microsecond=0)
         sync = self.sync_history(symbol)
         bundle = sync.bundle
@@ -204,7 +205,9 @@ class MonitoringService:
         )
         metrics = calculate_metrics(bundle.bars)
         assessments = []
-        for profile_id in instrument.strategy_profile_ids:
+        for profile_id in (
+            instrument.strategy_profile_ids if evaluate_strategies else ()
+        ):
             profile = self._settings.strategy_profiles[profile_id]
             assessments.append(
                 self._strategies.get(profile.strategy_id).evaluate(
@@ -215,21 +218,22 @@ class MonitoringService:
                 )
             )
         research_plan = self._settings.research_plan_for(symbol)
-        notification_policy = self._settings.notification_policy_for(symbol)
         portfolio = self._settings.portfolio_for(symbol)
+        identity = instrument.to_packet()
+        identity.pop("notification_policy", None)
 
         packet: dict[str, Any] = {
-            "schema_version": 4,
+            "schema_version": 5,
             "as_of": now.isoformat(),
-            "instrument": instrument.to_packet(),
-            "strategy_plan": self._strategy_plan(symbol),
+            "instrument": identity,
+            "strategy_plan": strategy_plan,
             "analysis_plan": (
                 analysis_request.for_symbol(symbol)
                 if analysis_request
                 else {
                     "request_id": None,
                     "trigger": "manual",
-                    "mode": "base",
+                    "mode": "research",
                     "symbol": symbol,
                     "cycles": ["daily", "moving_average"],
                     "factor_ids": [
@@ -241,14 +245,12 @@ class MonitoringService:
                         "liquidity",
                         "strategy",
                     ],
-                    "send": False,
                 }
             ),
             "quote": bundle.quote.to_packet(),
             "metrics": metrics,
             "assessments": [item.to_packet() for item in assessments],
             "research_plan": research_plan.to_packet(),
-            "notification_plan": notification_policy.to_packet(),
             "portfolio": {
                 "enabled": portfolio.enabled,
                 "shares": portfolio.shares,
@@ -265,6 +267,7 @@ class MonitoringService:
                     item.isoformat() for item in sync.repaired_dates
                 ],
                 "quote_available": bundle.quote.price is not None,
+                "strategy_evaluated": evaluate_strategies,
                 "limitations": [
                     "盘中行情快照不等同于最终收盘价",
                     "低频基本面与外部事件需要研究代理补充",
@@ -273,13 +276,11 @@ class MonitoringService:
             },
         }
         latest_path = self._repository.save_packet(symbol, packet)
-        section_text = "、".join(research_plan.sections)
         prompt = (
-            f"请使用 {research_plan.skill} Skill 分析"
-            f"{instrument.name}（{symbol}）。"
-            f"数据包位于 {latest_path.relative_to(self._settings.root)}。"
-            f"严格按 strategy_plan、analysis_plan 和 research_plan 执行，"
-            f"报告至少覆盖：{section_text}。"
+            f"研究 {instrument.name}（{symbol}），数据包：{latest_path}。"
+            "自主选择分析方法和工具；research_plan 是参考关注点。"
+            "区分事实、假设与预测，检查数据时间，保存实验及失败结果。"
+            "人的研究报告按 AGENTS.md 约定归档到飞书标的主页下。"
         )
         self._repository.save_prompt(symbol, prompt)
         return latest_path, packet

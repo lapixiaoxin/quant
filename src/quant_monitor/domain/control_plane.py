@@ -179,8 +179,9 @@ class AnalysisRequest:
             raise ValueError("分析请求至少需要一个分析周期")
         if not self.factor_ids:
             raise ValueError("分析请求至少需要一个分析因子")
-        if self.mode not in {"base", "traecli"}:
-            raise ValueError("分析模式仅支持 base 或 traecli")
+        # base/traecli 仅用于读取历史请求，不再对应后台执行器。
+        if self.mode not in {"research", "base", "traecli"}:
+            raise ValueError("未知分析模式")
 
     def for_symbol(self, symbol: str) -> dict[str, Any]:
         if symbol not in self.symbols:
@@ -193,7 +194,6 @@ class AnalysisRequest:
             "symbol": symbol,
             "cycles": [item.value for item in self.cycles],
             "factor_ids": list(self.factor_ids),
-            "send": self.send,
         }
 
     def to_packet(self) -> dict[str, Any]:
@@ -205,7 +205,6 @@ class AnalysisRequest:
             "symbols": list(self.symbols),
             "cycles": [item.value for item in self.cycles],
             "factor_ids": list(self.factor_ids),
-            "send": self.send,
         }
 
     @classmethod
@@ -216,7 +215,7 @@ class AnalysisRequest:
                 str(values["requested_at"])
             ),
             trigger=AnalysisTrigger(str(values["trigger"])),
-            mode=str(values["mode"]),
+            mode=str(values.get("mode", "research")),
             symbols=tuple(str(item) for item in values["symbols"]),
             cycles=tuple(
                 AnalysisCycle.parse(str(item))
@@ -225,7 +224,7 @@ class AnalysisRequest:
             factor_ids=tuple(
                 str(item) for item in values["factor_ids"]
             ),
-            send=bool(values["send"]),
+            send=bool(values.get("send", False)),
         )
 
 

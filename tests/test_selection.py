@@ -22,7 +22,6 @@ from quant_monitor.domain.selection import (
     evaluate_candidate,
 )
 from quant_monitor.infrastructure.selection_config import load_selection_universe
-from quant_monitor.interfaces.selection_reporting import build_selection_report
 
 
 def candidate(symbol: str, *, complete: bool = True) -> SelectionCandidate:
@@ -253,46 +252,6 @@ exchange = "SH"
                 item for item in packet["candidates"] if item["symbol"] == "FAIL"
             )
             self.assertEqual(failed["status"], "data_error")
-
-    def test_html_report_escapes_candidate_content(self) -> None:
-        packet = {
-            "as_of": "2026-08-15T14:00:00+08:00",
-            "universe": {
-                "id": "test",
-                "name": "<测试候选池>",
-                "objective": "比较 & 验证",
-            },
-            "summary": {
-                "candidate_count": 1,
-                "needs_research": 1,
-                "market_ranking_scope": "仅供研究",
-            },
-            "candidates": [
-                {
-                    "symbol": "510300",
-                    "name": "<script>alert(1)</script>",
-                    "status": "needs_research",
-                    "metadata": {"as_of": "2026-06-29"},
-                    "metrics": {
-                        "average_amount_20d": 12_000_000,
-                        "average_amount_20d_source": "verified_metadata",
-                    },
-                    "exclusions": [],
-                    "evidence_gaps": ["tracking_error_pct"],
-                    "market_score": None,
-                    "market_rank": None,
-                }
-            ],
-            "data_quality": {"limitations": ["来源 < 待核验"]},
-        }
-
-        html = build_selection_report(packet)
-
-        self.assertNotIn("<script>alert(1)</script>", html)
-        self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", html)
-        self.assertIn("比较 &amp; 验证", html)
-        self.assertIn("2026-06-29", html)
-        self.assertIn("元数据核验", html)
 
 
 if __name__ == "__main__":

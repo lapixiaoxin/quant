@@ -1,200 +1,118 @@
+"""显式研究请求的成功、部分失败和旧请求兼容边界。"""
+
 from __future__ import annotations
 
 import tempfile
 import unittest
-from datetime import datetime, timedelta, timezone
+from dataclasses import replace
+from datetime import datetime, timezone
 from pathlib import Path
 
 from quant_monitor.application.analysis import AnalysisService
-from quant_monitor.application.automation import AutomationResult
 from quant_monitor.config import load_settings
-from quant_monitor.domain.control_plane import (
-    AnalysisCycle,
-    AnalysisRequest,
-    AnalysisTrigger,
-    InvestmentHorizon,
-    StrategyLifecycle,
-    StrategyRecord,
-    ValidationState,
-)
+from quant_monitor.domain.control_plane import AnalysisCycle, AnalysisRequest
 from quant_monitor.domain.factors import FactorRegistry
-from quant_monitor.infrastructure.control_repository import (
-    SQLiteControlPlaneRepository,
-)
+from quant_monitor.infrastructure.control_repository import SQLiteControlPlaneRepository
 from quant_monitor.infrastructure.storage import FileResearchRepository
-from quant_monitor.infrastructure.strategy_catalog import (
-    StrategyCatalog,
-    strategy_profile_fingerprint,
-)
 
 CONFIG = """
-[app]
-data_dir = "data"
-
-[product_types.etf]
-strategy_profiles = ["default"]
-research_profile = "core"
-notification_policy = "silent"
-history_days = 300
-
-[strategy_profiles.default]
-strategy = "dividend_low_vol"
-
-[research_profiles.core]
-skill = "instrument-analyst"
-sections = ["趋势"]
-source_priorities = ["官方"]
-
-[notification_policies.silent]
-enabled = false
-channels = []
-events = []
-
-[automation]
-enabled = true
-mode = "base"
-send = false
-
 [[instruments]]
-symbol = "510300"
-name = "测试 ETF"
+symbol = "601985"
+name = "中国核电"
+type = "stock"
+[[instruments]]
+symbol = "510720"
+name = "红利 ETF"
 type = "etf"
 """
 
 
-class FakeAutomation:
-    def __init__(self, root: Path) -> None:
+class FakeMonitoring:
+    def __init__(self, root: Path):
         self.root = root
-        self.calls: list[tuple[str, AnalysisRequest, Path]] = []
+        self.calls = []
+        self.failed = set()
 
-    def run(
-        self,
-        symbol: str,
-        *,
-        mode: str,
-        send: bool,
-        event: str,
-        analysis_request: AnalysisRequest,
-        analysis_request_path: Path,
-    ) -> AutomationResult:
-        del send, event
-        self.calls.append(
-            (symbol, analysis_request, analysis_request_path)
+    def prepare(self, symbol, request, *, evaluate_strategies):
+        self.calls.append((symbol, request.request_id, evaluate_strategies))
+        if symbol in self.failed:
+            raise ValueError("行情不足")
+        return self.root / f"{symbol}.json", {
+            "as_of": "2026-10-07T12:00:00+08:00",
+            "strategy_plan": [{"record_id": "test-v1"}],
+        }
+
+
+class AnalysisTest(unittest.TestCase):
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        config = self.root / "config.toml"
+        config.write_text(CONFIG, encoding="utf-8")
+        settings = load_settings(self.root, config)
+        self.monitoring = FakeMonitoring(self.root)
+        self.repository = FileResearchRepository(settings.data_dir)
+        self.control = SQLiteControlPlaneRepository(self.root / "control.sqlite3")
+        self.service = AnalysisService(
+            settings,
+            self.monitoring,
+            self.repository,
+            self.control,
+            FactorRegistry.default(),
+            lambda packet: "# 研究基线\n",
+            clock=lambda: datetime(2026, 10, 7, tzinfo=timezone.utc),
         )
-        report_path = self.root / "data" / "reports" / f"{symbol}.md"
-        report_path.parent.mkdir(parents=True, exist_ok=True)
-        report_path.write_text("# 测试报告\n", encoding="utf-8")
-        return AutomationResult(
-            symbol=symbol,
-            mode=mode,
-            report_path=report_path,
-            sent_channels=("feishu_primary",),
+
+    def request(self):
+        return self.service.create_request(
+            symbols=("601985", "510720"),
+            cycles=(AnalysisCycle.DAILY,),
         )
 
+    def test_report_and_completed_state_are_registered(self):
+        result = self.service.run(self.request())
+        self.assertEqual(result.errors, ())
+        self.assertEqual(len(result.results), 2)
+        snapshot = self.control.export_snapshot()
+        self.assertEqual(snapshot["analysis_runs"][0]["status"], "completed")
+        self.assertEqual(snapshot["reports"][0]["delivery_status"], "draft")
+        self.assertEqual(snapshot["reports"][0]["strategy_records_json"], '["test-v1"]')
+        self.assertTrue(all(call[2] for call in self.monitoring.calls))
+        self.assertTrue(all(item.report_path.exists() for item in result.results))
 
-class AnalysisServiceTest(unittest.TestCase):
-    def test_records_request_strategy_factors_report_and_delivery(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            config_path = root / "config.toml"
-            config_path.write_text(CONFIG, encoding="utf-8")
-            settings = load_settings(root, config_path)
-            profile = settings.strategy_profiles["default"]
-            catalog = StrategyCatalog(
-                1,
-                (
-                    StrategyRecord(
-                        record_id="strategy-v1",
-                        profile_id="default",
-                        version="1.0.0",
-                        name="测试策略",
-                        symbols=("510300",),
-                        horizon=InvestmentHorizon.LONG,
-                        lifecycle=StrategyLifecycle.ACTIVE,
-                        validation_state=ValidationState.PASSED,
-                        created_at=datetime(
-                            2026,
-                            8,
-                            14,
-                            tzinfo=timezone.utc,
-                        ),
-                        enabled_at=datetime(
-                            2026,
-                            8,
-                            15,
-                            tzinfo=timezone.utc,
-                        ),
-                        retired_at=None,
-                        thesis="验证标准分析作业",
-                        parameters_fingerprint=(
-                            strategy_profile_fingerprint(profile)
-                        ),
-                        backtest_model_id="attention_score_allocation",
-                        backtest_model_version="1.0.0",
-                        backtest_parameters={
-                            "strategy_id": "dividend_low_vol"
-                        },
-                    ),
-                ),
-            )
-            automation = FakeAutomation(root)
-            repository = FileResearchRepository(settings.data_dir)
-            control = SQLiteControlPlaneRepository(
-                settings.data_dir / "control.sqlite3"
-            )
-            now = datetime(
-                2026,
-                8,
-                15,
-                14,
-                0,
-                tzinfo=timezone(timedelta(hours=8)),
-            )
-            service = AnalysisService(
-                settings,
-                automation,
-                repository,
-                control,
-                catalog,
-                FactorRegistry.default(),
-                clock=lambda: now,
-            )
+    def test_partial_failure_preserves_success_and_failed_state(self):
+        self.monitoring.failed = {"510720"}
+        result = self.service.run(self.request())
+        self.assertEqual(len(result.results), 1)
+        self.assertIn("行情不足", result.errors[0])
+        self.assertEqual(
+            self.control.export_snapshot()["analysis_runs"][0]["status"],
+            "partial",
+        )
+        self.monitoring.failed.add("601985")
+        self.service.run(self.request())
+        self.assertIn(
+            "failed",
+            [
+                item["status"]
+                for item in self.control.export_snapshot()["analysis_runs"]
+            ],
+        )
 
-            request = service.create_request(
-                symbols=("510300",),
-                cycles=(
-                    AnalysisCycle.DAILY,
-                    AnalysisCycle.MOVING_AVERAGE,
-                ),
-                trigger=AnalysisTrigger.REMOTE,
-                mode="base",
-                send=True,
-            )
-            execution = service.run(request)
-            snapshot = control.export_snapshot()
+    def test_legacy_requests_are_readable_but_cannot_trigger_execution(self):
+        request = replace(self.request(), mode="base", send=True)
+        packet = {**request.to_packet(), "send": True}
+        loaded = AnalysisRequest.from_packet(packet)
+        with self.assertRaisesRegex(ValueError, "旧自动化请求"):
+            self.service.run(loaded)
+        self.assertEqual(self.monitoring.calls, [])
 
-            self.assertEqual(execution.errors, ())
-            self.assertEqual(len(automation.calls), 1)
-            self.assertIs(automation.calls[0][1], request)
-            self.assertEqual(
-                automation.calls[0][2],
-                execution.request_path,
+    def test_same_request_cannot_overwrite_its_frozen_snapshot(self):
+        request = self.request()
+        self.repository.save_analysis_request(request.request_id, request.to_packet())
+        with self.assertRaisesRegex(ValueError, "不能覆盖"):
+            self.repository.save_analysis_request(
+                request.request_id,
+                replace(request, symbols=("601985",)).to_packet(),
             )
-            self.assertIn("moving_average", request.factor_ids)
-            self.assertIn("strategy", request.factor_ids)
-            self.assertEqual(
-                snapshot["analysis_runs"][0]["status"],
-                "completed",
-            )
-            self.assertEqual(
-                snapshot["reports"][0]["strategy_records_json"],
-                '["strategy-v1"]',
-            )
-            self.assertEqual(
-                snapshot["reports"][0]["delivery_status"],
-                "sent",
-            )
-
-
-if __name__ == "__main__":
-    unittest.main()
