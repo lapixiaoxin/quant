@@ -22,10 +22,19 @@ class Settings(BaseSettings):
 
     # 回测默认参数
     initial_cash: float = 1_000_000.0
-    commission_rate: float = 0.0003
-    stamp_tax_rate: float = 0.001
-    transfer_fee_rate: float = 0.00001
+    # 资产类型决定费率口径与撮合资产（stock=个股 / etf=基金）
+    asset_type: str = "stock"
+
+    # 股票费率（A 股）
+    commission_rate: float = 0.0003  # 佣金，万 3，双向
+    stamp_tax_rate: float = 0.0005  # 印花税，千 0.5，仅卖出；2023-08-28 起由 0.1% 减半
+    transfer_fee_rate: float = 0.00001  # 过户费，十万分之一，双向
     min_commission: float = 5.0
+
+    # ETF 费率：免印花税、免过户费（对应引擎的 set_fund_fee_rules）
+    etf_commission_rate: float = 0.0003
+    etf_min_commission: float = 5.0
+
     slippage: float = 0.0002
     volume_limit_pct: float = 0.2
     t_plus_one: bool = True
@@ -61,6 +70,30 @@ class Settings(BaseSettings):
     @property
     def is_paper(self) -> bool:
         return self.live_trading_mode == "paper"
+
+    @property
+    def is_etf(self) -> bool:
+        return self.asset_type.lower() == "etf"
+
+    def fee_params(self) -> dict[str, float]:
+        """按资产类型返回生效费率。
+
+        ETF（基金）免印花税与过户费，对应引擎的 ``set_fund_fee_rules``；
+        个股走 ``set_stock_fee_rules``。
+        """
+        if self.is_etf:
+            return {
+                "commission_rate": self.etf_commission_rate,
+                "stamp_tax_rate": 0.0,
+                "transfer_fee_rate": 0.0,
+                "min_commission": self.etf_min_commission,
+            }
+        return {
+            "commission_rate": self.commission_rate,
+            "stamp_tax_rate": self.stamp_tax_rate,
+            "transfer_fee_rate": self.transfer_fee_rate,
+            "min_commission": self.min_commission,
+        }
 
 
 _settings: Optional[Settings] = None

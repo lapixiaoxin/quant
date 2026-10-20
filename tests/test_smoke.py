@@ -11,10 +11,14 @@ from qtrader.live import run_session
 from qtrader.screening import (
     FunnelConfig,
     build_candidates,
+    build_etf_candidates,
     evaluate_funnel,
+    resample,
     swing_metrics,
+    universe_defaults,
     zigzag_swings,
 )
+from qtrader.settings import Settings
 from qtrader.strategy import MaCrossStrategy
 
 
@@ -100,29 +104,54 @@ def test_zigzag_detects_swings() -> None:
     assert abs(swings[1] + 0.25) < 1e-9
 
 
-def test_swing_metrics_returns_expected_fields() -> None:
-    metrics = swing_metrics(_synthetic(), threshold=0.15)
+def test_swing_metrics_daily_returns_expected_fields() -> None:
+    metrics = swing_metrics(_synthetic(), period="daily", swing_threshold=0.15)
     for key in [
         "annual_volatility",
-        "median_daily_amplitude",
+        "median_amplitude",
         "swings_per_year",
         "max_drawdown",
-        "longest_underwater_days",
+        "longest_underwater_bars",
         "distance_from_52w_high",
+        "trend_ratio",
     ]:
         assert key in metrics
     assert metrics["bars"] == 120
     assert metrics["max_drawdown"] <= 0
+    assert 0.0 <= metrics["trend_ratio"] <= 1.0
+
+
+def test_swing_metrics_weekly_resamples() -> None:
+    """周线口径应把 120 根日线压缩到约 24 根周线。"""
+    metrics = swing_metrics(_synthetic(), period="weekly")
+    assert 20 <= metrics["bars"] <= 26
+
+
+def test_resample_weekly_keeps_ohlc_shape() -> None:
+    weekly = resample(_synthetic(), "weekly")
+    assert list(weekly.columns) == ["date", "open", "high", "low", "close", "volume"]
+    assert len(weekly) < len(_synthetic())
+    assert (weekly["high"] >= weekly["low"]).all()
+
+
+def test_swing_metrics_rejects_unknown_period() -> None:
+    try:
+        swing_metrics(_synthetic(), period="monthly")
+    except ValueError as exc:
+        assert "monthly" in str(exc)
+    else:
+        raise AssertionError("未知周期应抛出 ValueError")
 
 
 def _good_metrics() -> dict[str, float]:
+    """满足周线口径预设的一组指标。"""
     return {
         "annual_volatility": 0.35,
-        "median_daily_amplitude": 0.03,
+        "median_amplitude": 0.06,
         "swings_per_year": 4.0,
         "max_drawdown": -0.30,
-        "longest_underwater_days": 300.0,
-        "distance_from_52w_high": -0.20,
+        "longest_underwater_bars": 60.0,
+        "distance_from_52w_high": -0.25,
     }
 
 
@@ -131,9 +160,22 @@ def test_funnel_requires_all_layers_to_hold() -> None:
     assert evaluate_funnel(_good_metrics(), config) == "通过"
 
     assert evaluate_funnel(_good_metrics() | {"annual_volatility": 0.10}, config) == "1-波动率越界"
+    assert evaluate_funnel(_good_metrics() | {"median_amplitude": 0.01}, config) == "1-周期振幅不足"
     assert evaluate_funnel(_good_metrics() | {"swings_per_year": 1.0}, config) == "1-波段次数不足"
     assert evaluate_funnel(_good_metrics() | {"max_drawdown": -0.60}, config) == "2-回撤过大"
-    assert evaluate_funnel(_good_metrics() | {"distance_from_52w_high": -0.01}, config) == "3-距高点过近"
+    assert evaluate_funnel(_good_metrics() | {"longest_underwater_bars": 200.0}, config) == "2-水下时间过长"
+    assert evaluate_funnel(_good_metrics() | {"distance_from_52w_high": -0.05}, config) == "3-距高点过近"
+
+
+def test_funnel_presets_differ_by_period() -> None:
+    """周线口径窗口更长、入场门槛更高、水下容忍按周计。"""
+    weekly = FunnelConfig.for_period("weekly")
+    daily = FunnelConfig.for_period("daily")
+    assert (weekly.period, weekly.years) == ("weekly", 5.0)
+    assert (daily.period, daily.years) == ("daily", 3.0)
+    assert weekly.min_drop_from_high > daily.min_drop_from_high
+    assert weekly.max_underwater_bars < daily.max_underwater_bars
+    assert weekly.swing_threshold < daily.swing_threshold
 
 
 def _snapshot() -> pd.DataFrame:
@@ -170,3 +212,27 @@ def test_build_candidates_respects_max_candidates() -> None:
     assert len(build_candidates(snap)) == 3
     # 截断后按成交额降序，成交额最大的是 sh600001（6 亿）
     assert build_candidates(snap, max_candidates=1)["symbol"].tolist() == ["sh600001"]
+
+
+def test_build_etf_candidates_sorts_and_caps() -> None:
+    snap = pd.DataFrame({"symbol": ["sz159915", "sh510300", "sh588000", "sh512480"]})
+    kept = build_etf_candidates(snap, max_candidates=2)
+    assert kept["symbol"].tolist() == ["sh510300", "sh512480"]
+
+
+def test_universe_defaults_relax_turnover_for_weekly() -> None:
+    """周级波段不依赖日内活跃度，换手率区间应比日线放宽。"""
+    weekly = universe_defaults("stock", "weekly")
+    daily = universe_defaults("stock", "daily")
+    assert weekly["min_turnover_rate"] < daily["min_turnover_rate"]
+    assert weekly["max_turnover_rate"] > daily["max_turnover_rate"]
+
+
+def test_fee_params_zero_stamp_tax_for_etf() -> None:
+    """ETF 免印花税与过户费，个股按配置收取。"""
+    stock = Settings(asset_type="stock", stamp_tax_rate=0.0005, transfer_fee_rate=0.00001)
+    etf = Settings(asset_type="etf")
+    assert etf.fee_params()["stamp_tax_rate"] == 0.0
+    assert etf.fee_params()["transfer_fee_rate"] == 0.0
+    assert stock.fee_params()["stamp_tax_rate"] == 0.0005
+    assert stock.fee_params()["transfer_fee_rate"] == 0.00001

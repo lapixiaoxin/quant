@@ -76,3 +76,20 @@ def build_candidates(
 
     out = df[keep].sort_values("amount", ascending=False).head(max_candidates)
     return out.reset_index(drop=True)
+
+
+def build_etf_candidates(
+    snapshot: pd.DataFrame,
+    *,
+    max_candidates: int = 150,
+) -> pd.DataFrame:
+    """ETF 第 0 层：按代码排序后截断。
+
+    当前网络环境下没有可用的 ETF 流动性快照（新浪 ETF 分类接口的成交额字段恒为
+    0，东财源不可达），因此不在此处做流动性过滤——ETF 的流动性门槛在拉取历史后
+    用历史成交额（成交量 × 收盘价）自行判定，见 ``screen.run_screen``。
+
+    :param max_candidates: 抓取上限。代码排序不代表流动性排序，因此若要做全市场
+        ETF 筛选，应把它调大（全量约 1700 只，首次抓取耗时较长，之后走缓存）。
+    """
+    return snapshot.sort_values("symbol").head(max_candidates).reset_index(drop=True)

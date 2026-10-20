@@ -7,9 +7,31 @@ from typing import Optional, Union
 
 import pandas as pd
 
-from akquant import BacktestResult, Strategy, run_backtest
+from akquant import (
+    AssetType,
+    BacktestConfig,
+    BacktestResult,
+    InstrumentConfig,
+    Strategy,
+    StrategyConfig,
+    run_backtest,
+)
 
 from ..settings import Settings, get_settings
+
+
+def resolve_asset_type(settings: Optional[Settings] = None) -> AssetType:
+    """把配置里的资产类型映射到引擎枚举。"""
+    cfg = settings or get_settings()
+    return AssetType.Fund if cfg.is_etf else AssetType.Stock
+
+
+def _as_symbol_list(symbols: Optional[Union[str, list[str]]]) -> list[str]:
+    if symbols is None:
+        return []
+    if isinstance(symbols, str):
+        return [symbols]
+    return list(symbols)
 
 
 def run(
@@ -36,15 +58,24 @@ def run(
         strategy=strategy,
         symbols=symbols,
         initial_cash=cfg.initial_cash,
-        commission_rate=cfg.commission_rate,
-        stamp_tax_rate=cfg.stamp_tax_rate,
-        transfer_fee_rate=cfg.transfer_fee_rate,
-        min_commission=cfg.min_commission,
         slippage={"type": "percent", "value": cfg.slippage},
         volume_limit_pct=cfg.volume_limit_pct,
         t_plus_one=cfg.t_plus_one,
         show_progress=False,
+        # 费率按资产类型生效：ETF 免印花税与过户费
+        **cfg.fee_params(),
     )
+
+    codes = _as_symbol_list(symbols)
+    if codes:
+        # 显式声明资产类型，ETF 使用 0.001 的最小变动价位（个股为 0.01）
+        engine_asset = "FUND" if cfg.is_etf else "STOCK"
+        kwargs["config"] = BacktestConfig(
+            strategy_config=StrategyConfig(),
+            instruments_config=[
+                InstrumentConfig(symbol=code, asset_type=engine_asset) for code in codes
+            ],
+        )
     if cfg.broker_profile:
         kwargs["broker_profile"] = cfg.broker_profile
 

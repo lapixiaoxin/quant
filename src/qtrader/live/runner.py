@@ -19,8 +19,8 @@ from akquant.normalize import dataframe_to_bars
 from ..settings import Settings, get_settings
 
 
-def _instruments(symbols: list[str]) -> list[Instrument]:
-    return [Instrument(symbol=s, asset_type=AssetType.Stock) for s in symbols]
+def _instruments(symbols: list[str], asset: AssetType) -> list[Instrument]:
+    return [Instrument(symbol=s, asset_type=asset) for s in symbols]
 
 
 def _replay_bars(data: dict[str, pd.DataFrame]) -> list:
@@ -47,6 +47,7 @@ def run_session(
     """
     cfg = settings or get_settings()
     options: dict[str, object] = dict(cfg.gateway_options())
+    market_asset = AssetType.Fund if cfg.is_etf else AssetType.Stock
 
     if cfg.is_paper:
         if data is None:
@@ -64,7 +65,7 @@ def run_session(
 
     run_live(
         strategy_cls=strategy,
-        instruments=_instruments(symbols),
+        instruments=_instruments(symbols, market_asset),
         cash=cfg.initial_cash,
         market_broker=market_broker,
         trader_broker=trader_broker,

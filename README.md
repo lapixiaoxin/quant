@@ -17,15 +17,20 @@
 src/qtrader/
 ├── settings.py            # 配置：费率、路径、实盘通道参数
 ├── data/                  # 数据层：AKShare 采集 + Parquet 缓存
-│   ├── akshare_source.py
+│   ├── akshare_source.py  # 个股日线
+│   ├── etf_source.py      # ETF 快照与日线（缓存独立在 data/etf/）
 │   └── store.py
 ├── strategy/              # 策略层（继承 akquant.Strategy）
 │   └── ma_cross.py
+├── screening/             # 筛选层：四层漏斗筛出适合做波段的标的
+│   ├── metrics.py         # 周期指标（日线/周线），不含未来函数
+│   ├── universe.py        # 第0层候选池
+│   └── screen.py          # 漏斗 + 打分 + 样本外验证
 ├── backtest/              # 回测层：run_backtest 封装 + 报告
 │   └── runner.py
 ├── live/                  # 实盘层：run_live 封装（paper / broker_live）
 │   └── runner.py
-└── cli.py                 # 命令行入口
+└── cli.py                 # 命令行入口：data-sync / backtest / live / screen
 ```
 
 ## 安装
@@ -51,7 +56,28 @@ qtrader backtest --symbols sh600000 --start 20230101 --end 20240630 --report rep
 
 # 3) 启动实盘/仿真会话（模式由 QT_LIVE_TRADING_MODE 决定）
 qtrader live --symbols sh600000 --start 20230101 --end 20231231 --duration 30s
+
+# 4) 筛选适合做波段的标的（默认周线口径，四层漏斗）
+qtrader screen --out reports/candidates.csv
+
+# 5) 样本外验证：前 3 年筛选、后 2 年检验
+qtrader screen --validate --train-years 3 --test-years 2 --out reports/oos.csv
 ```
+
+`backtest` / `live` / `screen` 都支持 `--asset stock|etf`：ETF 走独立数据源与缓存，且**免印花税与过户费**。
+
+## 筛选标准（四层漏斗）
+
+| 层 | 检查项 | 周线口径（默认） | 日线口径 |
+|---|---|---|---|
+| 0 | 流动性 | 成交额 > 1 亿、换手率 1%~30%，剔除 ST/退市/北交所 | 换手率 3%~12% |
+| 1 | 波段弹性 | 年化波动 25%~50%、周振幅 ≥ 4%、年均波段 ≥ 3 | 日振幅 ≥ 2% |
+| 2 | 可做性 | 最大回撤 < 45%、最长水下 ≤ 104 周 | ≤ 504 交易日 |
+| 3 | 入场时点 | 距 52 周高点回撤 ≥ 20% | ≥ 15% |
+
+统计窗口：周线 5 年、日线 3 年。`trend_ratio`（站上均线占比）与均值回归特征只参与打分，不作为硬门槛。
+
+注意两点：个股第 0 层按成交额截断，会偏向高波动投机标的；ETF 没有可用的流动性快照，流动性在拉取历史后用成交额判定。
 
 ## 回测 vs 实盘
 
@@ -95,5 +121,6 @@ class MyStrategy(Strategy):
 ## 边界提醒
 
 - AKShare 数据仅供学术研究，商用请自行评估数据源风险；目标站点改版会导致接口失效，需保持升级。
-- 本项目的费率/滑点/风控参数在 `Settings` 中显式配置，回测结果对参数敏感，落地前请用你自己的券商口径复核。
+- 费率按资产类型生效：个股佣金万 3 + 印花税千 0.5（仅卖出，2023-08 起减半）+ 过户费十万分之一；ETF 免印花税与过户费。回测结果对参数敏感，落地前请用你自己的券商口径复核。
+- ETF 历史数据来自新浪，是**不复权**价，分红会造成除息跳空；个股请显式传 `qfq`。
 - 实盘涉及真实资金，务必先在 `paper` 模式充分验证，再小资金灰度。
