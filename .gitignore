@@ -2,7 +2,6 @@
 __pycache__/
 *.py[cod]
 *.egg-info/
-data/
 reports/
 .env
 .pytest_cache/

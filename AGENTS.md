@@ -25,6 +25,8 @@ uv run qtrader live --symbols sh600000 --start 20230101 --end 20231231 --duratio
 - 远程：`git@github.com:lapixiaoxin/quant.git`；主分支 `main`；本地 `main` 跟踪 `origin/main`。
 - **每次改动都及时推送**：完成一次修改后立即 `git add` → `git commit` → `git push`，不要攒批。新增、修改、删除代码/配置/文档都算一次改动。
 - 提交信息用中文，采用 `feat:` / `fix:` / `refactor:` / `chore:` / `docs:` 前缀。
+- 入库范围：源码、`pyproject.toml`、`uv.lock`、`README.md`、`AGENTS.md`，以及 `data/` 下的行情数据（随代码入库，保证回测可复现且不依赖 AKShare 联网）。`.venv/`、`reports/`、`.env`、`__pycache__/`、`.pytest_cache/` 不推送。
+- `data/` 中同时保留不复权（`{symbol}.parquet`）与前复权（`{symbol}.qfq.parquet`）两套数据，两者都要入库。
 - `legacy-quant-monitor` 分支保存了 2026-10 之前的旧项目 `quant_monitor`（24 个提交），**不要删除**，仅作历史备份。
 - 强制推送 `main` 属高危操作，仅在你明确要求时执行。
 
