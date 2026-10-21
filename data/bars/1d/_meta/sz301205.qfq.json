@@ -1,0 +1,10 @@
+{
+  "symbol": "sz301205",
+  "asset": "stock",
+  "adjust": "qfq",
+  "rows": 991,
+  "first_date": "2022-09-13",
+  "last_date": "2026-10-20",
+  "fetched_at": "2026-10-21T09:08:08",
+  "complete": true
+}

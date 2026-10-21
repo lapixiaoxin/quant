@@ -13,12 +13,19 @@ from rich.table import Table
 
 from .backtest import run as run_backtest
 from .backtest import summary as backtest_summary
-from .data import load_etf_universe, load_universe
+from .data import (
+    coverage_summary,
+    fetch_etf_snapshot,
+    load_etf_universe,
+    load_universe,
+    sync_symbols,
+)
 from .live import run_session
 from .screening import (
     DISPLAY_COLUMNS,
     REPORT_COLUMNS,
     FunnelConfig,
+    fetch_snapshot,
     run_out_of_sample,
     run_screen,
 )
@@ -64,17 +71,99 @@ def _load_bars(
 
 @app.command("data-sync")
 def data_sync(
-    symbols: str = typer.Option(..., "--symbols", "-s", help="逗号分隔，如 sh600000,sz000001"),
-    start: str = typer.Option("20230101", help="开始日期 YYYYMMDD"),
-    end: str = typer.Option("20231231", help="结束日期 YYYYMMDD"),
+    symbols: Optional[str] = typer.Option(
+        None, "--symbols", "-s", help="逗号分隔，如 sh600000,sz000001；与 --all 二选一"
+    ),
+    start: str = typer.Option("20230101", help="开始日期 YYYYMMDD（--all 时忽略，固定从上市起抓）"),
+    end: Optional[str] = typer.Option(None, help="结束日期 YYYYMMDD，默认今天（--symbols 模式下默认 20231231）"),
     refresh: bool = typer.Option(False, help="忽略缓存强制重抓"),
     asset: str = typer.Option("stock", "--asset", help="资产类型：stock 个股 / etf 基金"),
     adjust: str = typer.Option("", "--adjust", help="个股复权方式：留空=不复权，qfq=前复权，hfq=后复权"),
+    all_symbols: bool = typer.Option(False, "--all", help="同步全市场（个股取自快照，ETF 取全清单）"),
+    limit: Optional[int] = typer.Option(None, "--limit", help="--all 时最多同步多少只"),
+    delay: float = typer.Option(0.2, help="--all 时每次请求后的休眠秒数"),
+    retries: int = typer.Option(3, help="--all 时单只失败重试次数"),
+    force: bool = typer.Option(False, "--force", help="--all 时忽略清单强制重抓"),
 ) -> None:
-    """抓取行情并写入本地 Parquet 缓存。"""
+    """抓取行情并写入本地 Parquet 缓存。
+
+    两种模式：
+    - 指定 ``--symbols``：只抓给定窗口（快，适合单次研究）
+    - ``--all``：抓**从上市到最新**的完整历史，支持按任意年份区间回测（慢，可续跑）
+    """
+    if all_symbols:
+        if asset == "etf":
+            codes = fetch_etf_snapshot()["symbol"].tolist()
+        else:
+            codes = fetch_snapshot()["symbol"].tolist()
+        if limit is not None:
+            codes = codes[:limit]
+        console.print(
+            f"全历史同步：资产 {asset}，共 {len(codes)} 只，"
+            f"间隔 {delay}s，重试 {retries} 次（已完成的标的会自动跳过）"
+        )
+
+        def on_progress(done: int, total: int, symbol: str) -> None:
+            if done % 50 == 0 or done == total:
+                console.print(f"  [dim]{done}/{total} {symbol}[/dim]")
+
+        result = sync_symbols(
+            codes,
+            asset=asset,
+            adjust=adjust or ("qfq" if asset == "stock" else ""),
+            end=end,
+            delay=delay,
+            retries=retries,
+            force=force,
+            progress=on_progress,
+        )
+        counts = result["status"].value_counts().to_dict()
+        console.print(f"\n完成：{counts}")
+        if "failed" in counts:
+            failed = result[result["status"] == "failed"]
+            console.print(f"[yellow]失败 {len(failed)} 只，重跑同一命令会只补抓失败项[/yellow]")
+            for _, row in failed.head(10).iterrows():
+                console.print(f"  {row['symbol']}: {row['error']}")
+        today = result[result["status"] == "fetched"]
+        if not today.empty:
+            console.print(
+                f"本次抓取 {len(today)} 只，总 K 线 {int(today['rows'].sum())} 行，"
+                f"最早 {today['first_date'].min()}"
+            )
+        return
+
+    if symbols is None:
+        raise typer.BadParameter("需要 --symbols 或 --all")
+
+    window_end = end or "20231231"
     for symbol in _parse_symbols(symbols):
-        df = _load_bars([symbol], start, end, asset=asset, adjust=adjust, refresh=refresh)[symbol]
+        df = _load_bars([symbol], start, window_end, asset=asset, adjust=adjust, refresh=refresh)[symbol]
         console.print(f"[green]{symbol}[/green] 缓存 {len(df)} 行 -> {df['date'].min():%Y-%m-%d} ~ {df['date'].max():%Y-%m-%d}")
+
+
+@app.command("data-status")
+def data_status(
+    asset: str = typer.Option("stock", "--asset", help="资产类型：stock 个股 / etf 基金"),
+    adjust: str = typer.Option("qfq", "--adjust", help="个股复权口径"),
+) -> None:
+    """查看本地缓存覆盖情况（按上市年份分组），用于确认可选的回测区间。"""
+    frame = coverage_summary(asset=asset, adjust=adjust)
+    if frame.empty:
+        console.print("[yellow]没有缓存清单，先运行 data-sync --all[/yellow]")
+        raise typer.Exit()
+
+    table = Table(title=f"缓存覆盖（{asset} / {adjust or 'raw'}）")
+    for column, justify in [("上市年份", "right"), ("标的数", "right"), ("累计K线", "right"), ("最新日期", "left")]:
+        table.add_column(column, justify=justify)
+    for _, row in frame.iterrows():
+        table.add_row(
+            str(int(row["上市年份"])),
+            str(int(row["标的数"])),
+            f"{int(row['累计K线']):,}",
+            str(row["最新日期"]),
+        )
+    console.print(table)
+    console.print(f"合计 [bold]{int(frame['标的数'].sum())}[/bold] 只，{int(frame['累计K线'].sum()):,} 根 K 线")
 
 
 @app.command("backtest")

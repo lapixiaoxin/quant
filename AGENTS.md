@@ -16,6 +16,8 @@ cp .env.example .env          # 按需修改配置
 .venv/bin/python -m pytest -q # 跑测试（等价 uv run pytest）
 
 uv run qtrader data-sync --symbols sh600000,sz000001 --start 20230101 --end 20240630
+uv run qtrader data-sync --all --adjust qfq --delay 0.2      # 全市场从上市起抓全历史（可续跑）
+uv run qtrader data-status --adjust qfq                      # 查看覆盖年份与标的数
 uv run qtrader backtest --symbols sh600000 --start 20230101 --end 20240630 --report reports/bt.html
 uv run qtrader live --symbols sh600000 --start 20230101 --end 20231231 --duration 30s
 uv run qtrader screen --out reports/candidates.csv   # 四层漏斗筛选波段标的（默认走全市场快照）
@@ -72,6 +74,9 @@ tests/test_smoke.py        # 冒烟测试：合成数据跑通回测与 paper �
 - CLI 对应参数为 `--adjust`，三个子命令（`data-sync` / `backtest` / `live`）都支持；`data-sync` 与 `backtest` 需使用同一 `--adjust` 值，否则会读到不同口径的缓存。
 - ETF 走独立接口与缓存：池用 `fund_etf_category_sina`、历史用 `fund_etf_hist_sina`，函数在 `data/etf_source.py`，缓存放 `data/etf/bars/`（与个股隔离）。东财 ETF 源在部分网络下不可用，不要改回去。
 - **已知限制**：新浪 ETF 历史是**不复权**价，ETF 分红会造成除息跳空；做长周期指标时要知晓这一偏差。
+- **全历史同步**：`data-sync --all` 走 `data/bulk.py`，从 `19900101` 抓完整历史，用 `data/bars/1d/_meta/{symbol}.{tag}.json` 清单做断点续跑（完整且 7 天内更新过的标的自动跳过）。清单里的 `first_date` 是真实上市日，`data-status` 按上市年份汇总。
+- 全量规模参考：个股约 5575 只 + ETF 约 1712 只，实测约 0.87 秒/只（delay 0.1），全量约 1.8 小时、400MB 左右。`--all` 时必须显式设 `--delay`，不要并发抓取，避免被数据源封 IP。
+- `data-sync --all` 的 `--end` 默认今天；`--symbols` 模式默认 `20231231`。两者行为不同，改参数时注意。
 
 ### 筛选层
 - 入口：`qtrader screen`（CLI）或 `qtrader.screening.run_screen` / `run_out_of_sample`（代码）。

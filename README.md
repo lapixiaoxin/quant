@@ -51,6 +51,10 @@ cp .env.example .env        # 按需修改
 # 1) 抓取并缓存日线
 qtrader data-sync --symbols sh600000,sz000001 --start 20230101 --end 20240630
 
+# 1b) 抓全市场全历史（从上市起，可断点续跑；首次约 1.8 小时 / 400MB）
+qtrader data-sync --all --adjust qfq --delay 0.2
+qtrader data-status --adjust qfq      # 查看覆盖的上市年份与标的数
+
 # 2) 回测并生成 HTML 报告
 qtrader backtest --symbols sh600000 --start 20230101 --end 20240630 --report reports/bt.html
 

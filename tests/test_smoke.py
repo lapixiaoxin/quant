@@ -6,7 +6,8 @@ import numpy as np
 import pandas as pd
 
 from qtrader.backtest import run as run_backtest
-from qtrader.data import ParquetStore, fetch_daily
+from qtrader.data import ParquetStore, fetch_daily, read_meta, sync_symbols
+from qtrader.data.bulk import _is_fresh, coverage_summary, write_meta
 from qtrader.live import run_session
 from qtrader.screening import (
     FunnelConfig,
@@ -236,3 +237,47 @@ def test_fee_params_zero_stamp_tax_for_etf() -> None:
     assert etf.fee_params()["transfer_fee_rate"] == 0.0
     assert stock.fee_params()["stamp_tax_rate"] == 0.0005
     assert stock.fee_params()["transfer_fee_rate"] == 0.00001
+
+
+def test_freshness_rules(tmp_path, monkeypatch) -> None:
+    """清单完整且最新才跳过；过期或不完整都应重抓。"""
+    import datetime as dt
+
+    root = tmp_path
+    write_meta(root, "sh600000", "qfq", {"symbol": "sh600000", "last_date": "2026-10-20", "complete": True})
+    write_meta(root, "sh600001", "qfq", {"symbol": "sh600001", "last_date": "2020-01-01", "complete": True})
+    write_meta(root, "sh600002", "qfq", {"symbol": "sh600002", "last_date": "2026-10-20", "complete": False})
+
+    class _FixedDate(dt.date):
+        @classmethod
+        def today(cls):
+            return dt.date(2026, 10, 21)
+
+    monkeypatch.setattr("qtrader.data.bulk.date", _FixedDate)
+    assert _is_fresh(read_meta(root, "sh600000", "qfq")) is True
+    assert _is_fresh(read_meta(root, "sh600001", "qfq")) is False
+    assert _is_fresh(read_meta(root, "sh600002", "qfq")) is False
+    assert _is_fresh(None) is False
+
+
+def test_coverage_summary_groups_by_listing_year(tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr("qtrader.data.bulk._store_root", lambda asset: tmp_path)
+    write_meta(tmp_path, "sh600000", "qfq", {"symbol": "sh600000", "first_date": "1999-11-10", "last_date": "2026-10-20", "rows": 6409})
+    write_meta(tmp_path, "sh601088", "qfq", {"symbol": "sh601088", "first_date": "2007-10-09", "last_date": "2026-10-20", "rows": 4546})
+
+    frame = coverage_summary("stock", "qfq")
+    assert dict(zip(frame["上市年份"], frame["标的数"])) == {1999: 1, 2007: 1}
+    assert int(frame["累计K线"].sum()) == 6409 + 4546
+
+
+def test_sync_reports_failure_without_raising(tmp_path, monkeypatch) -> None:
+    """单只抓取失败应记为 failed，不中断整批。"""
+    monkeypatch.setattr("qtrader.data.bulk._store_root", lambda asset: tmp_path)
+
+    def boom(*args, **kwargs):
+        raise RuntimeError("接口错误")
+
+    monkeypatch.setattr("qtrader.data.bulk._fetch_full", boom)
+    result = sync_symbols(["sh600000"], asset="stock", delay=0, retries=1)
+    assert result.iloc[0]["status"] == "failed"
+    assert "接口错误" in result.iloc[0]["error"]
